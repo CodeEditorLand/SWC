@@ -69,7 +69,7 @@
 		"@babel/generator": "7.26.5",
 		"@babel/plugin-proposal-decorators": "7.25.9",
 		"@babel/plugin-proposal-object-rest-spread": "7.20.7",
-		"@babel/types": "7.26.5",
+		"@babel/types": "7.26.7",
 		"@codeeditorland/helpers": "0.0.1",
 		"@codeeditorland/plugin-coverage-instrument": "0.0.1",
 		"@codeeditorland/plugin-jest": "0.0.1",
