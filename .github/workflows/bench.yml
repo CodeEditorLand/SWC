@@ -1,0 +1,117 @@
+name: Benchmark
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: ["opened", "reopened", "synchronize"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  CI: 1
+  CARGO_INCREMENTAL: 0
+  CARGO_TERM_COLOR: "always"
+  DIFF: 0
+  # For faster CI
+  RUST_LOG: "off"
+  # https://github.com/swc-project/swc/pull/3742
+  RUST_MIN_STACK: 4194304
+  # https://github.com/actions/setup-node/issues/899#issuecomment-1819151595
+  SKIP_YARN_COREPACK_CHECK: 1
+
+jobs:
+  list-crates:
+    if: >-
+      ${{ !contains(github.event.head_commit.message, 'chore: ') }}
+    name: List crates to benchmark
+    runs-on: ubuntu-22.04
+    outputs:
+      crates: ${{ steps.list-crates.outputs.crates }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: List crates
+        id: list-crates
+        run: echo "crates=$(./scripts/bench/list-crates-with-bench.sh)" >> $GITHUB_OUTPUT
+
+  build-crate:
+    name: Build benchmark for ${{ matrix.crate }}
+    runs-on: ubuntu-22.04
+    needs: list-crates
+    strategy:
+      matrix:
+        crate: ${{fromJson(needs.list-crates.outputs.crates)}}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+
+      - uses: Swatinem/rust-cache@v2
+        # Some crates are too slow to build
+        if: matrix.crate == 'swc'
+        with:
+          shared-key: "bench-${{ matrix.crate }}"
+          key: "bench-${{ matrix.crate }}"
+          cache-all-crates: true
+
+      - name: Install cargo-codspeed
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-codspeed@2.7.2
+
+      - name: Build the benchmark target(s)
+        run: ./scripts/bench/build-crate.sh ${{ matrix.crate }}
+
+      - name: Upload built artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bench-${{ matrix.crate }}
+          path: target/codspeed
+
+  bench-all:
+    name: Run benchmarks
+    needs: build-crate
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+    if: >-
+      ${{ !contains(github.event.head_commit.message, 'chore: ') }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+
+      - name: Install cargo-codspeed
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-codspeed@2.7.2
+
+      - run: mkdir -p target/codspeed
+
+      - name: Download built artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: bench-*
+          path: target/codspeed
+          merge-multiple: true
+
+      - run: ls -alR target/codspeed
+
+      - run: chmod -R +x target/codspeed/*
+
+      - name: Run the benchmarks
+        uses: CodSpeedHQ/action@v3
+        with:
+          run: cargo codspeed run
+          token: ${{ secrets.CODSPEED_TOKEN }}

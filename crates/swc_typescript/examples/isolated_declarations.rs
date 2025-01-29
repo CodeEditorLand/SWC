@@ -51,6 +51,16 @@ pub fn main() {
 		);
 		let issues = checker.transform(&mut program);
 		dts_code = to_code_with_comments(Some(&comments), &program);
+        let internal_annotations = FastDts::get_internal_annotations(&comments);
+        let mut checker = FastDts::new(
+            fm.name.clone(),
+            unresolved_mark,
+            FastDtsOptions {
+                internal_annotations: Some(internal_annotations),
+            },
+        );
+        let issues = checker.transform(&mut program);
+        dts_code = to_code_with_comments(Some(&comments), &program);
 
 		for issue in issues {
 			handler.struct_span_err(issue.range.span, &issue.message).emit();

@@ -702,6 +702,23 @@ test!(
 	},
 	custom_identifier,
 	r#"
+        (
+            resolver(unresolved_mark, top_level_mark, false),
+            refresh(
+                true,
+                Some(RefreshOptions {
+                    refresh_reg: "import_meta_refreshReg".into(),
+                    refresh_sig: "import_meta_refreshSig".into(),
+                    emit_full_signatures: true,
+                }),
+                t.cm.clone(),
+                Some(t.comments.clone()),
+                top_level_mark,
+            ),
+        )
+    },
+    custom_identifier,
+    r#"
     export default function Bar () {
       useContext(X)
       return <Foo />
