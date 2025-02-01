@@ -2,37 +2,46 @@ use std::ops::{Deref, DerefMut};
 
 use super::InfectionCollector;
 
-impl<'a> InfectionCollector<'a> {
-	pub(super) fn with_ctx(&mut self, ctx:Ctx) -> WithCtx<'_, 'a> {
-		let orig_ctx = self.ctx;
+impl InfectionCollector {
+    pub(super) fn with_ctx(&mut self, ctx: Ctx) -> WithCtx {
+        let orig_ctx = self.ctx;
+        self.ctx = ctx;
 
-		self.ctx = ctx;
-
-		WithCtx { analyzer:self, orig_ctx }
-	}
+        WithCtx {
+            analyzer: self,
+            orig_ctx,
+        }
+    }
 }
 
 #[derive(Debug, Default, Clone, Copy)]
-pub struct Ctx {
-	pub track_expr_ident:bool,
-	pub is_callee:bool,
+pub(crate) struct Ctx {
+    pub track_expr_ident: bool,
+    pub is_callee: bool,
+    pub is_pat_decl: bool,
 }
 
-pub(super) struct WithCtx<'a, 'b> {
-	analyzer:&'a mut InfectionCollector<'b>,
-	orig_ctx:Ctx,
+pub(super) struct WithCtx<'a> {
+    analyzer: &'a mut InfectionCollector,
+    orig_ctx: Ctx,
 }
 
-impl<'b> Deref for WithCtx<'_, 'b> {
-	type Target = InfectionCollector<'b>;
+impl Deref for WithCtx<'_> {
+    type Target = InfectionCollector;
 
-	fn deref(&self) -> &Self::Target { self.analyzer }
+    fn deref(&self) -> &Self::Target {
+        self.analyzer
+    }
 }
 
-impl DerefMut for WithCtx<'_, '_> {
-	fn deref_mut(&mut self) -> &mut Self::Target { self.analyzer }
+impl DerefMut for WithCtx<'_> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        self.analyzer
+    }
 }
 
-impl Drop for WithCtx<'_, '_> {
-	fn drop(&mut self) { self.analyzer.ctx = self.orig_ctx; }
+impl Drop for WithCtx<'_> {
+    fn drop(&mut self) {
+        self.analyzer.ctx = self.orig_ctx;
+    }
 }
