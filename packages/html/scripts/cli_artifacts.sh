@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 mkdir -p ./artifacts_cli
 # Naive substitution to napi artifacts for the cli binary.
