@@ -1,6 +1,6 @@
 [package]
 edition = "2021"
-license.workspace = true
+license-file.workspace = true
 name = "swc-releaser"
 publish = false
 repository = { workspace = true }
