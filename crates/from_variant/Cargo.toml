@@ -1,6 +1,6 @@
 [package]
-authors = ["강동윤 <kdy1997.dev@gmail.com>"]
-description = "Automatically derive From impls for enums"
+authors       = ["강동윤 <kdy1997.dev@gmail.com>"]
+description   = "Automatically derive From impls for enums"
 documentation = "https://rustdoc.swc.rs/from_variant/"
 edition       = { workspace = true }
 license       = { workspace = true }
@@ -9,14 +9,13 @@ repository    = { workspace = true }
 version       = "2.0.0"
 
 [lib]
-bench = false
-path = "Source/lib.rs"
+bench      = false
 proc-macro = true
 
 [dependencies]
 proc-macro2 = { workspace = true }
 
 swc_macros_common = { version = "1.0.0", path = "../swc_macros_common" }
-[dependencies.syn]
-features = ["derive", "fold", "parsing", "printing"]
-workspace = true
+  [dependencies.syn]
+  features  = ["derive", "fold", "parsing", "printing"]
+  workspace = true
