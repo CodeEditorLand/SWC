@@ -1,6 +1,6 @@
 [package]
-authors = ["강동윤 <kdy1997.dev@gmail.com>"]
-description = "Configures the best memory allocator for each platforms"
+authors       = ["강동윤 <kdy1997.dev@gmail.com>"]
+description   = "Configures the best memory allocator for each platforms"
 documentation = "https://rustdoc.swc.rs/swc_malloc/"
 edition       = { workspace = true }
 license       = { workspace = true }
@@ -10,7 +10,6 @@ version       = "1.0.0"
 
 [lib]
 bench = false
-path = "Source/lib.rs"
 
 [dependencies]
 
@@ -18,4 +17,4 @@ path = "Source/lib.rs"
 mimalloc = { version = "0.1" }
 
 [target.'cfg(all(target_os = "linux", target_env = "gnu", any(target_arch = "x86_64", target_arch = "aarch64")))'.dependencies]
-tikv-jemallocator = { version = "0.6", features = ["disable_initial_exec_tls"] }
+tikv-jemallocator = { version = "0.5", features = ["disable_initial_exec_tls"] }
