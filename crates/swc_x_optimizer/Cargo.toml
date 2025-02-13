@@ -1,5 +1,5 @@
 [package]
-authors = ["강동윤 <kdy1997.dev@gmail.com>"]
+authors     = ["강동윤 <kdy1997.dev@gmail.com>"]
 description = "Cross-module optimizer built on SWC"
 edition     = { workspace = true }
 license     = { workspace = true }
@@ -9,6 +9,3 @@ version     = "0.1.0"
 
 
 [dependencies]
-
-[lib]
-path = "Source/lib.rs"
