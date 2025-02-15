@@ -1,51 +1,54 @@
-[package]
-authors       = ["강동윤 <kdy1997.dev@gmail.com>"]
-description   = "Ecmascript"
-documentation = "https://rustdoc.swc.rs/swc_ecmascript/"
-edition       = { workspace = true }
-license       = { workspace = true }
-name          = "swc_ecmascript"
-repository    = { workspace = true }
-version       = "12.0.0"
+[dependencies]
+swc_ecma_ast = { version = "6.1.0", path = "../swc_ecma_ast" }
+swc_ecma_codegen = { version = "6.1.0", path = "../swc_ecma_codegen", optional = true }
+swc_ecma_minifier = { version = "10.2.1", path = "../swc_ecma_minifier", optional = true }
+swc_ecma_parser = { version = "8.0.2", path = "../swc_ecma_parser", optional = true, default-features = false }
+swc_ecma_preset_env = { version = "11.0.0", path = "../swc_ecma_preset_env", optional = true }
+swc_ecma_quote = { version = "8.0.0", path = "../swc_ecma_quote", optional = true }
+swc_ecma_transforms = { version = "11.0.0", path = "../swc_ecma_transforms", optional = true }
+swc_ecma_utils = { version = "9.0.0", path = "../swc_ecma_utils", optional = true }
+swc_ecma_visit = { version = "6.0.0", path = "../swc_ecma_visit", optional = true }
 
-  [package.metadata.docs.rs]
-  all-features = true
-  rustdoc-args = ["--cfg", "docsrs"]
+[dev-dependencies]
+
+[features]
+codegen = ["swc_ecma_codegen"]
+compat = ["swc_ecma_transforms/compat"]
+concurrent = ["swc_ecma_minifier/concurrent"]
+default = ["typescript-parser"]
+minifier = ["swc_ecma_minifier"]
+module = ["swc_ecma_transforms/module"]
+optimization = ["swc_ecma_transforms/optimization"]
+parser = ["swc_ecma_parser"]
+preset_env = ["swc_ecma_preset_env"]
+proposal = ["swc_ecma_transforms/proposal"]
+quote = ["swc_ecma_quote"]
+react = ["swc_ecma_transforms/react"]
+rkyv-impl = ["swc_ecma_ast/rkyv-impl"]
+transforms = ["swc_ecma_transforms"]
+typescript = ["typescript-parser", "swc_ecma_transforms/typescript"]
+typescript-parser = ["swc_ecma_parser/typescript"]
+utils = ["swc_ecma_utils"]
+visit = ["swc_ecma_visit"]
 
 [lib]
 bench = false
+path = "Source/lib.rs"
 
-[features]
-codegen    = ["swc_ecma_codegen"]
-concurrent = ["swc_ecma_minifier/concurrent"]
-default    = ["typescript-parser"]
-minifier   = ["swc_ecma_minifier"]
-parser     = ["swc_ecma_parser"]
-preset_env = ["swc_ecma_preset_env"]
-quote      = ["swc_ecma_quote"]
-rkyv-impl  = ["swc_ecma_ast/rkyv-impl"]
-transforms = ["swc_ecma_transforms"]
-utils      = ["swc_ecma_utils"]
-visit      = ["swc_ecma_visit"]
+[package]
+authors = ["강동윤 <kdy1997.dev@gmail.com>"]
+description = "Ecmascript"
+documentation = "https://rustdoc.swc.rs/swc_ecmascript/"
+edition = { workspace = true }
+license-file = { workspace = true }
+name = "swc_ecmascript"
+repository = { workspace = true }
+version = "12.0.0"
 
-typescript-parser = ["swc_ecma_parser/typescript"]
+[package.metadata]
 
-compat       = ["swc_ecma_transforms/compat"]
-module       = ["swc_ecma_transforms/module"]
-optimization = ["swc_ecma_transforms/optimization"]
-proposal     = ["swc_ecma_transforms/proposal"]
-react        = ["swc_ecma_transforms/react"]
-typescript   = ["typescript-parser", "swc_ecma_transforms/typescript"]
+[package.metadata.docs]
 
-[dependencies]
-swc_ecma_ast        = { version = "6.1.0", path = "../swc_ecma_ast" }
-swc_ecma_codegen    = { version = "6.1.0", path = "../swc_ecma_codegen", optional = true }
-swc_ecma_minifier   = { version = "10.2.1", path = "../swc_ecma_minifier", optional = true }
-swc_ecma_parser     = { version = "8.0.2", path = "../swc_ecma_parser", optional = true, default-features = false }
-swc_ecma_preset_env = { version = "11.0.0", path = "../swc_ecma_preset_env", optional = true }
-swc_ecma_quote      = { version = "8.0.0", path = "../swc_ecma_quote", optional = true }
-swc_ecma_transforms = { version = "11.0.0", path = "../swc_ecma_transforms", optional = true }
-swc_ecma_utils      = { version = "9.0.0", path = "../swc_ecma_utils", optional = true }
-swc_ecma_visit      = { version = "6.0.0", path = "../swc_ecma_visit", optional = true }
-
-[dev-dependencies]
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

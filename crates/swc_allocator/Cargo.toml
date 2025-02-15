@@ -1,27 +1,6 @@
-[package]
-authors = ["강동윤 <kdy1997.dev@gmail.com>"]
-description = "A thin wrapper for bumpalo"
-documentation = "https://rustdoc.swc.rs/swc_allocator/"
-edition       = { workspace = true }
-license       = { workspace = true }
-name          = "swc_allocator"
-repository    = { workspace = true }
-version       = "2.0.0"
-
-  [package.metadata.docs.rs]
-  all-features = true
-  rustdoc-args = ["--cfg", "docsrs"]
-
-[package.metadata.docs.rs]
-all-features = true
-rustdoc-args = ["--cfg", "docsrs"]
-
-[features]
-default = ["scoped", "rkyv"]
-nightly = ["bumpalo/allocator_api", "hashbrown/nightly"]
-rkyv    = ["dep:rkyv", "dep:rancor"]
-scoped  = ["nightly"]
-serde   = ["dep:serde"]
+[[bench]]
+harness = false
+name = "bench"
 
 [dependencies]
 bumpalo = { workspace = true, features = [
@@ -38,14 +17,34 @@ serde = { workspace = true, optional = true }
 triomphe = { workspace = true }
 
 [dev-dependencies]
-criterion = { workspace = true }
-
 codspeed-criterion-compat = { workspace = true }
+criterion = { workspace = true }
 swc_malloc = { version = "1.0.0", path = "../swc_malloc" }
 
-[[bench]]
-harness = false
-name = "bench"
+[features]
+default = ["scoped", "rkyv"]
+nightly = ["bumpalo/allocator_api", "hashbrown/nightly"]
+rkyv = ["dep:rkyv", "dep:rancor"]
+scoped = ["nightly"]
+serde = ["dep:serde"]
 
 [lib]
 path = "Source/lib.rs"
+
+[package]
+authors = ["강동윤 <kdy1997.dev@gmail.com>"]
+description = "A thin wrapper for bumpalo"
+documentation = "https://rustdoc.swc.rs/swc_allocator/"
+edition = { workspace = true }
+license-file = { workspace = true }
+name = "swc_allocator"
+repository = { workspace = true }
+version = "2.0.0"
+
+[package.metadata]
+
+[package.metadata.docs]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

@@ -1,19 +1,23 @@
-[package]
-authors       = ["강동윤 <kdy1997.dev@gmail.com>"]
-description   = "Ecmascript ast."
-documentation = "https://rustdoc.swc.rs/swc_ecma_ast/"
-edition       = { workspace = true }
-license       = { workspace = true }
-name          = "swc_ecma_ast"
-repository    = { workspace = true }
-version       = "6.1.0"
+[dependencies]
+arbitrary = { workspace = true, features = ["derive"], optional = true }
+bitflags = { workspace = true }
+bytecheck = { workspace = true, optional = true }
+is-macro = { workspace = true }
+num-bigint = { workspace = true, features = ["serde"] }
+phf = { workspace = true, features = ["macros"] }
+rancor = { workspace = true, optional = true }
+rkyv = { workspace = true, optional = true }
+scoped-tls = { workspace = true }
+serde = { workspace = true, features = ["derive"], optional = true }
+shrink-to-fit = { workspace = true, optional = true }
+string_enum = { version = "1.0.0", path = "../string_enum" }
+swc_atoms = { version = "3.1.0", path = "../swc_atoms" }
+swc_common = { version = "6.1.1", path = "../swc_common" }
+swc_visit = { version = "2.0.0", path = "../swc_visit" }
+unicode-id-start = { workspace = true }
 
-  [package.metadata.docs.rs]
-  all-features = true
-  rustdoc-args = ["--cfg", "docsrs"]
-
-[lib]
-bench = false
+[dev-dependencies]
+serde_json = { workspace = true }
 
 [features]
 __rkyv = []
@@ -34,25 +38,24 @@ shrink-to-fit = [
   "swc_common/shrink-to-fit",
 ]
 
+[lib]
+bench = false
+path = "Source/lib.rs"
 
-[dependencies]
-arbitrary        = { workspace = true, features = ["derive"], optional = true }
-bitflags         = { workspace = true }
-bytecheck        = { workspace = true, optional = true }
-is-macro         = { workspace = true }
-num-bigint       = { workspace = true, features = ["serde"] }
-phf              = { workspace = true, features = ["macros"] }
-rancor           = { workspace = true, optional = true }
-rkyv             = { workspace = true, optional = true }
-scoped-tls       = { workspace = true }
-serde            = { workspace = true, features = ["derive"], optional = true }
-shrink-to-fit    = { workspace = true, optional = true }
-unicode-id-start = { workspace = true }
+[package]
+authors = ["강동윤 <kdy1997.dev@gmail.com>"]
+description = "Ecmascript ast."
+documentation = "https://rustdoc.swc.rs/swc_ecma_ast/"
+edition = { workspace = true }
+license-file = { workspace = true }
+name = "swc_ecma_ast"
+repository = { workspace = true }
+version = "6.1.0"
 
-string_enum = { version = "1.0.0", path = "../string_enum" }
-swc_atoms   = { version = "3.1.0", path = "../swc_atoms" }
-swc_common  = { version = "6.1.1", path = "../swc_common" }
-swc_visit   = { version = "2.0.0", path = "../swc_visit" }
+[package.metadata]
 
-[dev-dependencies]
-serde_json = { workspace = true }
+[package.metadata.docs]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

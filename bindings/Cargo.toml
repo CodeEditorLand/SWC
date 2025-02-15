@@ -1,3 +1,15 @@
+[profile]
+
+[profile.dev]
+
+[profile.dev.package]
+
+[profile.dev.package."*"]
+debug-assertions = false
+
+[profile.release]
+strip = "symbols"
+
 [workspace]
 members = [
   "binding_core_node",
@@ -11,62 +23,46 @@ members = [
 ]
 resolver = "2"
 
-  [workspace.package]
-  edition    = "2021"
-  license    = "Apache-2.0"
-  repository = "https://github.com/swc-project/swc.git"
+[workspace.dependencies]
+anyhow = "1.0.95"
+backtrace = "0.3"
+getrandom = "0.3.1"
+lightningcss = "1.0.0-alpha.63"
+napi = { version = "2", default-features = false }
+napi-build = "2"
+napi-derive = { version = "2", default-features = false }
+path-clean = "1.0"
+quote = "1"
+serde = "1"
+serde-wasm-bindgen = "0.6.5"
+serde_json = "1.0.138"
+sourcemap = "9.1.2"
+swc_atoms = "3.0.4"
+swc_cached = "1.0.0"
+swc_cli_impl = "12.0.0"
+swc_common = "5.0.1"
+swc_compiler_base = "10.0.0"
+swc_config = "1.0.0"
+swc_core = "12.0.0"
+swc_css_ast = "5.0.0"
+swc_css_codegen = "5.0.0"
+swc_css_minifier = "5.0.0"
+swc_css_parser = "5.0.0"
+swc_error_reporters = "6.0.0"
+swc_fast_ts_strip = "8.0.0"
+swc_html = "9.0.0"
+swc_html_ast = "5.0.0"
+swc_html_minifier = "9.0.0"
+swc_malloc = "1.0.0"
+swc_nodejs_common = "1.0.0"
+tracing = "0.1.41"
+tracing-chrome = "0.7.2"
+tracing-futures = "0.2.5"
+tracing-subscriber = "0.3.19"
+wasm-bindgen = "0.2.100"
+wasm-bindgen-futures = "0.4.50"
 
-
-  [workspace.dependencies]
-  anyhow               = "1.0.95"
-  backtrace            = "0.3"
-  getrandom            = "0.3.1"
-  lightningcss         = "1.0.0-alpha.63"
-  napi                 = { version = "2", default-features = false }
-  napi-build           = "2"
-  napi-derive          = { version = "2", default-features = false }
-  path-clean           = "1.0"
-  quote                = "1"
-  serde                = "1"
-  serde-wasm-bindgen   = "0.6.5"
-  serde_json           = "1.0.138"
-  sourcemap            = "9.1.2"
-  swc_atoms            = "3.0.4"
-  swc_cached           = "1.0.0"
-  swc_cli_impl         = "12.0.0"
-  swc_common           = "5.0.1"
-  swc_compiler_base    = "10.0.0"
-  swc_config           = "1.0.0"
-  swc_core             = "12.0.0"
-  swc_css_ast          = "5.0.0"
-  swc_css_codegen      = "5.0.0"
-  swc_css_minifier     = "5.0.0"
-  swc_css_parser       = "5.0.0"
-  swc_error_reporters  = "6.0.0"
-  swc_fast_ts_strip    = "8.0.0"
-  swc_html             = "9.0.0"
-  swc_html_ast         = "5.0.0"
-  swc_html_minifier    = "9.0.0"
-  swc_malloc           = "1.0.0"
-  swc_nodejs_common    = "1.0.0"
-  tracing              = "0.1.41"
-  tracing-chrome       = "0.7.2"
-  tracing-futures      = "0.2.5"
-  tracing-subscriber   = "0.3.19"
-  wasm-bindgen         = "0.2.100"
-  wasm-bindgen-futures = "0.4.50"
-
-[profile.release]
-# lto = true
-
-# We use CARGO_PROFILE_RELEASE_LTO for production builds
-# lto = "fat"
-
-# debug = true
-# opt-level = 'z'
-
-# Strip debug symbols
-strip = "symbols"
-
-[profile.dev.package."*"]
-debug-assertions = false
+[workspace.package]
+edition = "2021"
+license-file = "LICENSE"
+repository = "https://github.com/swc-project/swc.git"

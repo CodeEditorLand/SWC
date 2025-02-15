@@ -1,22 +1,23 @@
-[package]
-authors       = ["강동윤 <kdy1997.dev@gmail.com>"]
-description   = "Macros for ast nodes."
-documentation = "https://rustdoc.swc.rs/ast_node/"
-edition       = { workspace = true }
-license       = { workspace = true }
-name          = "ast_node"
-repository    = { workspace = true }
-version       = "3.0.0"
-
-[lib]
-bench      = false
-proc-macro = true
-
 [dependencies]
 proc-macro2 = { workspace = true }
-quote       = { workspace = true }
-
+quote = { workspace = true }
 swc_macros_common = { version = "1.0.0", path = "../swc_macros_common" }
-  [dependencies.syn]
-  features  = ["derive", "fold", "parsing", "printing", "visit-mut"]
-  workspace = true
+
+[dependencies.syn]
+features = ["derive", "fold", "parsing", "printing", "visit-mut"]
+workspace = true
+
+[lib]
+bench = false
+path = "Source/lib.rs"
+proc-macro = true
+
+[package]
+authors = ["강동윤 <kdy1997.dev@gmail.com>"]
+description = "Macros for ast nodes."
+documentation = "https://rustdoc.swc.rs/ast_node/"
+edition = { workspace = true }
+license-file = { workspace = true }
+name = "ast_node"
+repository = { workspace = true }
+version = "3.0.0"

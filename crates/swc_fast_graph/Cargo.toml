@@ -1,19 +1,19 @@
-[package]
-authors     = ["강동윤 <kdy1997.dev@gmail.com>"]
-description = "Faster version of petgraph"
-edition     = { workspace = true }
-include     = ["Cargo.toml", "src/**/*.rs"]
-license     = { workspace = true }
-name        = "swc_fast_graph"
-repository  = { workspace = true }
-version     = "7.0.0"
+[dependencies]
+indexmap = { workspace = true }
+petgraph = { workspace = true }
+rustc-hash = { workspace = true }
+swc_common = { version = "6.1.1", path = "../swc_common" }
 
 [lib]
 bench = false
+path = "Source/lib.rs"
 
-[dependencies]
-indexmap   = { workspace = true }
-petgraph   = { workspace = true }
-rustc-hash = { workspace = true }
-
-swc_common = { version = "6.1.1", path = "../swc_common" }
+[package]
+authors = ["강동윤 <kdy1997.dev@gmail.com>"]
+description = "Faster version of petgraph"
+edition = { workspace = true }
+include = ["Cargo.toml", "src/**/*.rs"]
+license-file = { workspace = true }
+name = "swc_fast_graph"
+repository = { workspace = true }
+version = "7.0.0"

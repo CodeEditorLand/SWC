@@ -1,12 +1,8 @@
-[package]
-authors = ["Automatically generated"]
-edition = "2018"
-name = "swc_ecma_minifier-fuzz"
-publish = false
-version = "0.0.0"
-
-[package.metadata]
-cargo-fuzz = true
+[[bin]]
+doc = false
+name = "bug"
+path = "fuzz_targets/bug.rs"
+test = false
 
 [dependencies]
 libfuzzer-sys = "0.4"
@@ -20,12 +16,15 @@ swc_ecma_transforms_base = { path = "../../swc_ecma_transforms_base" }
 swc_ecma_visit = { path = "../../swc_ecma_visit" }
 testing = { path = "../../testing" }
 
-# Prevent this from interfering with workspaces
+[package]
+authors = ["Automatically generated"]
+edition = "2018"
+name = "swc_ecma_minifier-fuzz"
+publish = false
+version = "0.0.0"
+
+[package.metadata]
+cargo-fuzz = true
+
 [workspace]
 members = ["."]
-
-[[bin]]
-doc = false
-name = "bug"
-path = "fuzz_targets/bug.rs"
-test = false

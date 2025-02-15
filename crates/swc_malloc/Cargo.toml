@@ -1,20 +1,27 @@
-[package]
-authors       = ["강동윤 <kdy1997.dev@gmail.com>"]
-description   = "Configures the best memory allocator for each platforms"
-documentation = "https://rustdoc.swc.rs/swc_malloc/"
-edition       = { workspace = true }
-license       = { workspace = true }
-name          = "swc_malloc"
-repository    = { workspace = true }
-version       = "1.0.0"
+[dependencies]
 
 [lib]
 bench = false
+path = "Source/lib.rs"
 
-[dependencies]
+[package]
+authors = ["강동윤 <kdy1997.dev@gmail.com>"]
+description = "Configures the best memory allocator for each platforms"
+documentation = "https://rustdoc.swc.rs/swc_malloc/"
+edition = { workspace = true }
+license-file = { workspace = true }
+name = "swc_malloc"
+repository = { workspace = true }
+version = "1.0.0"
 
-[target.'cfg(not(target_os = "linux"))'.dependencies]
-mimalloc = { version = "0.1" }
+[target]
+
+[target.'cfg(all(target_os = "linux", target_env = "gnu", any(target_arch = "x86_64", target_arch = "aarch64")))']
 
 [target.'cfg(all(target_os = "linux", target_env = "gnu", any(target_arch = "x86_64", target_arch = "aarch64")))'.dependencies]
 tikv-jemallocator = { version = "0.5", features = ["disable_initial_exec_tls"] }
+
+[target.'cfg(not(target_os = "linux"))']
+
+[target.'cfg(not(target_os = "linux"))'.dependencies]
+mimalloc = { version = "0.1" }

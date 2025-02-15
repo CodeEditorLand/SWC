@@ -1,20 +1,31 @@
-[package]
-authors     = ["강동윤 <kdy1997.dev@gmail.com>", "OJ Kwon <kwon.ohjoong@gmail.com>"]
-description = "Commandline for SWC (Internal crate with implementation)"
-edition     = { workspace = true }
-include     = ["Cargo.toml", "src/**/*.rs"]
-license     = { workspace = true }
-name        = "swc_cli_impl"
-repository  = { workspace = true }
-version     = "13.0.0"
-
 [[bin]]
 name = "swc"
 path = "src/main.rs"
 
-[lib]
-crate-type = ["rlib"]
-path       = "src/lib.rs"
+[dependencies]
+anyhow = { workspace = true }
+clap = { version = "3.2.25", features = ["derive", "wrap_help"] }
+glob = { workspace = true }
+path-absolutize = { workspace = true, features = ["once_cell_cache"] }
+rayon = { workspace = true }
+relative-path = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true, features = ["unbounded_depth"] }
+sourcemap = { workspace = true }
+swc_core = { version = "13.3.0", features = [
+  "trace_macro",
+  "common_concurrent",
+  "base_concurrent",
+], path = "../swc_core" }
+tracing = { workspace = true }
+tracing-chrome = { workspace = true }
+tracing-futures = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["env-filter"] }
+walkdir = { workspace = true }
+
+[dev-dependencies]
+assert_cmd = { workspace = true }
+assert_fs = { workspace = true }
 
 [features]
 default = []
@@ -23,28 +34,16 @@ plugin = [
   "swc_core/plugin_transform_host_native_filesystem_cache",
 ]
 
-[dependencies]
-anyhow             = { workspace = true }
-clap               = { version = "3.2.25", features = ["derive", "wrap_help"] }
-glob               = { workspace = true }
-path-absolutize    = { workspace = true, features = ["once_cell_cache"] }
-rayon              = { workspace = true }
-relative-path      = { workspace = true }
-serde              = { workspace = true, features = ["derive"] }
-serde_json         = { workspace = true, features = ["unbounded_depth"] }
-sourcemap          = { workspace = true }
-tracing            = { workspace = true }
-tracing-chrome     = { workspace = true }
-tracing-futures    = { workspace = true }
-tracing-subscriber = { workspace = true, features = ["env-filter"] }
-walkdir            = { workspace = true }
+[lib]
+crate-type = ["rlib"]
+path = "Source/lib.rs"
 
-swc_core = { version = "13.3.0", features = [
-  "trace_macro",
-  "common_concurrent",
-  "base_concurrent",
-], path = "../swc_core" }
-
-[dev-dependencies]
-assert_cmd = { workspace = true }
-assert_fs  = { workspace = true }
+[package]
+authors = ["강동윤 <kdy1997.dev@gmail.com>", "OJ Kwon <kwon.ohjoong@gmail.com>"]
+description = "Commandline for SWC (Internal crate with implementation)"
+edition = { workspace = true }
+include = ["Cargo.toml", "src/**/*.rs"]
+license-file = { workspace = true }
+name = "swc_cli_impl"
+repository = { workspace = true }
+version = "13.0.0"

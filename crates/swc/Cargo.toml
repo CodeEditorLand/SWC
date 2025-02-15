@@ -1,74 +1,39 @@
+[[bench]]
+harness = false
+name = "bugs"
 
+[[bench]]
+harness = false
+name = "minify"
 
-[package]
-authors       = ["강동윤 <kdy1997.dev@gmail.com>"]
-description   = "Speedy web compiler"
-documentation = "https://rustdoc.swc.rs/swc/"
-edition       = { workspace = true }
-include       = ["Cargo.toml", "src/**/*.rs"]
-license       = { workspace = true }
-name          = "swc"
-repository    = { workspace = true }
-version       = "13.0.1"
+[[bench]]
+harness = false
+name = "oxc"
 
-[lib]
-bench = false
-name  = "swc"
+[[bench]]
+harness = false
+name = "typescript"
 
-[features]
-# TODO: This may need reorganization with swc_core - swc_core allows to optionally enable
-# each features (minifier, transforms..) but swc includes all of them.
-concurrent = [
-  "swc_ecma_transforms/concurrent",
-  "swc_common/concurrent",
-  "swc_ecma_minifier/concurrent",
-]
-
-debug = ["swc_ecma_visit/debug", "swc_ecma_minifier/debug"]
-default = ["es3"]
-es3 = []
-node = ["napi", "napi-derive", "swc_compiler_base/node"]
-plugin = [
-  "swc_plugin_runner/ecma",
-  "swc_plugin_runner/rkyv-impl",
-  "swc_plugin_proxy/plugin-rt",
-  "tokio",
-]
-plugin_transform_schema_v1 = [
-  "swc_common/plugin_transform_schema_v1",
-  "swc_plugin_runner/plugin_transform_schema_v1",
-]
-plugin_transform_schema_vtest = [
-  "swc_common/plugin_transform_schema_vtest",
-  "swc_plugin_runner/plugin_transform_schema_vtest",
-]
-
-plugin_transform_host_js = ["swc_plugin_runner/plugin_transform_host_js"]
-plugin_transform_host_native = [
-  "swc_plugin_runner/plugin_transform_host_native",
-]
-# Do not inject tokio runtime while running plugin transforms
-manual-tokio-runtime = []
+[[bench]]
+harness = false
+name = "isolated_declarations"
 
 [dependencies]
-anyhow       = { workspace = true }
-base64       = { workspace = true }
-dashmap      = { workspace = true }
-either       = { workspace = true }
-indexmap     = { workspace = true, features = ["serde"] }
+anyhow = { workspace = true }
+base64 = { workspace = true }
+dashmap = { workspace = true }
+either = { workspace = true }
+indexmap = { workspace = true, features = ["serde"] }
 jsonc-parser = { workspace = true, features = ["serde"] }
-lru          = { workspace = true }
-once_cell    = { workspace = true }
-parking_lot  = { workspace = true }
-pathdiff     = { workspace = true }
-regex        = { workspace = true }
-rustc-hash   = { workspace = true }
-serde        = { workspace = true, features = ["derive"] }
-serde_json   = { workspace = true }
-sourcemap    = { workspace = true }
-tracing      = { workspace = true }
-url          = { workspace = true }
-
+lru = { workspace = true }
+once_cell = { workspace = true }
+parking_lot = { workspace = true }
+pathdiff = { workspace = true }
+regex = { workspace = true }
+rustc-hash = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+sourcemap = { workspace = true }
 swc_atoms = { version = "3.1.0", path = "../swc_atoms" }
 swc_cached = { version = "2.0.0", path = "../swc_cached" }
 swc_common = { version = "6.1.1", path = "../swc_common", features = [
@@ -110,30 +75,29 @@ swc_timer = { version = "1.0.0", path = "../swc_timer" }
 swc_transform_common = { version = "1.0.1", path = "../swc_transform_common" }
 swc_typescript = { version = "8.0.0", path = "../swc_typescript" }
 swc_visit = { version = "2.0.0", path = "../swc_visit" }
+tracing = { workspace = true }
+url = { workspace = true }
 
-  [dependencies.tokio]
-  features  = ["rt", "rt-multi-thread"]
-  optional  = true
-  workspace = true
+[dependencies.napi]
+features = ["napi3"]
+optional = true
+workspace = true
 
+[dependencies.napi-derive]
+features = ["type-def"]
+optional = true
+workspace = true
 
-  [dependencies.napi]
-  features  = ["napi3"]
-  optional  = true
-  workspace = true
-
-  [dependencies.napi-derive]
-  features  = ["type-def"]
-  optional  = true
-  workspace = true
+[dependencies.tokio]
+features = ["rt", "rt-multi-thread"]
+optional = true
+workspace = true
 
 [dev-dependencies]
 ansi_term = { workspace = true }
-criterion = { workspace = true }
-rayon     = { workspace = true }
-walkdir   = { workspace = true }
-
 codspeed-criterion-compat = { workspace = true }
+criterion = { workspace = true }
+rayon = { workspace = true }
 swc_ecma_ast = { version = "6.1.0", path = "../swc_ecma_ast", features = [
   "serde-impl",
 ] }
@@ -143,29 +107,53 @@ swc_ecma_lints = { version = "9.0.0", path = "../swc_ecma_lints", features = [
 swc_ecma_testing = { version = "6.0.0", path = "../swc_ecma_testing" }
 swc_malloc = { version = "1.0.0", path = "../swc_malloc" }
 testing = { version = "6.0.0", path = "../testing" }
+walkdir = { workspace = true }
 
 [[example]]
 name = "transform"
 
-[[bench]]
-harness = false
-name    = "bugs"
+[features]
+concurrent = [
+  "swc_ecma_transforms/concurrent",
+  "swc_common/concurrent",
+  "swc_ecma_minifier/concurrent",
+]
+debug = ["swc_ecma_visit/debug", "swc_ecma_minifier/debug"]
+default = ["es3"]
+es3 = []
+manual-tokio-runtime = []
+node = ["napi", "napi-derive", "swc_compiler_base/node"]
+plugin = [
+  "swc_plugin_runner/ecma",
+  "swc_plugin_runner/rkyv-impl",
+  "swc_plugin_proxy/plugin-rt",
+  "tokio",
+]
+plugin_transform_host_js = ["swc_plugin_runner/plugin_transform_host_js"]
+plugin_transform_host_native = [
+  "swc_plugin_runner/plugin_transform_host_native",
+]
+plugin_transform_schema_v1 = [
+  "swc_common/plugin_transform_schema_v1",
+  "swc_plugin_runner/plugin_transform_schema_v1",
+]
+plugin_transform_schema_vtest = [
+  "swc_common/plugin_transform_schema_vtest",
+  "swc_plugin_runner/plugin_transform_schema_vtest",
+]
 
-[[bench]]
-harness = false
-name    = "minify"
+[lib]
+bench = false
+name = "swc"
+path = "Source/lib.rs"
 
-
-[[bench]]
-harness = false
-name    = "oxc"
-
-
-[[bench]]
-harness = false
-name    = "typescript"
-
-
-[[bench]]
-harness = false
-name    = "isolated_declarations"
+[package]
+authors = ["강동윤 <kdy1997.dev@gmail.com>"]
+description = "Speedy web compiler"
+documentation = "https://rustdoc.swc.rs/swc/"
+edition = { workspace = true }
+include = ["Cargo.toml", "src/**/*.rs"]
+license-file = { workspace = true }
+name = "swc"
+repository = { workspace = true }
+version = "13.0.1"

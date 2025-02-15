@@ -1,25 +1,14 @@
-[package]
-authors     = ["강동윤 <kdy1997.dev@gmail.com>"]
-description = "Linter for the swc project"
-edition     = { workspace = true }
-include     = ["Cargo.toml", "src/**/*.rs"]
-license     = { workspace = true }
-name        = "swc_ecma_lints"
-repository  = { workspace = true }
-version     = "9.0.0"
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[lib]
-bench = false
+[[bench]]
+harness = false
+name = "all"
 
 [dependencies]
-auto_impl   = { workspace = true }
-dashmap     = { workspace = true }
+auto_impl = { workspace = true }
+dashmap = { workspace = true }
 parking_lot = { workspace = true }
-regex       = { workspace = true }
-rustc-hash  = { workspace = true }
-serde       = { workspace = true, features = ["derive"] }
-
+regex = { workspace = true }
+rustc-hash = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
 swc_atoms = { version = "3.1.0", path = "../swc_atoms" }
 swc_common = { version = "6.1.1", path = "../swc_common", features = [
   "concurrent",
@@ -33,22 +22,31 @@ swc_ecma_visit = { version = "6.0.0", path = "../swc_ecma_visit" }
 swc_parallel = { version = "1.2.0", path = "../swc_parallel", default-features = false }
 
 [dev-dependencies]
-anyhow                    = { workspace = true }
+anyhow = { workspace = true }
 codspeed-criterion-compat = { workspace = true }
-criterion                 = { workspace = true }
-pretty_assertions         = { workspace = true }
-swc_ecma_codegen          = { version = "6.1.0", path = "../swc_ecma_codegen" }
-swc_ecma_parser           = { version = "8.0.2", path = "../swc_ecma_parser" }
-swc_ecma_testing          = { version = "6.0.0", path = "../swc_ecma_testing" }
-swc_ecma_transforms_base  = { version = "9.0.1", path = "../swc_ecma_transforms_base" }
-swc_malloc                = { version = "1.0.0", path = "../swc_malloc" }
-testing                   = { version = "6.0.0", path = "../testing" }
-walkdir                   = { workspace = true }
+criterion = { workspace = true }
+pretty_assertions = { workspace = true }
+swc_ecma_codegen = { version = "6.1.0", path = "../swc_ecma_codegen" }
+swc_ecma_parser = { version = "8.0.2", path = "../swc_ecma_parser" }
+swc_ecma_testing = { version = "6.0.0", path = "../swc_ecma_testing" }
+swc_ecma_transforms_base = { version = "9.0.1", path = "../swc_ecma_transforms_base" }
+swc_malloc = { version = "1.0.0", path = "../swc_malloc" }
+testing = { version = "6.0.0", path = "../testing" }
+walkdir = { workspace = true }
 
 [features]
 non_critical_lints = []
 
+[lib]
+bench = false
+path = "Source/lib.rs"
 
-[[bench]]
-harness = false
-name    = "all"
+[package]
+authors = ["강동윤 <kdy1997.dev@gmail.com>"]
+description = "Linter for the swc project"
+edition = { workspace = true }
+include = ["Cargo.toml", "src/**/*.rs"]
+license-file = { workspace = true }
+name = "swc_ecma_lints"
+repository = { workspace = true }
+version = "9.0.0"
