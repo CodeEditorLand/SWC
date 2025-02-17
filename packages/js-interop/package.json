@@ -51,7 +51,7 @@
         "version": "napi version --npm-dir scripts/npm"
     },
     "devDependencies": {
-        "@babel/core": "7.26.8",
+        "@babel/core": "7.26.9",
         "@napi-rs/cli": "3.0.0-alpha.43",
         "benchmark": "2.1.4",
         "typescript": "5.7.3"

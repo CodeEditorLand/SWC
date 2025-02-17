@@ -44,16 +44,16 @@
 	"dependencies": {},
 	"devDependencies": {
 		"@babel/compat-data": "7.26.8",
-		"@babel/generator": "7.26.8",
+		"@babel/generator": "7.26.9",
 		"@babel/plugin-proposal-decorators": "7.25.9",
 		"@babel/plugin-proposal-object-rest-spread": "7.20.7",
-		"@babel/types": "7.26.8",
+		"@babel/types": "7.26.9",
 		"@codeeditorland/helpers": "0.0.1",
 		"@codeeditorland/plugin-coverage-instrument": "0.0.1",
 		"@codeeditorland/plugin-jest": "0.0.1",
 		"@playform/build": "0.2.1",
 		"@taplo/cli": "0.7.0",
-		"@types/node": "22.13.1",
+		"@types/node": "22.13.4",
 		"@types/terser": "3.12.0",
 		"acorn": "8.14.0",
 		"acorn-jsx": "5.3.2",
@@ -79,7 +79,7 @@
 		"source-map": "0.7.4",
 		"source-map-support": "0.5.21",
 		"sourcemap-validator": "2.1.0",
-		"terser": "5.38.2",
+		"terser": "5.39.0",
 		"yaml": "2.7.0",
 		"zx": "8.3.2"
 	}
