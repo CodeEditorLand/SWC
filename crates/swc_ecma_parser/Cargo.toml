@@ -81,4 +81,4 @@ rustdoc-args = ["--cfg", "docsrs"]
 [target.'cfg(not(any(target_arch = "wasm32", target_arch = "arm")))']
 
 [target.'cfg(not(any(target_arch = "wasm32", target_arch = "arm")))'.dependencies]
-stacker = { version = "0.1.15", optional = true }
+stacker = { version = "0.1.18", optional = true }

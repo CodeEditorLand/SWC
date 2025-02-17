@@ -8,7 +8,7 @@ proc-macro = true
 
 [package]
 authors = ["강동윤 <kdy1997.dev@gmail.com>"]
-edition = "2021"
+edition = "2024"
 exclude = ["artifacts.json", "index.node"]
 license-file = "LICENSE"
 name = "node_macro_deps"

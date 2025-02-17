@@ -21,7 +21,7 @@ authors = [
 ]
 description = "Visitor for html"
 documentation = "https://rustdoc.swc.rs/swc_html_visit/"
-edition = "2021"
+edition = "2024"
 license-file = { workspace = true }
 name = "swc_html_visit"
 repository = "https://github.com/swc-project/swc.git"

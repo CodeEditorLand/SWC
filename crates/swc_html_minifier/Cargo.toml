@@ -57,7 +57,7 @@ authors = [
 ]
 description = "HTML minifier"
 documentation = "https://rustdoc.swc.rs/swc_html_minifier/"
-edition = "2021"
+edition = "2024"
 include = ["Cargo.toml", "src/**/*.rs", "data/**/*.json"]
 license-file = { workspace = true }
 name = "swc_html_minifier"

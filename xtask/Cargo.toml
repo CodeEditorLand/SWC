@@ -6,7 +6,7 @@ path = "Source/main.rs"
 anyhow = { workspace = true }
 cargo_metadata = { workspace = true }
 chrono = { workspace = true }
-clap = { version = "4.4.6", features = ["derive"] }
+clap = { version = "4.5.30", features = ["derive"] }
 semver = { workspace = true }
 serde = { workspace = true }
 serde_derive = { workspace = true }

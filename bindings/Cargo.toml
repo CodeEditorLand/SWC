@@ -63,6 +63,6 @@ wasm-bindgen = "0.2.100"
 wasm-bindgen-futures = "0.4.50"
 
 [workspace.package]
-edition = "2021"
+edition = "2024"
 license-file = "LICENSE"
 repository = "https://github.com/swc-project/swc.git"

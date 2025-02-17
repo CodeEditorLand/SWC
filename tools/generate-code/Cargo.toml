@@ -5,14 +5,14 @@ path = "Source/main.rs"
 [dependencies]
 Inflector = { workspace = true }
 anyhow = { workspace = true }
-clap = { version = "4.5.9", features = ["derive"] }
+clap = { version = "4.5.30", features = ["derive"] }
 proc-macro2 = { workspace = true }
 quote = { workspace = true }
 syn = { workspace = true, features = ["full", "visit-mut", "extra-traits"] }
 walkdir = { workspace = true }
 
 [package]
-edition = "2021"
+edition = "2024"
 license-file = { workspace = true }
 name = "generate-code"
 publish = false

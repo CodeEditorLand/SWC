@@ -35,7 +35,7 @@ path = "Source/lib.rs"
 [package]
 authors = ["강동윤 <kdy1997.dev@gmail.com>"]
 build = "build.rs"
-edition = "2021"
+edition = "2024"
 exclude = ["artifacts.json", "index.node"]
 license-file = "LICENSE"
 name = "binding_html_node"

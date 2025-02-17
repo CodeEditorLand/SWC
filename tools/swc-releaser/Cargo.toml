@@ -6,12 +6,12 @@ path = "Source/main.rs"
 anyhow = { workspace = true }
 cargo_metadata = { workspace = true }
 changesets = { workspace = true }
-clap = { version = "4.5.9", features = ["derive"] }
+clap = { version = "4.5.30", features = ["derive"] }
 indexmap = { workspace = true }
 petgraph = { workspace = true }
 
 [package]
-edition = "2021"
+edition = "2024"
 name = "swc-releaser"
 publish = false
 repository = { workspace = true }

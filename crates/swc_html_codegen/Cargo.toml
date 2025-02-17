@@ -27,7 +27,7 @@ authors = [
 ]
 description = "HTML code generator for the swc project"
 documentation = "https://rustdoc.swc.rs/swc_html_codegen/"
-edition = "2021"
+edition = "2024"
 include = ["Cargo.toml", "src/**/*.rs"]
 license-file = { workspace = true }
 name = "swc_html_codegen"
