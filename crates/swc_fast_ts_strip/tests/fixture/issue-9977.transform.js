@@ -1,3 +1,0 @@
-class MyClassOk {
-    constructor(foo){}
-}

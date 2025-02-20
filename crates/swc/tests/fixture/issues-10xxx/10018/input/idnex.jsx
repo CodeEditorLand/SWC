@@ -1,3 +1,0 @@
-/* @jsxImportSource foo */
-;
-<a />
