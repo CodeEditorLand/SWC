@@ -1,13 +1,13 @@
-[dependencies]
-indexmap = { workspace = true }
-rustc-hash = { workspace = true }
-swc_atoms = { version = "3.1.0", path = "../swc_atoms" }
-swc_common = { version = "6.1.1", path = "../swc_common" }
-swc_ecma_ast = { version = "6.1.0", path = "../swc_ecma_ast" }
-swc_ecma_utils = { version = "9.0.0", path = "../swc_ecma_utils" }
-swc_ecma_visit = { version = "6.0.0", path = "../swc_ecma_visit" }
-swc_timer = { version = "1.0.0", path = "../swc_timer" }
-tracing = { workspace = true }
+[package]
+authors       = ["강동윤 <kdy1997.dev@gmail.com>"]
+description   = "EcmaScript variable usage analyzer"
+documentation = "https://rustdoc.swc.rs/swc_ecma_usage_analyzer/"
+edition       = { workspace = true }
+include       = ["Cargo.toml", "src/**/*.rs"]
+license       = { workspace = true }
+name          = "swc_ecma_usage_analyzer"
+repository    = { workspace = true }
+version       = "11.0.0"
 
 [features]
 concurrent = ["swc_common/concurrent", "indexmap/rayon"]
@@ -31,8 +31,9 @@ version = "10.1.0"
 
 [package.metadata]
 
-[package.metadata.docs]
-
-[package.metadata.docs.rs]
-all-features = true
-rustdoc-args = ["--cfg", "docsrs"]
+swc_atoms      = { version = "4.0.0", path = "../swc_atoms" }
+swc_common     = { version = "7.0.0", path = "../swc_common" }
+swc_ecma_ast   = { version = "7.0.0", path = "../swc_ecma_ast" }
+swc_ecma_utils = { version = "10.0.0", path = "../swc_ecma_utils" }
+swc_ecma_visit = { version = "7.0.0", path = "../swc_ecma_visit" }
+swc_timer      = { version = "1.0.0", path = "../swc_timer" }

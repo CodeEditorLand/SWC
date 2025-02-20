@@ -1,6 +1,24 @@
-[[bench]]
-harness = false
-name = "bench"
+[package]
+authors       = ["강동윤 <kdy1997.dev@gmail.com>"]
+description   = "A thin wrapper for bumpalo"
+documentation = "https://rustdoc.swc.rs/swc_allocator/"
+edition       = { workspace = true }
+license       = { workspace = true }
+name          = "swc_allocator"
+repository    = { workspace = true }
+version       = "3.0.0"
+
+  [package.metadata.docs.rs]
+  all-features = true
+  rustdoc-args = ["--cfg", "docsrs"]
+
+
+[features]
+default = []
+nightly = ["bumpalo/allocator_api", "hashbrown/nightly"]
+rkyv    = ["dep:rkyv", "dep:rancor"]
+scoped  = ["nightly"]
+serde   = ["dep:serde"]
 
 [dependencies]
 bumpalo = { workspace = true, features = [
@@ -28,23 +46,7 @@ rkyv = ["dep:rkyv", "dep:rancor"]
 scoped = ["nightly"]
 serde = ["dep:serde"]
 
-[lib]
-path = "Source/lib.rs"
-
-[package]
-authors = ["강동윤 <kdy1997.dev@gmail.com>"]
-description = "A thin wrapper for bumpalo"
-documentation = "https://rustdoc.swc.rs/swc_allocator/"
-edition = { workspace = true }
-license-file = { workspace = true }
-name = "swc_allocator"
-repository = { workspace = true }
-version = "2.0.0"
-
-[package.metadata]
-
-[package.metadata.docs]
-
-[package.metadata.docs.rs]
-all-features = true
-rustdoc-args = ["--cfg", "docsrs"]
+[[bench]]
+harness           = false
+name              = "bench"
+required-features = ["nightly"]

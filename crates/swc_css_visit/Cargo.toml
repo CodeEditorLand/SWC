@@ -1,9 +1,12 @@
-[dependencies]
-serde = { workspace = true, optional = true, features = ["derive"] }
-swc_atoms = { version = "3.1.0", path = "../swc_atoms" }
-swc_common = { version = "6.1.1", path = "../swc_common" }
-swc_css_ast = { version = "6.0.0", path = "../swc_css_ast" }
-swc_visit = { version = "2.0.0", path = "../swc_visit" }
+[package]
+authors       = ["강동윤 <kdy1997.dev@gmail.com>"]
+description   = "Visitor for css"
+documentation = "https://rustdoc.swc.rs/swc_css_visit/"
+edition       = { workspace = true }
+license       = { workspace = true }
+name          = "swc_css_visit"
+repository    = { workspace = true }
+version       = "7.0.0"
 
 [features]
 default = ["serde"]
@@ -26,8 +29,7 @@ version = "6.0.0"
 
 [package.metadata]
 
-[package.metadata.docs]
-
-[package.metadata.docs.rs]
-all-features = true
-rustdoc-args = ["--cfg", "docsrs"]
+swc_atoms   = { version = "4.0.0", path = "../swc_atoms" }
+swc_common  = { version = "7.0.0", path = "../swc_common" }
+swc_css_ast = { version = "7.0.0", path = "../swc_css_ast" }
+swc_visit   = { version = "2.0.0", path = "../swc_visit" }

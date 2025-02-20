@@ -1,31 +1,34 @@
-[dependencies]
-better_scoped_tls = { version = "1.0.0", path = "../better_scoped_tls" }
-bytecheck = { workspace = true, optional = true }
-rancor = { workspace = true, optional = true }
-rkyv = { workspace = true, optional = true }
-rustc-hash = { workspace = true }
-swc_common = { version = "6.1.1", path = "../swc_common" }
-swc_ecma_ast = { version = "6.1.0", path = "../swc_ecma_ast" }
-swc_trace_macro = { version = "2.0.0", path = "../swc_trace_macro" }
-tracing = { workspace = true }
-
-[features]
-__plugin_mode = []
-__plugin_rt = []
-__rkyv = []
-plugin-mode = ["__plugin_mode", "swc_common/plugin-base", "rkyv-impl"]
-plugin-rt = ["__plugin_rt", "swc_common/plugin-base", "rkyv-impl"]
-rkyv-impl = ["__rkyv", "rkyv", "bytecheck", "rancor"]
+[package]
+authors     = ["강동윤 <kdy1997.dev@gmail.com>", "OJ Kwon <kwon.ohjoong@gmail.com>"]
+description = "Proxy structs to the hosts original structs for the plugin"
+edition     = { workspace = true }
+license     = { workspace = true }
+name        = "swc_plugin_proxy"
+repository  = { workspace = true }
+version     = "7.0.0"
 
 [lib]
 bench = false
 path = "Source/lib.rs"
 
-[package]
-authors = ["강동윤 <kdy1997.dev@gmail.com>", "OJ Kwon <kwon.ohjoong@gmail.com>"]
-description = "Proxy structs to the hosts original structs for the plugin"
-edition = { workspace = true }
-license-file = { workspace = true }
-name = "swc_plugin_proxy"
-repository = { workspace = true }
-version = "6.0.0"
+[features]
+__rkyv    = []
+rkyv-impl = ["__rkyv", "rkyv", "bytecheck", "rancor"]
+
+__plugin_mode = []
+__plugin_rt   = []
+# swc/core, which runs plugin
+plugin-mode = ["__plugin_mode", "swc_common/plugin-base", "rkyv-impl"]
+plugin-rt   = ["__plugin_rt", "swc_common/plugin-base", "rkyv-impl"]
+
+[dependencies]
+bytecheck  = { workspace = true, optional = true }
+rancor     = { workspace = true, optional = true }
+rkyv       = { workspace = true, optional = true }
+rustc-hash = { workspace = true }
+tracing    = { workspace = true }
+
+better_scoped_tls = { version = "1.0.0", path = "../better_scoped_tls" }
+swc_common        = { version = "7.0.0", path = "../swc_common" }
+swc_ecma_ast      = { version = "7.0.0", path = "../swc_ecma_ast" }
+swc_trace_macro   = { version = "2.0.0", path = "../swc_trace_macro" }

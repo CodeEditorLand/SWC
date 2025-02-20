@@ -27,6 +27,8 @@ use swc_common::{
 	GLOBALS,
     collections::AHashMap, plugin::metadata::TransformPluginMetadataContext, FileName,
     FilePathMapping, Globals, Mark, SourceMap, GLOBALS,
+    plugin::metadata::TransformPluginMetadataContext, FileName, FilePathMapping, Globals, Mark,
+    SourceMap, GLOBALS,
 };
 use swc_ecma_ast::EsVersion;
 use swc_ecma_parser::parse_file_as_program;
@@ -212,6 +214,8 @@ fn bench_transform(b: &mut Bencher, plugin_dir: &Path) {
                 let experimental_metadata: VersionedSerializable<AHashMap<String, String>> =
                     VersionedSerializable::new(AHashMap::default());
 
+                let experimental_metadata: VersionedSerializable<FxHashMap<String, String>> =
+                    VersionedSerializable::new(FxHashMap::default());
                 let _experimental_metadata =
                     PluginSerializedBytes::try_serialize(&experimental_metadata)
                         .expect("Should be a hashmap");
