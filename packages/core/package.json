@@ -1,10 +1,32 @@
 {
 	"name": "@codeeditorland/core",
+	"version": "0.0.1",
+	"private": false,
 	"description": "Super-fast alternative for babel",
+	"keywords": [
+		"codeeditorland",
+		"land",
+		"playform"
+	],
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/SWC#readme",
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/SWC/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+HTTPS://github.com/CodeEditorLand/SWC.git"
+	},
 	"funding": {
 		"type": "opencollective",
 		"url": "https://opencollective.com/swc"
 	},
+	"license": "SEE LICENSE IN LICENSE",
+	"author": {
+		"name": "Source 🖋️ Open 👐🏻",
+		"email": "Source/Open@Editor.Land",
+		"url": "HTTPS://Editor.Land"
+	},
+	"type": "module",
 	"main": "./index.js",
 	"types": "./index.d.ts",
 	"files": [
@@ -51,6 +73,9 @@
 		"@swc/helpers": {
 			"optional": true
 		}
+	},
+	"publishConfig": {
+		"access": "public"
 	},
 	"napi": {
 		"binaryName": "swc",
