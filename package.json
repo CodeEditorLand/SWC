@@ -1,5 +1,27 @@
 {
-	"name": "@swc/workspace",
+	"name": "@codeeditorland/workspace",
+	"version": "0.0.1",
+	"private": false,
+	"keywords": [
+		"codeeditorland",
+		"land",
+		"playform"
+	],
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/SWC#readme",
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/SWC/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+HTTPS://github.com/CodeEditorLand/SWC.git"
+	},
+	"license": "SEE LICENSE IN LICENSE",
+	"author": {
+		"name": "Source 🖋️ Open 👐🏻",
+		"email": "Source/Open@Editor.Land",
+		"url": "HTTPS://Editor.Land"
+	},
+	"type": "module",
 	"workspaces": [
 		"./.github/bot",
 		"./.github/swc-ecosystem-ci",
@@ -15,6 +37,7 @@
 		"build:ts": "cd ./packages/core && yarn build:ts",
 		"changelog": "git cliff --output CHANGELOG.md; git cliff --output CHANGELOG-CORE.md --config cliff-core.toml",
 		"prepare": "husky install . && git config feature.manyFiles true && node ./crates/swc_ecma_preset_env/scripts/copy-data.js",
+		"prepublishOnly": "Build 'Source/**/*.ts'",
 		"test:core": "cd ./packages/core && yarn test",
 		"test:html": "cd ./packages/html && yarn test"
 	},
@@ -41,14 +64,17 @@
 			"taplo format"
 		]
 	},
+	"dependencies": {},
 	"devDependencies": {
 		"@babel/compat-data": "^7.25.4",
 		"@babel/generator": "^7.18.13",
 		"@babel/plugin-proposal-decorators": "^7.13.15",
 		"@babel/plugin-proposal-object-rest-spread": "^7.13.8",
 		"@babel/types": "^7.14.0",
-		"@swc/helpers": "workspace:^",
-		"@swc/plugin-jest": "^1.5.117",
+		"@codeeditorland/helpers": "workspace:^",
+		"@codeeditorland/plugin-coverage-instrument": "^0.0.26",
+		"@codeeditorland/plugin-jest": "^1.5.117",
+		"@playform/build": "0.2.1",
 		"@taplo/cli": "^0.5.2",
 		"@types/node": "^20.5.0",
 		"@types/terser": "^3.12.0",
@@ -76,9 +102,11 @@
 		"source-map": "^0.7.3",
 		"source-map-support": "^0.5.19",
 		"sourcemap-validator": "^2.1.0",
-		"swc-plugin-coverage-instrument": "^0.0.26",
 		"terser": "^5.7.1",
 		"yaml": "^2.4.5",
 		"zx": "^8.1.4"
+	},
+	"publishConfig": {
+		"access": "public"
 	}
 }
