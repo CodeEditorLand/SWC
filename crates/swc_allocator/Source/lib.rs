@@ -34,7 +34,8 @@
 #![deny(missing_docs)]
 #![allow(clippy::derivable_impls)]
 
-pub use crate::alloc::Allocator;
+// TODO: Add types back
+// pub use crate::types::*;
 
 mod alloc;
 #[cfg(feature = "nightly")]
@@ -89,6 +90,10 @@ impl FastAlloc {
 		}
 	}
 }
+pub mod allocators;
+pub mod api;
+mod types;
+mod util;
 
 /// This expands to the given tokens if the `nightly` feature is enabled.
 #[cfg(feature = "nightly")]
@@ -109,28 +114,4 @@ macro_rules! nightly_only {
 #[macro_export]
 macro_rules! nightly_only {
 	($($item:item)*) => {};
-}
-
-/// Usage: `swc_allocator::Type!(Vec<T>)` or `swc_allocator::Type!(Box<T>)`.
-#[macro_export]
-macro_rules! Type {
-    (Box<$($tt:tt)*>) => {
-        #[cfg(feature = "nightly")]
-        $crate::boxed::Box<$crate::Type!($($tt)*)>
-
-        #[cfg(not(feature = "nightly"))]
-        std::boxed::Box<$crate::Type!($($tt)*)>
-    };
-
-    (Vec<$($tt:tt)*>) => {
-        #[cfg(feature = "nightly")]
-        $crate::vec::Vec<$crate::Type!($($tt)*)>
-
-        #[cfg(not(feature = "nightly"))]
-        std::vec::Vec<$crate::Type!($($tt)*)>
-    };
-
-    ($t:ty) => {
-        $t
-    };
 }

@@ -1729,7 +1729,15 @@ export interface ReactConfig {
 
     treatConstEnumAsEnum?: boolean;
 
+    /**
+     * https://www.typescriptlang.org/tsconfig#useDefineForClassFields
+     */
     useDefineForClassFields?: boolean;
+
+    /**
+     * https://www.typescriptlang.org/tsconfig#verbatimModuleSyntax
+     */
+    verbatimModuleSyntax?: boolean;
 }
 
 export interface ReactConfig {

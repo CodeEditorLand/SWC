@@ -19,13 +19,13 @@
 //!
 //!
 //!
-//! ### What is [JsWord](swc_atoms::JsWord)?
+//! ### What is [Atom](swc_atoms::Atom)?
 //!
 //! It's basically an interned string. See [swc_atoms].
 //!
-//! ### Choosing between [JsWord](swc_atoms::JsWord) vs String
+//! ### Choosing between [Atom](swc_atoms::Atom) vs String
 //!
-//! You should  prefer [JsWord](swc_atoms::JsWord) over [String] if it's going
+//! You should  prefer [Atom](swc_atoms::Atom) over [String] if it's going
 //! to be stored in an AST node.
 //!
 //! See [swc_atoms] for detailed description.
@@ -894,7 +894,7 @@ impl Compiler {
                 opts.format.preserve_annotations,
             );
 
-            self.print(
+            let ret = self.print(
                 &program,
                 PrintArgs {
                     source_root: None,
@@ -917,7 +917,13 @@ impl Compiler {
                         .with_inline_script(opts.format.inline_script),
                     output: None,
                 },
-            )
+            );
+
+            ret.map(|mut output| {
+                output.diagnostics = handler.take_diagnostics();
+
+                output
+            })
         })
     }
 

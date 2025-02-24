@@ -5,7 +5,6 @@ extern crate swc_malloc;
 use std::fs::read_to_string;
 
 use codspeed_criterion_compat::{black_box, criterion_group, criterion_main, Criterion};
-use swc_allocator::Allocator;
 use swc_common::{errors::HANDLER, sync::Lrc, FileName, Mark, SourceMap};
 use swc_ecma_ast::Program;
 use swc_ecma_codegen::text_writer::JsWriter;

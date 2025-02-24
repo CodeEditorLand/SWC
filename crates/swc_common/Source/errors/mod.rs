@@ -340,11 +340,11 @@ impl error::Error for ExplicitBug {
 ///         handler
 ///             .struct_span_err(
 ///                 span,
-///                 &format!("`{}` used as parameter more than once", js_word),
+///                 &format!("`{}` used as parameter more than once", atom),
 ///             )
 ///             .span_note(
 ///                 old_span,
-///                 &format!("previous definition of `{}` here", js_word),
+///                 &format!("previous definition of `{}` here", atom),
 ///             )
 ///             .emit();
 ///     });
@@ -873,6 +873,10 @@ impl Handler {
                 self.bump_err_count();
             }
         }
+    }
+
+    pub fn take_diagnostics(&self) -> Vec<String> {
+        self.emitter.borrow_mut().take_diagnostics()
     }
 }
 

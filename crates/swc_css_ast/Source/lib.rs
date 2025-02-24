@@ -18,6 +18,8 @@ mod value;
 ///
 /// ```
 /// use swc_atoms::{Atom, js_word};
+/// use swc_atoms::Atom;
+/// use swc_atoms::atom;
 /// use swc_css_ast::*;
 ///
 /// assert!(matches_eq_ignore_ascii_case!(Atom::from("A"), "a"));
@@ -40,6 +42,8 @@ macro_rules! matches_eq_ignore_ascii_case {
 ///
 /// ```
 /// use swc_atoms::{Atom, js_word};
+/// use swc_atoms::Atom;
+/// use swc_atoms::atom;
 /// use swc_css_ast::*;
 ///
 /// assert!(matches_eq!(Atom::from("a"), "a"));

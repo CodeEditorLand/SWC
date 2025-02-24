@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use swc_atoms::JsWord;
+use swc_atoms::Atom;
 use swc_common::ast_serde;
 
 use crate::{
@@ -372,6 +372,19 @@ pub struct Identifier {
 	pub optional:Option<bool>,
 	#[serde(default, skip_serializing_if = "crate::flavor::Flavor::skip_none")]
 	pub type_annotation:Option<Box<TypeAnnotOrNoop>>,
+    #[serde(flatten)]
+    pub base: BaseNode,
+    #[serde(default)]
+    pub name: Atom,
+    #[serde(default, skip_serializing_if = "crate::flavor::Flavor::skip_empty")]
+    pub decorators: Option<Vec<Decorator>>,
+    #[serde(
+        default,
+        skip_serializing_if = "crate::flavor::Flavor::skip_none_and_false"
+    )]
+    pub optional: Option<bool>,
+    #[serde(default, skip_serializing_if = "crate::flavor::Flavor::skip_none")]
+    pub type_annotation: Option<Box<TypeAnnotOrNoop>>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -548,6 +561,10 @@ pub struct DirectiveLiteral {
 	pub base:BaseNode,
 	#[serde(default)]
 	pub value:JsWord,
+    #[serde(flatten)]
+    pub base: BaseNode,
+    #[serde(default)]
+    pub value: Atom,
 }
 
 #[derive(Debug, Clone, PartialEq)]
