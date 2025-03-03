@@ -250,7 +250,7 @@ impl Optimizer<'_> {
                     }) => arg.is_lit(),
                     Expr::This(..) => usage.is_fn_local,
                     Expr::Arrow(arr) => {
-                        is_arrow_simple_enough_for_copy(arr)
+                        is_arrow_simple_enough_for_copy(arr).map_or(false, |cost| cost <= 8)
                             && !(usage.property_mutation_count > 0
                                 || usage.executed_multiple_time
                                 || usage.used_as_arg && ref_count > 1)
@@ -322,8 +322,8 @@ impl Optimizer<'_> {
 
                     ident.take();
                 } else if self.options.inline != 0 || self.options.reduce_vars {
-                    trace_op!(
-                        "inline: Decided to copy '{}{:?}' because it's simple",
+                    report_change!(
+                        "inline: Decided to inline '{}{:?}' because it's simple",
                         ident.sym,
                         ident.ctxt
                     );
@@ -653,6 +653,7 @@ impl Optimizer<'_> {
             }
 
             // Inline very simple functions.
+            self.vars.inline_with_multi_replacer(decl);
             match decl {
                 Decl::Fn(f) if self.options.inline >= 2 && f.ident.sym != *"arguments" => {
                     if let Some(body) = &f.function.body {
@@ -674,13 +675,11 @@ impl Optimizer<'_> {
                             {
                                 return;
                             }
-                            trace_op!(
-                                "inline: Decided to inline function '{}{:?}' as it's very simple",
-                                f.ident.sym,
-                                f.ident.ctxt
+                            report_change!(
+                                "inline: Decided to inline function `{}{:?}` as it's very simple",
+                                i.sym,
+                                i.ctxt
                             );
-
-                            self.vars.inline_with_multi_replacer(&mut f.function.body);
 
                             for i in collect_infects_from(
                                 &f.function,
@@ -907,9 +906,9 @@ impl Optimizer<'_> {
     }
 }
 
-fn is_arrow_simple_enough_for_copy(e: &ArrowExpr) -> bool {
+fn is_arrow_simple_enough_for_copy(e: &ArrowExpr) -> Option<u8> {
     if e.is_async {
-        return false;
+        return None;
     }
 
     match &*e.body {
@@ -918,32 +917,34 @@ fn is_arrow_simple_enough_for_copy(e: &ArrowExpr) -> bool {
     }
 }
 
-fn is_arrow_body_simple_enough_for_copy(e: &Expr) -> bool {
+fn is_arrow_body_simple_enough_for_copy(e: &Expr) -> Option<u8> {
     match e {
-        Expr::Ident(..) | Expr::Lit(..) => return true,
-        Expr::Member(MemberExpr { prop, .. }) if !prop.is_computed() => return true,
-        Expr::Unary(u) => return is_arrow_body_simple_enough_for_copy(&u.arg),
+        Expr::Ident(..) | Expr::Lit(..) => return Some(1),
+        Expr::Member(MemberExpr { prop, .. }) if !prop.is_computed() => return Some(3),
+        Expr::Unary(u) => return Some(is_arrow_body_simple_enough_for_copy(&u.arg)? + 1),
 
         Expr::Bin(b) => {
-            return is_arrow_body_simple_enough_for_copy(&b.left)
-                && is_arrow_body_simple_enough_for_copy(&b.right)
+            return Some(
+                is_arrow_body_simple_enough_for_copy(&b.left)?
+                    + is_arrow_body_simple_enough_for_copy(&b.right)?
+                    + 2,
+            )
         }
         _ => {}
     }
 
-    false
+    None
 }
 
-fn is_block_stmt_of_fn_simple_enough_for_copy(b: &BlockStmt) -> bool {
+fn is_block_stmt_of_fn_simple_enough_for_copy(b: &BlockStmt) -> Option<u8> {
     if b.stmts.len() == 1 {
         if let Stmt::Return(ret) = &b.stmts[0] {
             return ret
                 .arg
                 .as_deref()
-                .map(is_arrow_body_simple_enough_for_copy)
-                .unwrap_or(true);
+                .map_or(Some(0), is_arrow_body_simple_enough_for_copy);
         }
     }
 
-    false
+    None
 }

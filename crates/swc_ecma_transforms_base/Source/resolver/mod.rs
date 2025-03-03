@@ -536,8 +536,7 @@ impl VisitMut for Resolver<'_> {
                     .params
                     .iter()
                     .filter(|p| !p.is_rest())
-                    .flat_map(find_pat_ids)
-                    .collect::<Vec<Id>>();
+                    .flat_map(find_pat_ids::<_, Id>);
 
                 for id in params {
                     child.current.declared_symbols.insert(id.0, DeclKind::Param);
@@ -644,6 +643,9 @@ impl VisitMut for Resolver<'_> {
     }
 
     fn visit_mut_class_decl(&mut self, n: &mut ClassDecl) {
+        if n.declare && !self.config.handle_types {
+            return;
+        }
         self.modify(&mut n.ident, DeclKind::Lexical);
 
         n.class.decorators.visit_mut_with(self);
@@ -722,8 +724,7 @@ impl VisitMut for Resolver<'_> {
                         ParamOrTsParamProp::TsParamProp(_) => false,
                         ParamOrTsParamProp::Param(p) => !p.pat.is_rest(),
                     })
-                    .flat_map(find_pat_ids)
-                    .collect::<Vec<Id>>();
+                    .flat_map(find_pat_ids::<_, Id>);
 
                 for id in params {
                     child.current.declared_symbols.insert(id.0, DeclKind::Param);
@@ -811,6 +812,10 @@ impl VisitMut for Resolver<'_> {
     }
 
     fn visit_mut_fn_decl(&mut self, node: &mut FnDecl) {
+        if node.declare && !self.config.handle_types {
+            return;
+        }
+
         // We don't fold ident as Hoister handles this.
         node.function.decorators.visit_mut_with(self);
 
@@ -877,8 +882,7 @@ impl VisitMut for Resolver<'_> {
                 .params
                 .iter()
                 .filter(|p| !p.pat.is_rest())
-                .flat_map(find_pat_ids)
-                .collect::<Vec<Id>>();
+                .flat_map(find_pat_ids::<_, Id>);
 
             for id in params {
                 self.current.declared_symbols.insert(id.0, DeclKind::Param);
@@ -1238,6 +1242,9 @@ impl VisitMut for Resolver<'_> {
     }
 
     fn visit_mut_ts_enum_decl(&mut self, decl: &mut TsEnumDecl) {
+        if decl.declare && !self.config.handle_types {
+            return;
+        }
         self.modify(&mut decl.id, DeclKind::Lexical);
 
         self.with_child(ScopeKind::Block, |child| {
@@ -1368,6 +1375,10 @@ impl VisitMut for Resolver<'_> {
     }
 
     fn visit_mut_ts_module_decl(&mut self, decl: &mut TsModuleDecl) {
+        if decl.declare && !self.config.handle_types {
+            return;
+        }
+
         match &mut decl.id {
             TsModuleName::Ident(i) => {
                 self.modify(i, DeclKind::Lexical);
@@ -1383,6 +1394,10 @@ impl VisitMut for Resolver<'_> {
     }
 
     fn visit_mut_ts_namespace_decl(&mut self, n: &mut TsNamespaceDecl) {
+        if n.declare && !self.config.handle_types {
+            return;
+        }
+
         self.modify(&mut n.id, DeclKind::Lexical);
 
         n.body.visit_mut_with(self);
@@ -1495,7 +1510,7 @@ impl VisitMut for Resolver<'_> {
     }
 
     fn visit_mut_var_decl(&mut self, decl: &mut VarDecl) {
-        if decl.declare {
+        if decl.declare && !self.config.handle_types {
             return;
         }
 
@@ -1651,6 +1666,9 @@ impl VisitMut for Hoister<'_, '_> {
     }
 
     fn visit_mut_class_decl(&mut self, node: &mut ClassDecl) {
+        if node.declare && !self.resolver.config.handle_types {
+            return;
+        }
         if self.in_block {
             return;
         }
@@ -1751,6 +1769,10 @@ impl VisitMut for Hoister<'_, '_> {
     fn visit_mut_expr(&mut self, _: &mut Expr) {}
 
     fn visit_mut_fn_decl(&mut self, node: &mut FnDecl) {
+        if node.declare && !self.resolver.config.handle_types {
+            return;
+        }
+
         if self.catch_param_decls.contains(&node.ident.sym) {
             return;
         }
@@ -1855,7 +1877,7 @@ impl VisitMut for Hoister<'_, '_> {
     fn visit_mut_using_decl(&mut self, _: &mut UsingDecl) {}
 
     fn visit_mut_var_decl(&mut self, node: &mut VarDecl) {
-        if node.declare {
+        if node.declare && !self.resolver.config.handle_types {
             return;
         }
 
@@ -1935,39 +1957,30 @@ impl VisitMut for Hoister<'_, '_> {
     /// that there is already an global declaration of Ic when deal with the try
     /// block.
     fn visit_mut_module_items(&mut self, items: &mut Vec<ModuleItem>) {
-        let others = items
-            .iter_mut()
-            .filter_map(|item| match item {
-                ModuleItem::Stmt(Stmt::Decl(Decl::Var(v)))
-                | ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl {
-                    decl: Decl::Var(v),
+        items.iter_mut().for_each(|item| match item {
+            ModuleItem::Stmt(Stmt::Decl(Decl::Var(v)))
+            | ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl {
+                decl: Decl::Var(v),
+                ..
+            })) if matches!(
+                &**v,
+                VarDecl {
+                    kind: VarDeclKind::Var,
                     ..
-                })) if matches!(
-                    &**v,
-                    VarDecl {
-                        kind: VarDeclKind::Var,
-                        ..
-                    }
-                ) =>
-                {
-                    item.visit_mut_with(self);
-                    None
                 }
+            ) =>
+            {
+                item.visit_mut_with(self);
+            }
 
-                ModuleItem::Stmt(Stmt::Decl(Decl::Fn(..)))
-                | ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl {
-                    decl: Decl::Fn(..),
-                    ..
-                })) => {
-                    item.visit_mut_with(self);
-                    None
-                }
-                _ => Some(item),
-            })
-            .collect::<Vec<_>>();
-
-        others.into_iter().for_each(|item| {
-            item.visit_mut_with(self);
+            ModuleItem::Stmt(Stmt::Decl(Decl::Fn(..)))
+            | ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl {
+                decl: Decl::Fn(..),
+                ..
+            })) => {
+                item.visit_mut_with(self);
+            }
+            _ => item.visit_mut_with(self),
         });
     }
 

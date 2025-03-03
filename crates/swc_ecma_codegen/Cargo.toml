@@ -7,7 +7,7 @@ include       = ["Cargo.toml", "src/**/*.rs"]
 license       = { workspace = true }
 name          = "swc_ecma_codegen"
 repository    = { workspace = true }
-version       = "8.0.1"
+version       = "8.0.2"
 
 [features]
 serde-impl = ["swc_ecma_ast/serde"]
@@ -48,7 +48,7 @@ swc_common = { version = "8.0.0", path = "../swc_common", features = [
 ] }
 swc_ecma_parser = { version = "10.0.0", path = "../swc_ecma_parser" }
 swc_ecma_testing = { version = "8.0.0", path = "../swc_ecma_testing" }
-swc_malloc = { version = "1.0.0", path = "../swc_malloc" }
+swc_malloc = { version = "1.2.2", path = "../swc_malloc" }
 testing = { version = "8.0.0", path = "../testing" }
 
 [[bench]]
