@@ -5,105 +5,154 @@ use miette::{GraphicalReportHandler, GraphicalTheme};
 use once_cell::sync::Lazy;
 use parking_lot::Mutex;
 use swc_common::{
-	SourceMap,
-	errors::{ColorConfig, HANDLER, Handler},
-	sync::Lrc,
+    errors::{ColorConfig, Emitter, Handler, HANDLER},
+    sync::Lrc,
+    SourceMap,
 };
 
-use crate::{PrettyEmitter, PrettyEmitterConfig};
+use crate::{
+    json_emitter::{JsonEmitter, JsonEmitterConfig},
+    PrettyEmitter, PrettyEmitterConfig,
+};
 
 #[derive(Clone, Default)]
 struct LockedWriter(Arc<Mutex<Vec<u8>>>);
 
 impl Write for LockedWriter {
-	fn write(&mut self, buf:&[u8]) -> std::io::Result<usize> {
-		let mut lock = self.0.lock();
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        let mut lock = self.0.lock();
 
-		lock.extend_from_slice(buf);
+        lock.extend_from_slice(buf);
 
-		Ok(buf.len())
-	}
+        Ok(buf.len())
+    }
 
-	fn flush(&mut self) -> std::io::Result<()> { Ok(()) }
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
 }
 
 impl fmt::Write for LockedWriter {
-	fn write_str(&mut self, s:&str) -> fmt::Result {
-		self.write(s.as_bytes()).map_err(|_| fmt::Error)?;
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        self.write(s.as_bytes()).map_err(|_| fmt::Error)?;
 
-		Ok(())
-	}
+        Ok(())
+    }
 }
 
 #[derive(Debug, Clone)]
 pub struct HandlerOpts {
-	/// [ColorConfig::Auto] is the default, and it will print colors unless the
-	/// environment variable `NO_COLOR` is not 1.
-	pub color:ColorConfig,
+    /// [ColorConfig::Auto] is the default, and it will print colors unless the
+    /// environment variable `NO_COLOR` is not 1.
+    pub color: ColorConfig,
 
-	/// Defaults to `false`.
-	pub skip_filename:bool,
+    /// Defaults to `false`.
+    pub skip_filename: bool,
 }
 
 impl Default for HandlerOpts {
-	fn default() -> Self { Self { color:ColorConfig::Auto, skip_filename:false } }
+    fn default() -> Self {
+        Self {
+            color: ColorConfig::Auto,
+            skip_filename: false,
+        }
+    }
 }
 
-fn to_miette_reporter(color:ColorConfig) -> GraphicalReportHandler {
-	match color {
-		ColorConfig::Auto => {
-			if cfg!(target_arch = "wasm32") {
-				return to_miette_reporter(ColorConfig::Always).with_context_lines(3);
-			}
+fn to_miette_reporter(color: ColorConfig) -> GraphicalReportHandler {
+    match color {
+        ColorConfig::Auto => {
+            if cfg!(target_arch = "wasm32") {
+                return to_miette_reporter(ColorConfig::Always).with_context_lines(3);
+            }
 
-			static ENABLE:Lazy<bool> =
-				Lazy::new(|| !env::var("NO_COLOR").map(|s| s == "1").unwrap_or(false));
+            static ENABLE: Lazy<bool> =
+                Lazy::new(|| !env::var("NO_COLOR").map(|s| s == "1").unwrap_or(false));
 
-			if *ENABLE {
-				to_miette_reporter(ColorConfig::Always)
-			} else {
-				to_miette_reporter(ColorConfig::Never)
-			}
-		},
-
-		ColorConfig::Always => GraphicalReportHandler::default(),
-		ColorConfig::Never => GraphicalReportHandler::default().with_theme(GraphicalTheme::none()),
-	}
-	.with_context_lines(3)
+            if *ENABLE {
+                to_miette_reporter(ColorConfig::Always)
+            } else {
+                to_miette_reporter(ColorConfig::Never)
+            }
+        }
+        ColorConfig::Always => GraphicalReportHandler::default(),
+        ColorConfig::Never => GraphicalReportHandler::default().with_theme(GraphicalTheme::none()),
+    }
+    .with_context_lines(3)
 }
 
 /// Try operation with a [Handler] and prints the errors as a [String] wrapped
 /// by [Err].
-pub fn try_with_handler<F, Ret>(cm:Lrc<SourceMap>, config:HandlerOpts, op:F) -> Result<Ret, Error>
+pub fn try_with_handler<F, Ret>(
+    cm: Lrc<SourceMap>,
+    config: HandlerOpts,
+    op: F,
+) -> Result<Ret, Error>
 where
-	F: FnOnce(&Handler) -> Result<Ret, Error>, {
-	let wr = Box::<LockedWriter>::default();
+    F: FnOnce(&Handler) -> Result<Ret, Error>,
+{
+    try_with_handler_inner(cm, config, op, false)
+}
 
-	let emitter = PrettyEmitter::new(
-		cm,
-		wr.clone(),
-		to_miette_reporter(config.color),
-		PrettyEmitterConfig { skip_filename:config.skip_filename },
-	);
-	// let e_wr = EmitterWriter::new(wr.clone(), Some(cm), false,
-	// true).skip_filename(skip_filename);
+/// Try operation with a [Handler] and prints the errors as a [String] wrapped
+/// by [Err].
+pub fn try_with_json_handler<F, Ret>(
+    cm: Lrc<SourceMap>,
+    config: HandlerOpts,
+    op: F,
+) -> Result<Ret, Error>
+where
+    F: FnOnce(&Handler) -> Result<Ret, Error>,
+{
+    try_with_handler_inner(cm, config, op, true)
+}
 
-	let handler = Handler::with_emitter(true, false, Box::new(emitter));
+fn try_with_handler_inner<F, Ret>(
+    cm: Lrc<SourceMap>,
+    config: HandlerOpts,
+    op: F,
+    json: bool,
+) -> Result<Ret, Error>
+where
+    F: FnOnce(&Handler) -> Result<Ret, Error>,
+{
+    let wr = Box::<LockedWriter>::default();
 
-	let ret = HANDLER.set(&handler, || op(&handler));
+    let emitter: Box<dyn Emitter> = if json {
+        Box::new(JsonEmitter::new(
+            cm,
+            wr.clone(),
+            JsonEmitterConfig {
+                skip_filename: config.skip_filename,
+            },
+        ))
+    } else {
+        Box::new(PrettyEmitter::new(
+            cm,
+            wr.clone(),
+            to_miette_reporter(config.color),
+            PrettyEmitterConfig {
+                skip_filename: config.skip_filename,
+            },
+        ))
+    };
+    // let e_wr = EmitterWriter::new(wr.clone(), Some(cm), false,
+    // true).skip_filename(skip_filename);
+    let handler = Handler::with_emitter(true, false, emitter);
 
-	if handler.has_errors() {
-		let mut lock = wr.0.lock();
+    let ret = HANDLER.set(&handler, || op(&handler));
 
-		let error = take(&mut *lock);
+    if handler.has_errors() {
+        let mut lock = wr.0.lock();
+        let error = take(&mut *lock);
 
-		let msg = String::from_utf8(error).expect("error string should be utf8");
+        let msg = String::from_utf8(error).expect("error string should be utf8");
 
-		match ret {
-			Ok(_) => Err(anyhow::anyhow!(msg)),
-			Err(err) => Err(err.context(msg)),
-		}
-	} else {
-		ret
-	}
+        match ret {
+            Ok(_) => Err(anyhow::anyhow!(msg)),
+            Err(err) => Err(err.context(msg)),
+        }
+    } else {
+        ret
+    }
 }

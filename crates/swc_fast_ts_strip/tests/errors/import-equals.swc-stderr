@@ -1,7 +1,0 @@
-UnsupportedSyntax
-
-  x TypeScript import equals declaration is not supported in strip-only mode
-   ,----
- 1 | import foo = require("foo");
-   : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   `----
