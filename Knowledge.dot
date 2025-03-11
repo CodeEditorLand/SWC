@@ -1,0 +1,131 @@
+digraph G {
+  newrank=true;
+  rankdir=LR;
+  splines=ortho;
+  overlap=false;
+  nodesep=0.5;
+  ranksep=0.5;
+  concentrate=true;
+  graph [bgcolor="#f9f9f9", color="#888888", penwidth=2, fontname="Arial"];
+  node [fontname="Arial", fontsize=14, style=filled, margin="0.3,0.2"];
+  edge [fontname="Arial", fontsize=10, color="#555555", fontcolor="gray"];
+  subgraph cluster_1 {
+    label="root";
+    style=filled; color="#5DADE2"; fillcolor="#5DADE220";
+    "n0" [label="root", shape=folder, fillcolor="#5DADE2", penwidth=1.5];
+    "n21" [label="npm (.): @codeeditorland/workspace v0.0.1", shape=ellipse, fillcolor="#F4D03F", penwidth=1.5];
+  subgraph cluster_2 {
+    label="xtask";
+    style=filled; color="#3498DB"; fillcolor="#3498DB20";
+    "n16" [label="xtask", shape=folder, fillcolor="#3498DB", penwidth=1.5];
+    "n22" [label="cargo (./xtask): xtask v0.1.0", shape=ellipse, fillcolor="#EB984E", penwidth=1.5];
+    "n17" [label="Cargo.toml", shape=note, fillcolor="#FADBD8", penwidth=1];
+  }
+
+    "n15" [label="package.json", shape=note, fillcolor="#FADBD8", penwidth=1];
+  subgraph cluster_3 {
+    label="bindings";
+    style=filled; color="#3498DB"; fillcolor="#3498DB20";
+    "n1" [label="bindings", shape=folder, fillcolor="#3498DB", penwidth=1.5];
+  subgraph cluster_4 {
+    label="swc_cli";
+    style=filled; color="#2E86C1"; fillcolor="#2E86C120";
+    "n14" [label="swc_cli", shape=folder, fillcolor="#2E86C1", penwidth=1.5];
+  }
+
+  subgraph cluster_5 {
+    label="node_macro_deps";
+    style=filled; color="#2E86C1"; fillcolor="#2E86C120";
+    "n12" [label="node_macro_deps", shape=folder, fillcolor="#2E86C1", penwidth=1.5];
+    "n20" [label="cargo (./bindings/node_macro_deps): node_macro_deps v0.1.0", shape=ellipse, fillcolor="#EB984E", penwidth=1.5];
+    "n13" [label="Cargo.toml", shape=note, fillcolor="#FADBD8", penwidth=1];
+  }
+
+  subgraph cluster_6 {
+    label="binding_typescript_wasm";
+    style=filled; color="#2E86C1"; fillcolor="#2E86C120";
+    "n10" [label="binding_typescript_wasm", shape=folder, fillcolor="#2E86C1", penwidth=1.5];
+    "n19" [label="cargo (./bindings/binding_typescript_wasm): binding_typescript_wasm v1.11.8", shape=ellipse, fillcolor="#EB984E", penwidth=1.5];
+    "n11" [label="Cargo.toml", shape=note, fillcolor="#FADBD8", penwidth=1];
+  }
+
+  subgraph cluster_7 {
+    label="binding_minifier_wasm";
+    style=filled; color="#2E86C1"; fillcolor="#2E86C120";
+    "n9" [label="binding_minifier_wasm", shape=folder, fillcolor="#2E86C1", penwidth=1.5];
+  }
+
+  subgraph cluster_8 {
+    label="binding_minifier_node";
+    style=filled; color="#2E86C1"; fillcolor="#2E86C120";
+    "n8" [label="binding_minifier_node", shape=folder, fillcolor="#2E86C1", penwidth=1.5];
+  }
+
+  subgraph cluster_9 {
+    label="binding_js_interop_node";
+    style=filled; color="#2E86C1"; fillcolor="#2E86C120";
+    "n7" [label="binding_js_interop_node", shape=folder, fillcolor="#2E86C1", penwidth=1.5];
+  }
+
+  subgraph cluster_10 {
+    label="binding_html_node";
+    style=filled; color="#2E86C1"; fillcolor="#2E86C120";
+    "n5" [label="binding_html_node", shape=folder, fillcolor="#2E86C1", penwidth=1.5];
+    "n18" [label="cargo (./bindings/binding_html_node): binding_html_node v0.1.0", shape=ellipse, fillcolor="#EB984E", penwidth=1.5];
+    "n6" [label="Cargo.toml", shape=note, fillcolor="#FADBD8", penwidth=1];
+  }
+
+  subgraph cluster_11 {
+    label="binding_core_wasm";
+    style=filled; color="#2E86C1"; fillcolor="#2E86C120";
+    "n3" [label="binding_core_wasm", shape=folder, fillcolor="#2E86C1", penwidth=1.5];
+  subgraph cluster_12 {
+    label="example";
+    style=filled; color="#2874A6"; fillcolor="#2874A620";
+    "n4" [label="example", shape=folder, fillcolor="#2874A6", penwidth=1.5];
+  }
+
+  }
+
+  subgraph cluster_13 {
+    label="binding_core_node";
+    style=filled; color="#2E86C1"; fillcolor="#2E86C120";
+    "n2" [label="binding_core_node", shape=folder, fillcolor="#2E86C1", penwidth=1.5];
+  }
+
+  }
+
+  }
+
+  "n0" -> "n1" [label="Contain", style=solid, color="blue", weight=2, arrowsize=0.8];
+  "n1" -> "n2" [label="Contain", style=solid, color="blue", weight=2, arrowsize=0.8];
+  "n1" -> "n3" [label="Contain", style=solid, color="blue", weight=2, arrowsize=0.8];
+  "n3" -> "n4" [label="Contain", style=solid, color="blue", weight=2, arrowsize=0.8];
+  "n1" -> "n5" [label="Contain", style=solid, color="blue", weight=2, arrowsize=0.8];
+  "n5" -> "n6" [label="Contain", style=solid, color="blue", weight=2, arrowsize=0.8];
+  "n1" -> "n7" [label="Contain", style=solid, color="blue", weight=2, arrowsize=0.8];
+  "n1" -> "n8" [label="Contain", style=solid, color="blue", weight=2, arrowsize=0.8];
+  "n1" -> "n9" [label="Contain", style=solid, color="blue", weight=2, arrowsize=0.8];
+  "n1" -> "n10" [label="Contain", style=solid, color="blue", weight=2, arrowsize=0.8];
+  "n10" -> "n11" [label="Contain", style=solid, color="blue", weight=2, arrowsize=0.8];
+  "n1" -> "n12" [label="Contain", style=solid, color="blue", weight=2, arrowsize=0.8];
+  "n12" -> "n13" [label="Contain", style=solid, color="blue", weight=2, arrowsize=0.8];
+  "n1" -> "n14" [label="Contain", style=solid, color="blue", weight=2, arrowsize=0.8];
+  "n0" -> "n15" [label="Contain", style=solid, color="blue", weight=2, arrowsize=0.8];
+  "n0" -> "n16" [label="Contain", style=solid, color="blue", weight=2, arrowsize=0.8];
+  "n16" -> "n17" [label="Contain", style=solid, color="blue", weight=2, arrowsize=0.8];
+  "n5" -> "n18" [label="Contain", style=solid, color="blue", weight=2, arrowsize=0.8];
+  "n10" -> "n19" [label="Contain", style=solid, color="blue", weight=2, arrowsize=0.8];
+  "n12" -> "n20" [label="Contain", style=solid, color="blue", weight=2, arrowsize=0.8];
+  "n0" -> "n21" [label="Contain", style=solid, color="blue", weight=2, arrowsize=0.8];
+  "n16" -> "n22" [label="Contain", style=solid, color="blue", weight=2, arrowsize=0.8];
+  subgraph cluster_legend {
+    label="Legend"; fontsize=14; style=dashed; color=gray;
+    "dir" [label="Directory", shape=folder, fillcolor="#5DADE2"];
+    "file" [label="File", shape=note, fillcolor="#FADBD8"];
+    "pkg" [label="Package", shape=ellipse, fillcolor="#EB984E"];
+    "ext" [label="External", shape=trapezium, fillcolor="#EC7063"];
+    "dir" -> "file" [label="Contain", style=solid, color=blue];
+    "pkg" -> "ext" [label="Dependency", style=dashed, color=red];
+  }
+}
