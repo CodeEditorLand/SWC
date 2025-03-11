@@ -1,4 +1,57 @@
 # Changelog
+## [swc_core@v16.4.1] - 2025-03-07
+
+### Bug Fixes
+
+
+
+- **(es/fast-lexer)** Fix lexing of numeric literals ([#10153](https://github.com/swc-project/swc/issues/10153)) ([65d23fe](https://github.com/swc-project/swc/commit/65d23febaaa6334c9e9477a3d5af82ebea66259b))
+
+
+- **(es/parser)** Rescan `<<` in new expression ([#10159](https://github.com/swc-project/swc/issues/10159)) ([35bd6d9](https://github.com/swc-project/swc/commit/35bd6d9e1c0bcb1e1fd58fe086b68a9b7c40a596))
+
+### Features
+
+
+
+- **(ts/fast-strip)** Throw an object instead of string ([#10162](https://github.com/swc-project/swc/issues/10162)) ([241b881](https://github.com/swc-project/swc/commit/241b8810ab551072c22cec077f9aa3155dbaec6f))
+
+### Performance
+
+
+
+- **(es/fast-lexer)** Optimize lexing of keywords ([#10155](https://github.com/swc-project/swc/issues/10155)) ([fb610b0](https://github.com/swc-project/swc/commit/fb610b096f4b5a8661b1e35e63b6ae327d4725ed))
+
+
+- **(es/fast-lexer)** Optimize bound checks ([#10157](https://github.com/swc-project/swc/issues/10157)) ([d74360e](https://github.com/swc-project/swc/commit/d74360ed26fb7bdad448523e1ffa64d59aa11673))
+
+
+- **(es/fast-lexer)** Make whitespace skipper use SIMD properly ([#10158](https://github.com/swc-project/swc/issues/10158)) ([15ea059](https://github.com/swc-project/swc/commit/15ea059712f6726d52b6304870f337a93272bb53))
+
+
+- **(es/lexer)** Optimize whitespace scanning ([#10136](https://github.com/swc-project/swc/issues/10136)) ([8a59753](https://github.com/swc-project/swc/commit/8a59753429538c62490dde54c56a964b6faa50ec))
+
+
+- **(es/lexer)** Optimize comment scanning ([#10137](https://github.com/swc-project/swc/issues/10137)) ([9676c9a](https://github.com/swc-project/swc/commit/9676c9acc83cca4297f07abdc203f0ab8da36b2b))
+
+### Refactor
+
+
+
+- **(es/lexer)** Add fast lexer implementation ([#10145](https://github.com/swc-project/swc/issues/10145)) ([b993f86](https://github.com/swc-project/swc/commit/b993f8621c41ff4752d8634e9de7ed7a48f23eb9))
+
+
+- Drop unused crates ([#10151](https://github.com/swc-project/swc/issues/10151)) ([58e4279](https://github.com/swc-project/swc/commit/58e4279fae94a9958ad4229cfa0c9b89b9d0fde4))
+
+
+- Drop unused js interop bindings ([#10161](https://github.com/swc-project/swc/issues/10161)) ([0ceefaf](https://github.com/swc-project/swc/commit/0ceefafbf3485ddfc831913114a7978e06c9ce5c))
+
+### Ci
+
+
+
+- Add swc_plugins test to ecosystem CI ([#10164](https://github.com/swc-project/swc/issues/10164)) ([b23d133](https://github.com/swc-project/swc/commit/b23d133959687161726bd6d08d101e5f57a6f8d9))
+
 ## [swc_core@v16.4.0] - 2025-03-04
 
 ### Features
@@ -1468,14 +1521,7 @@
   ([#9252](https://github.com/swc-project/swc/issues/9252))
   ([d8e8b04](https://github.com/swc-project/swc/commit/d8e8b04cd877bcf00157eeee9b7af0b4244a1827))
 
-- **(allocator)** Remove wrong assertions and add tests ([#9252](https://github.com/swc-project/swc/issues/9252)) ([d8e8b04](https://github.com/swc-project/swc/commit/d8e8b04cd877bcf00157eeee9b7af0b4244a1827))
-
-- **(ci)** FIx pattern for `actions/download-artifact`
-  ([ac7bd31](https://github.com/swc-project/swc/commit/ac7bd31e8cd79f9df7f3bf6ac05e84b67b0f4546))
-
-- **(cli)** Exclude non-files from get_files_list
-  ([#9560](https://github.com/swc-project/swc/issues/9560))
-  ([85cc2bd](https://github.com/swc-project/swc/commit/85cc2bd79c3193cb0a8b54e4fce0efc1aa15b271))
+- **(ast)** Add `archive(check_bytes)` to all relevant AST types ([#9574](https://github.com/swc-project/swc/issues/9574)) ([185d6f5](https://github.com/swc-project/swc/commit/185d6f55b35f4f8323035c1199cddb9dd547f254))
 
 - **(common)** Fix `StringInput.end_pos`
   ([#9362](https://github.com/swc-project/swc/issues/9362))
@@ -1716,30 +1762,7 @@
   ([#9374](https://github.com/swc-project/swc/issues/9374))
   ([c53cce4](https://github.com/swc-project/swc/commit/c53cce41da69ebb3cd9b464c001902d30bdd07ba))
 
-- **(es/minifier)** Fix exponentiate operator ([#9251](https://github.com/swc-project/swc/issues/9251)) ([06bb533](https://github.com/swc-project/swc/commit/06bb5338cea8aef941907933319fbff1d29f9939))
-
-- **(es/typescript)** Preserve more comments
-  ([#9509](https://github.com/swc-project/swc/issues/9509))
-  ([3e253ec](https://github.com/swc-project/swc/commit/3e253ecc21f2028437572093b42df97ef5fe505e))
-
-- **(es/typescript)** Handle enum in single statement
-  ([#9532](https://github.com/swc-project/swc/issues/9532))
-  ([84b0043](https://github.com/swc-project/swc/commit/84b004387ba8f4135659e1d1f54e59bf1941a57a))
-
-- **(es/typescrupt)** Fix ASI issue in fast ts strip
-  ([#9332](https://github.com/swc-project/swc/issues/9332))
-  ([57146cf](https://github.com/swc-project/swc/commit/57146cf58acb43fb5fa526bfde206c4f147edc6d))
-
-- **(es/utils)** Use `$crate` for `quote_ident!()`
-  ([#9309](https://github.com/swc-project/swc/issues/9309))
-  ([bdaaf47](https://github.com/swc-project/swc/commit/bdaaf47cb4fc0146485a567d48449116d0e67e98))
-
-- **(html)** Fix html binding
-  ([eefae1c](https://github.com/swc-project/swc/commit/eefae1cde794b28b68e5c0af2d2f13a5053b7a49))
-
-- **(plugin)** Don't panic when ast byte not match
-  ([#9562](https://github.com/swc-project/swc/issues/9562))
-  ([c36871a](https://github.com/swc-project/swc/commit/c36871a84826cc125c3c10a78ee2d7a435373154))
+- **(es/minifier)** Support minifying JSX ([#9271](https://github.com/swc-project/swc/issues/9271)) ([9a6367b](https://github.com/swc-project/swc/commit/9a6367b0f661e500219aa3c17ca2ff037e498692))
 
 - **(swc_core)** Remove unused `preset_env`
   ([#9333](https://github.com/swc-project/swc/issues/9333))
@@ -2087,15 +2110,7 @@
   ([#9294](https://github.com/swc-project/swc/issues/9294))
   ([07376c6](https://github.com/swc-project/swc/commit/07376c6fbbf7f945b673e4adf3f4d789c10c7781))
 
-- **(es/codegen)** Use scoped allocator ([#9248](https://github.com/swc-project/swc/issues/9248)) ([970f323](https://github.com/swc-project/swc/commit/970f32398c6ff444540a31e1172a33b6155ed18b))
-
-- **(es/utils)** Rewrite inject_after_super
-  ([#9496](https://github.com/swc-project/swc/issues/9496))
-  ([c562cfa](https://github.com/swc-project/swc/commit/c562cfa8af1163a4946ef79cb025d461c7e2e5e0))
-
-- **(visit)** Modify `Box` and `Vec` in-place
-  ([#9291](https://github.com/swc-project/swc/issues/9291))
-  ([ae2ac05](https://github.com/swc-project/swc/commit/ae2ac05b94a6f9f6e56c26cde5c8b8e705739f1c))
+- **(es/codegen)** Use `Vec<T>` from `swc_allocator` ([#9280](https://github.com/swc-project/swc/issues/9280)) ([c1cd0b9](https://github.com/swc-project/swc/commit/c1cd0b99c14b03c250f2d278f10480da733e0dfa))
 
 - **(visit)** Add `#[inline]`
   ([#9302](https://github.com/swc-project/swc/issues/9302))
@@ -2119,22 +2134,11 @@
   ([#9254](https://github.com/swc-project/swc/issues/9254))
   ([6e098ae](https://github.com/swc-project/swc/commit/6e098aeeb5976292e43786f72bd91f1de50a9daa))
 
-- **(allocator)** Use RAII guard instead of `scope` ([#9254](https://github.com/swc-project/swc/issues/9254)) ([6e098ae](https://github.com/swc-project/swc/commit/6e098aeeb5976292e43786f72bd91f1de50a9daa))
-
-- **(es/utils)** Unify `prepend_stmts`
-  ([#9493](https://github.com/swc-project/swc/issues/9493))
-  ([faec8c1](https://github.com/swc-project/swc/commit/faec8c134d950d10a9f2dce0e5680d9230f87ceb))
-
-- **(visit)** Pre-generate visitor code
-  ([#9262](https://github.com/swc-project/swc/issues/9262))
-  ([9c17663](https://github.com/swc-project/swc/commit/9c176632b1e0d6edec10929486ca514fa992415b))
+- **(common)** Simplify `SyntaxContext` and `Mark` ([#9476](https://github.com/swc-project/swc/issues/9476)) ([4bee30a](https://github.com/swc-project/swc/commit/4bee30ab40de19c844956e156a7fb3bed1506daa))
 
 - **(visit)** Remove `VisitAll`
   ([#9448](https://github.com/swc-project/swc/issues/9448))
   ([8845b76](https://github.com/swc-project/swc/commit/8845b76ac40b36791c79618c5ee89f05d2d08c96))
-
-- **(es/codegen)** Revert #9248 ([#9266](https://github.com/swc-project/swc/issues/9266)) ([b9b233c](https://github.com/swc-project/swc/commit/b9b233cacd9d326afb806d856c91e38474b237c2))
-
 
 - **(es/utils)** Unify `prepend_stmts` ([#9493](https://github.com/swc-project/swc/issues/9493)) ([faec8c1](https://github.com/swc-project/swc/commit/faec8c134d950d10a9f2dce0e5680d9230f87ceb))
 
@@ -2156,14 +2160,6 @@
 - **(es)** Add tests for arm64 windows
   ([#9547](https://github.com/swc-project/swc/issues/9547))
   ([9dd8f6f](https://github.com/swc-project/swc/commit/9dd8f6facf29817902ddf55ec0388061585cbf7d))
-
-- **(es/base)** Disable flaky benchmark
-  ([#9221](https://github.com/swc-project/swc/issues/9221))
-  ([bd4bef1](https://github.com/swc-project/swc/commit/bd4bef16fb6d21d97699d46649c8db6af1dd27df))
-
-- **(es/typescript)** Verify TypeScript stripped output
-  ([#9398](https://github.com/swc-project/swc/issues/9398))
-  ([4c4c860](https://github.com/swc-project/swc/commit/4c4c86014f7827e92731c0d60ef1613238648b30))
 
 - **(es)** Add tests for arm64 windows ([#9547](https://github.com/swc-project/swc/issues/9547)) ([9dd8f6f](https://github.com/swc-project/swc/commit/9dd8f6facf29817902ddf55ec0388061585cbf7d))
 
