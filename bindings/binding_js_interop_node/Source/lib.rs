@@ -37,6 +37,31 @@ fn get_compiler() -> Arc<Compiler> {
     COMPILER.clone()
 }
 
+fn get_fresh_compiler() -> Arc<Compiler> {
+    let cm = Arc::new(SourceMap::new(FilePathMapping::empty()));
+
+    Arc::new(Compiler::new(cm))
+}
+
+#[napi(js_name = "Compiler")]
+pub struct JsCompiler {
+    _compiler: Arc<Compiler>,
+}
+
+#[napi]
+impl JsCompiler {
+    #[napi(constructor)]
+    #[allow(clippy::new_without_default)]
+    #[tracing::instrument(level = "info", skip_all)]
+    pub fn new() -> Self {
+        Self {
+            _compiler: COMPILER.clone(),
+        }
+    }
+}
+
+pub type ArcCompiler = Arc<Compiler>;
+
 /// Hack for `Type Generation`
 #[napi(object)]
 pub struct TransformOutput {

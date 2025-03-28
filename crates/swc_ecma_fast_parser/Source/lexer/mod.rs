@@ -104,6 +104,12 @@ const CHAR_HEX_DIGIT: u8 = 0b0010_0000;
 const CHAR_OPERATOR: u8 = 0b0100_0000;
 const CHAR_SPECIAL: u8 = 0b1000_0000;
 
+// SIMD vectors for common whitespace characters
+static SPACE_SIMD_VEC: u8x16 = u8x16::new([b' '; 16]);
+static TAB_SIMD_VEC: u8x16 = u8x16::new([b'\t'; 16]);
+static FORM_FEED_SMID_VEC: u8x16 = u8x16::new([0x0c; 16]);
+static VECR_TAB_SMID_VEC: u8x16 = u8x16::new([0x0b; 16]);
+
 // Extended lookup table for faster character checks (ASCII only)
 static ASCII_LOOKUP: [u8; 256] = {
     let mut table = [0u8; 256];
@@ -387,7 +393,7 @@ impl<'a> Lexer<'a> {
             }
         } else {
             // Non-ASCII character path (less common)
-            if Self::is_identifier_start(ch) {
+            if Self::is_identifier_start(ch as char) {
                 self.read_non_keyword_identifier()
             } else {
                 self.cursor.advance();
@@ -564,18 +570,12 @@ impl<'a> Lexer<'a> {
             _ => {}
         }
 
-        // Create SIMD vectors for common whitespace characters
-        let space_vec = u8x16::splat(b' ');
-        let tab_vec = u8x16::splat(b'\t');
-        let form_feed_vec = u8x16::splat(0x0c); // Form feed
-        let vert_tab_vec = u8x16::splat(0x0b); // Vertical tab
-
         // Fast path for regular whitespace (space, tab, form feed, vertical tab)
         // Compare with our whitespace vectors
-        let is_space = data.cmp_eq(space_vec);
-        let is_tab = data.cmp_eq(tab_vec);
-        let is_ff = data.cmp_eq(form_feed_vec);
-        let is_vt = data.cmp_eq(vert_tab_vec);
+        let is_space = data.cmp_eq(SPACE_SIMD_VEC);
+        let is_tab = data.cmp_eq(TAB_SIMD_VEC);
+        let is_ff = data.cmp_eq(FORM_FEED_SMID_VEC);
+        let is_vt = data.cmp_eq(VECR_TAB_SMID_VEC);
 
         // Combine masks for regular whitespace
         let is_basic_ws = is_space | is_tab | is_ff | is_vt;
@@ -715,30 +715,6 @@ impl<'a> Lexer<'a> {
         // If we reach here, the comment was not closed
         if had_line_break {
             self.had_line_break = LineBreak::Present;
-        }
-    }
-
-    /// Check if a byte is a valid identifier start character
-    #[inline(always)]
-    fn is_identifier_start(byte: u8) -> bool {
-        // ASCII fast path using optimized identifier functions
-        if likely(byte < 128) {
-            Self::is_ascii_id_start(byte)
-        } else {
-            // Non-ASCII, needs further checking in read_identifier
-            true
-        }
-    }
-
-    /// Check if a byte is a valid identifier continue character
-    #[inline(always)]
-    fn is_identifier_continue(byte: u8) -> bool {
-        // ASCII fast path using optimized identifier functions
-        if likely(byte < 128) {
-            Self::is_ascii_id_continue(byte)
-        } else {
-            // Non-ASCII, needs further checking in read_identifier
-            true
         }
     }
 }

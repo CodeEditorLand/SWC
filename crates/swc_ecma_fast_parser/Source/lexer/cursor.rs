@@ -55,6 +55,19 @@ impl<'a> Cursor<'a> {
         }
     }
 
+    /// Peek at the current character without advancing
+    #[inline(always)]
+    pub fn peek_char(&self) -> Option<char> {
+        self.peek().and_then(|b| {
+            if b.is_ascii() {
+                Some(b as char)
+            } else {
+                let rest_str = unsafe { std::str::from_utf8_unchecked(self.rest()) };
+                rest_str.chars().next()
+            }
+        })
+    }
+
     /// Peek at a byte at a specific offset from the current position
     #[inline(always)]
     pub fn peek_at(&self, offset: u32) -> Option<u8> {
@@ -82,6 +95,20 @@ impl<'a> Cursor<'a> {
         self.pos += 1;
     }
 
+    /// Advance the cursor by one character
+    #[inline(always)]
+    pub fn advance_char(&mut self) {
+        assume!(unsafe: !self.is_eof());
+        let byte = self.peek().unwrap();
+        if byte.is_ascii() {
+            self.advance();
+        } else {
+            let rest_str = unsafe { std::str::from_utf8_unchecked(self.rest()) };
+            let ch = rest_str.chars().next().unwrap();
+            self.advance_n(ch.len_utf8() as u32);
+        }
+    }
+
     /// Advance the cursor by n bytes
     #[inline(always)]
     pub fn advance_n(&mut self, n: u32) {
@@ -91,47 +118,48 @@ impl<'a> Cursor<'a> {
 
     /// Advance until the predicate returns false or EOF is reached
     #[inline]
-    pub fn advance_while<F>(&mut self, mut predicate: F) -> u32
+    pub fn advance_while<F>(&mut self, predicate: F) -> u32
     where
-        F: FnMut(u8) -> bool,
+        F: Fn(u8) -> bool,
     {
         let start = self.pos;
 
-        self.advance_while_scalar(&mut predicate);
+        self.advance_while_scalar(&predicate);
 
         self.pos - start
     }
 
     /// Scalar (non-SIMD) implementation of advance_while
     #[inline]
-    fn advance_while_scalar<F>(&mut self, predicate: &mut F)
+    fn advance_while_scalar<F>(&mut self, predicate: &F)
     where
-        F: FnMut(u8) -> bool,
+        F: Fn(u8) -> bool,
     {
-        const BATCH_SIZE: u32 = 32;
+        // Warning: Do not scalarize if we do not use SIMD
+        // const BATCH_SIZE: u32 = 32;
 
-        // Process in batches if we have more than BATCH_SIZE bytes
-        while self.pos + BATCH_SIZE <= self.len {
-            let mut should_stop = false;
+        // // Process in batches if we have more than BATCH_SIZE bytes
+        // while self.pos + BATCH_SIZE <= self.len {
+        //     let mut should_stop = false;
 
-            // Check all bytes in the batch
-            for i in 0..BATCH_SIZE {
-                // SAFETY: We've verified bounds above
-                let byte = unsafe { *self.input.get_unchecked((self.pos + i) as usize) };
-                if !predicate(byte) {
-                    should_stop = true;
-                    break;
-                }
-            }
+        //     // Check all bytes in the batch
+        //     for i in 0..BATCH_SIZE {
+        //         // SAFETY: We've verified bounds above
+        //         let byte = unsafe { *self.input.get_unchecked((self.pos + i) as
+        // usize) };         if !predicate(byte) {
+        //             should_stop = true;
+        //             break;
+        //         }
+        //     }
 
-            if should_stop {
-                // Found stopping byte, switch to byte-by-byte
-                break;
-            }
+        //     if should_stop {
+        //         // Found stopping byte, switch to byte-by-byte
+        //         break;
+        //     }
 
-            // Skip the entire batch
-            self.pos += BATCH_SIZE;
-        }
+        //     // Skip the entire batch
+        //     self.pos += BATCH_SIZE;
+        // }
 
         // Byte-by-byte for the remainder
         while let Some(byte) = self.peek() {

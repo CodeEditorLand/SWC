@@ -22,19 +22,26 @@ concurrent = [
   "swc_ecma_utils/concurrent",
 ]
 
-[lib]
-bench = false
-path = "Source/lib.rs"
+[dependencies]
+arrayvec   = { workspace = true }
+indexmap   = { workspace = true }
+is-macro   = { workspace = true }
+num-bigint = { workspace = true }
+par-core   = { workspace = true }
+rayon      = { workspace = true, optional = true }
+serde      = { workspace = true, features = ["derive"] }
+smallvec   = { workspace = true }
+tracing    = { workspace = true }
 
 swc_atoms                   = { version = "5.0.0", path = "../swc_atoms" }
-swc_common                  = { version = "8.0.0", path = "../swc_common" }
+swc_common                  = { version = "8.0.1", path = "../swc_common" }
 swc_config                  = { version = "2.0.0", path = "../swc_config" }
-swc_ecma_ast                = { version = "8.0.0", path = "../swc_ecma_ast" }
+swc_ecma_ast                = { version = "8.1.0", path = "../swc_ecma_ast" }
 swc_ecma_compat_bugfixes    = { version = "11.0.0", path = "../swc_ecma_compat_bugfixes" }
 swc_ecma_compat_common      = { version = "11.0.0", path = "../swc_ecma_compat_common" }
-swc_ecma_compat_es2015      = { version = "11.0.0", path = "../swc_ecma_compat_es2015" }
+swc_ecma_compat_es2015      = { version = "11.0.1", path = "../swc_ecma_compat_es2015" }
 swc_ecma_compat_es2016      = { version = "11.0.0", path = "../swc_ecma_compat_es2016" }
-swc_ecma_compat_es2017      = { version = "11.0.0", path = "../swc_ecma_compat_es2017" }
+swc_ecma_compat_es2017      = { version = "11.0.1", path = "../swc_ecma_compat_es2017" }
 swc_ecma_compat_es2018      = { version = "11.0.0", path = "../swc_ecma_compat_es2018" }
 swc_ecma_compat_es2019      = { version = "11.0.0", path = "../swc_ecma_compat_es2019" }
 swc_ecma_compat_es2020      = { version = "12.0.0", path = "../swc_ecma_compat_es2020" }
@@ -49,8 +56,9 @@ swc_ecma_visit              = { version = "8.0.0", path = "../swc_ecma_visit" }
 swc_trace_macro             = { version = "2.0.0", path = "../swc_trace_macro" }
 
 [dev-dependencies]
+par-core   = { workspace = true, features = ["chili"] }
 serde_json = { workspace = true }
 
-swc_ecma_parser             = { version = "10.0.1", path = "../swc_ecma_parser" }
+swc_ecma_parser             = { version = "10.0.2", path = "../swc_ecma_parser" }
 swc_ecma_transforms_testing = { version = "11.0.1", path = "../swc_ecma_transforms_testing" }
 testing                     = { version = "8.0.0", path = "../testing" }
