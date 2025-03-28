@@ -1,1 +1,0 @@
-//// [stringLiteralTypesAndTuples01.ts]
