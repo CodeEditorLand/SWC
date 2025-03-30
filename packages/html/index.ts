@@ -183,7 +183,7 @@ export function minifySync(
     return binding.minifySync(content, toBuffer(options ?? {}));
 }
 
-export async function minifyFragmentSync(
+export function minifyFragmentSync(
     content: string | Buffer,
     options?: FragmentOptions
 ): Promise<binding.TransformOutput> {

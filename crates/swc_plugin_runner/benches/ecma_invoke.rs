@@ -141,7 +141,7 @@ fn plugin_group(c: &mut Criterion) {
 
         cmd.arg("build")
             .arg("--release")
-            .arg("--target=wasm32-wasi");
+            .arg("--target=wasm32-wasip1");
 
         let status = cmd.status().unwrap();
 
@@ -154,7 +154,7 @@ fn plugin_group(c: &mut Criterion) {
 fn bench_transform(b: &mut Bencher, plugin_dir: &Path) {
     let path = &plugin_dir
         .join("target")
-        .join("wasm32-wasi")
+        .join("wasm32-wasip1")
         .join("release")
         .join("swc_noop_plugin.wasm");
 
