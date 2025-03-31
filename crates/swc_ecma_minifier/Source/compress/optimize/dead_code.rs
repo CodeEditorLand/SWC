@@ -32,7 +32,7 @@ impl Optimizer<'_> {
 	/// # Returns
 	///
 	/// returns true if `e` is changed.
-	pub(super) fn optimize_last_expr_before_termination(&mut self, e:&mut Expr) -> bool {
+	pub(super) fn optimize_last_expr_before_termination(&mut self, e: &mut Expr) -> bool {
 		if !self.options.dead_code {
 			return false;
 		}
@@ -89,13 +89,8 @@ impl Optimizer<'_> {
 						);
 
 						self.changed = true;
-						*e = BinExpr {
-							span:assign.span,
-							op,
-							left:lhs.clone().into(),
-							right:assign.right.take(),
-						}
-						.into();
+						*e = BinExpr { span: assign.span, op, left: lhs.clone().into(), right: assign.right.take() }
+							.into();
 
 						return true;
 					}

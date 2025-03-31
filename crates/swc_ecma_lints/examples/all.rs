@@ -40,12 +40,12 @@ fn main() {
 			program.visit_mut_with(&mut resolver(unresolved_mark, top_level_mark, false));
 
 			let mut rules = swc_ecma_lints::rules::all(LintParams {
-				program:&program,
-				lint_config:&Default::default(),
+				program: &program,
+				lint_config: &Default::default(),
 				unresolved_ctxt,
 				top_level_ctxt,
-				es_version:EsVersion::latest(),
-				source_map:cm.clone(),
+				es_version: EsVersion::latest(),
+				source_map: cm.clone(),
 			});
 
 			let module = program.expect_module();
@@ -93,12 +93,12 @@ fn main() {
 			program.mutate(resolver(unresolved_mark, top_level_mark, false));
 
 			let mut rules = swc_ecma_lints::rules::all(LintParams {
-				program:&program,
-				lint_config:&Default::default(),
+				program: &program,
+				lint_config: &Default::default(),
 				unresolved_ctxt,
 				top_level_ctxt,
-				es_version:EsVersion::latest(),
-				source_map:cm.clone(),
+				es_version: EsVersion::latest(),
+				source_map: cm.clone(),
 			});
 
 			let module = program.expect_module();

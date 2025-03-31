@@ -6,14 +6,16 @@ use syn::{
 
 #[derive(Clone)]
 pub struct Args {
-	pub ty:Literal,
+	pub ty: Literal,
 }
 
 impl Parse for Args {
-	fn parse(i:ParseStream<'_>) -> syn::Result<Self> { Ok(Args { ty:i.parse()? }) }
+	fn parse(i: ParseStream<'_>) -> syn::Result<Self> {
+		Ok(Args { ty: i.parse()? })
+	}
 }
 
-pub fn expand_struct(args:Args, i:DeriveInput) -> Vec<ItemImpl> {
+pub fn expand_struct(args: Args, i: DeriveInput) -> Vec<ItemImpl> {
 	let mut items = Vec::new();
 
 	let generics = i.generics.clone();
@@ -24,7 +26,7 @@ pub fn expand_struct(args:Args, i:DeriveInput) -> Vec<ItemImpl> {
 
 		let type_str = &args.ty;
 
-		let item:ItemImpl = parse_quote!(
+		let item: ItemImpl = parse_quote!(
 			impl ::swc_common::AstNode for #ty {
 				const TYPE: &'static str = #type_str;
 			}

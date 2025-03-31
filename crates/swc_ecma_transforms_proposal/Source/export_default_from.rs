@@ -4,14 +4,16 @@ use swc_ecma_utils::quote_ident;
 use swc_ecma_visit::{VisitMut, noop_visit_mut_type, visit_mut_pass};
 
 /// `@babel/plugin-proposal-export-default-from`
-pub fn export_default_from() -> impl Pass { visit_mut_pass(ExportDefaultFrom) }
+pub fn export_default_from() -> impl Pass {
+	visit_mut_pass(ExportDefaultFrom)
+}
 
 struct ExportDefaultFrom;
 
 impl VisitMut for ExportDefaultFrom {
 	noop_visit_mut_type!();
 
-	fn visit_mut_module_items(&mut self, items:&mut Vec<ModuleItem>) {
+	fn visit_mut_module_items(&mut self, items: &mut Vec<ModuleItem>) {
 		let count = items
 			.iter()
 			.filter(|m| {
@@ -48,15 +50,12 @@ impl VisitMut for ExportDefaultFrom {
 					for s in specifiers.into_iter() {
 						match s {
 							ExportSpecifier::Default(ExportDefaultSpecifier { exported }) => {
-								export_specifiers.push(ExportSpecifier::Named(
-									ExportNamedSpecifier {
-										span:DUMMY_SP,
-										orig:quote_ident!(exported.ctxt, exported.span, "default")
-											.into(),
-										exported:Some(exported.into()),
-										is_type_only:false,
-									},
-								));
+								export_specifiers.push(ExportSpecifier::Named(ExportNamedSpecifier {
+									span: DUMMY_SP,
+									orig: quote_ident!(exported.ctxt, exported.span, "default").into(),
+									exported: Some(exported.into()),
+									is_type_only: false,
+								}));
 							},
 
 							ExportSpecifier::Namespace(..) => {
@@ -78,24 +77,18 @@ impl VisitMut for ExportDefaultFrom {
 					stmts.push(
 						NamedExport {
 							span,
-							specifiers:export_specifiers,
-							src:Some(src.clone()),
-							type_only:false,
-							with:None,
+							specifiers: export_specifiers,
+							src: Some(src.clone()),
+							type_only: false,
+							with: None,
 						}
 						.into(),
 					);
 
 					if !origin_specifiers.is_empty() {
 						stmts.push(
-							NamedExport {
-								span,
-								specifiers:origin_specifiers,
-								src:Some(src),
-								type_only:false,
-								with,
-							}
-							.into(),
+							NamedExport { span, specifiers: origin_specifiers, src: Some(src), type_only: false, with }
+								.into(),
 						);
 					}
 				},

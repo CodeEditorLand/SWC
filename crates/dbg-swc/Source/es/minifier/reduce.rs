@@ -14,8 +14,7 @@ use swc_common::{GLOBALS, SourceMap};
 use tempfile::TempDir;
 
 use crate::{
-	CREDUCE_INPUT_ENV_VAR,
-	CREDUCE_MODE_ENV_VAR,
+	CREDUCE_INPUT_ENV_VAR, CREDUCE_MODE_ENV_VAR,
 	util::{ChildGuard, all_js_files, parse_js, print_js},
 };
 
@@ -38,7 +37,7 @@ use crate::{
 pub struct ReduceCommand {
 	/// The path to the input file. You can specify a directory if you want to
 	/// reduce every '.js' file within a directory, in a recursive manner.
-	pub path:PathBuf,
+	pub path: PathBuf,
 
 	/// In 'size' mode, this command tries to find the minimal input file where
 	/// the size of the output file of swc minifier is larger than the one from
@@ -47,12 +46,12 @@ pub struct ReduceCommand {
 	/// In 'semantics' mode, this command tries to reduce the input file to a
 	/// minimal reproduction case which triggers the bug.
 	#[clap(long, arg_enum)]
-	pub mode:ReduceMode,
+	pub mode: ReduceMode,
 
 	/// If true, the input file will be removed after the reduction. This can be
 	/// used for pausing and resuming the process of reducing.
 	#[clap(long)]
-	pub remove:bool,
+	pub remove: bool,
 }
 
 #[derive(Debug, Clone, Copy, ArgEnum)]
@@ -62,7 +61,7 @@ pub enum ReduceMode {
 }
 
 impl ReduceCommand {
-	pub fn run(self, cm:Arc<SourceMap>) -> Result<()> {
+	pub fn run(self, cm: Arc<SourceMap>) -> Result<()> {
 		let js_files = all_js_files(&self.path)?;
 
 		GLOBALS.with(|globals| {
@@ -75,7 +74,7 @@ impl ReduceCommand {
 		Ok(())
 	}
 
-	fn reduce_file(&self, cm:Arc<SourceMap>, src_path:&Path) -> Result<()> {
+	fn reduce_file(&self, cm: Arc<SourceMap>, src_path: &Path) -> Result<()> {
 		// Strip comments to workaround a bug of creduce
 
 		let fm = cm.load_file(src_path).context("failed to prepare file")?;
@@ -133,7 +132,7 @@ impl ReduceCommand {
 	}
 }
 
-fn move_to_data_dir(input_path:&Path) -> Result<PathBuf> {
+fn move_to_data_dir(input_path: &Path) -> Result<PathBuf> {
 	let src = read_to_string(input_path).context("failed to read input file")?;
 
 	// create a Sha1 object

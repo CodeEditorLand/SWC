@@ -20,7 +20,7 @@ use super::config::{LintRuleReaction, RuleConfig};
 /// Must report error to [swc_common::HANDLER]
 #[auto_impl(Box, &mut)]
 pub trait LintRule: Debug + Send + Sync {
-	fn lint_stylesheet(&mut self, stylesheet:&Stylesheet);
+	fn lint_stylesheet(&mut self, stylesheet: &Stylesheet);
 }
 
 /// This preserves the order of errors.
@@ -28,7 +28,7 @@ impl<R> LintRule for Vec<R>
 where
 	R: LintRule,
 {
-	fn lint_stylesheet(&mut self, stylesheet:&Stylesheet) {
+	fn lint_stylesheet(&mut self, stylesheet: &Stylesheet) {
 		if cfg!(target_arch = "wasm32") {
 			for rule in self {
 				rule.lint_stylesheet(stylesheet);
@@ -61,16 +61,19 @@ where
 
 #[derive(Default, Clone)]
 struct Capturing {
-	errors:Arc<Mutex<Vec<Diagnostic>>>,
+	errors: Arc<Mutex<Vec<Diagnostic>>>,
 }
 
 impl Emitter for Capturing {
-	fn emit(&mut self, db:&DiagnosticBuilder<'_>) { self.errors.lock().push((**db).clone()); }
+	fn emit(&mut self, db: &DiagnosticBuilder<'_>) {
+		self.errors.lock().push((**db).clone());
+	}
 }
 
-pub(crate) fn visitor_rule<V>(reaction:LintRuleReaction, v:V) -> Box<dyn LintRule>
+pub(crate) fn visitor_rule<V>(reaction: LintRuleReaction, v: V) -> Box<dyn LintRule>
 where
-	V: 'static + Send + Sync + Visit + Default + Debug, {
+	V: 'static + Send + Sync + Visit + Default + Debug,
+{
 	Box::new(VisitorRule(v, reaction))
 }
 
@@ -83,7 +86,7 @@ impl<V> LintRule for VisitorRule<V>
 where
 	V: Send + Sync + Visit + Debug,
 {
-	fn lint_stylesheet(&mut self, stylesheet:&Stylesheet) {
+	fn lint_stylesheet(&mut self, stylesheet: &Stylesheet) {
 		if !matches!(self.1, LintRuleReaction::Off) {
 			stylesheet.visit_with(&mut self.0);
 		}
@@ -93,44 +96,44 @@ where
 #[derive(Debug, Clone, Default)]
 pub struct LintRuleContext<C>
 where
-	C: Debug + Clone + Serialize + Default, {
-	reaction:LintRuleReaction,
-	config:C,
+	C: Debug + Clone + Serialize + Default,
+{
+	reaction: LintRuleReaction,
+	config: C,
 }
 
 impl<C> LintRuleContext<C>
 where
 	C: Debug + Clone + Serialize + Default,
 {
-	pub(crate) fn report<N, S>(&self, ast_node:N, message:S)
+	pub(crate) fn report<N, S>(&self, ast_node: N, message: S)
 	where
 		N: Spanned,
-		S: AsRef<str>, {
-		HANDLER.with(|handler| {
-			match self.reaction {
-				LintRuleReaction::Error => {
-					handler.struct_span_err(ast_node.span(), message.as_ref()).emit()
-				},
-				LintRuleReaction::Warning => {
-					handler.struct_span_warn(ast_node.span(), message.as_ref()).emit()
-				},
-				_ => {},
-			}
+		S: AsRef<str>,
+	{
+		HANDLER.with(|handler| match self.reaction {
+			LintRuleReaction::Error => handler.struct_span_err(ast_node.span(), message.as_ref()).emit(),
+			LintRuleReaction::Warning => handler.struct_span_warn(ast_node.span(), message.as_ref()).emit(),
+			_ => {},
 		});
 	}
 
 	#[inline]
-	pub(crate) fn config(&self) -> &C { &self.config }
+	pub(crate) fn config(&self) -> &C {
+		&self.config
+	}
 
 	#[inline]
-	pub(crate) fn reaction(&self) -> LintRuleReaction { self.reaction }
+	pub(crate) fn reaction(&self) -> LintRuleReaction {
+		self.reaction
+	}
 }
 
 impl<C> From<&RuleConfig<C>> for LintRuleContext<C>
 where
 	C: Debug + Clone + Serialize + Default,
 {
-	fn from(config:&RuleConfig<C>) -> Self {
-		Self { reaction:config.get_rule_reaction(), config:config.get_rule_config().clone() }
+	fn from(config: &RuleConfig<C>) -> Self {
+		Self { reaction: config.get_rule_reaction(), config: config.get_rule_config().clone() }
 	}
 }

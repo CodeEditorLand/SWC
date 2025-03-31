@@ -5,10 +5,7 @@ use clap::Subcommand;
 use swc_common::SourceMap;
 
 use self::{
-	compare::CompareCommand,
-	compare_opts::CompareOptsCommand,
-	ensure_size::EnsureSize,
-	next::NextCommand,
+	compare::CompareCommand, compare_opts::CompareOptsCommand, ensure_size::EnsureSize, next::NextCommand,
 	reduce::ReduceCommand,
 };
 
@@ -30,7 +27,7 @@ pub enum MinifierCommand {
 }
 
 impl MinifierCommand {
-	pub fn run(self, cm:Arc<SourceMap>) -> Result<()> {
+	pub fn run(self, cm: Arc<SourceMap>) -> Result<()> {
 		match self {
 			MinifierCommand::Next(cmd) => cmd.run(cm),
 			MinifierCommand::Reduce(cmd) => cmd.run(cm),

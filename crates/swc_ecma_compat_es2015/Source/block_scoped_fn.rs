@@ -4,7 +4,9 @@ use swc_ecma_utils::IdentUsageFinder;
 use swc_ecma_visit::{VisitMut, VisitMutWith, noop_visit_mut_type, visit_mut_pass};
 use swc_trace_macro::swc_trace;
 
-pub fn block_scoped_functions() -> impl Pass { visit_mut_pass(BlockScopedFns) }
+pub fn block_scoped_functions() -> impl Pass {
+	visit_mut_pass(BlockScopedFns)
+}
 
 #[derive(Clone, Copy)]
 struct BlockScopedFns;
@@ -13,7 +15,7 @@ struct BlockScopedFns;
 impl VisitMut for BlockScopedFns {
 	noop_visit_mut_type!(fail);
 
-	fn visit_mut_function(&mut self, n:&mut Function) {
+	fn visit_mut_function(&mut self, n: &mut Function) {
 		let Some(body) = &mut n.body else { return };
 
 		n.params.visit_mut_with(self);
@@ -22,7 +24,7 @@ impl VisitMut for BlockScopedFns {
 		body.visit_mut_children_with(self);
 	}
 
-	fn visit_mut_block_stmt(&mut self, n:&mut BlockStmt) {
+	fn visit_mut_block_stmt(&mut self, n: &mut BlockStmt) {
 		n.visit_mut_children_with(self);
 
 		let mut stmts = Vec::with_capacity(n.stmts.len());
@@ -47,16 +49,13 @@ impl VisitMut for BlockScopedFns {
 
 				stmts.push(
 					VarDecl {
-						span:DUMMY_SP,
-						kind:VarDeclKind::Let,
-						decls:vec![VarDeclarator {
-							span:DUMMY_SP,
-							name:decl.ident.clone().into(),
-							init:Some(Box::new(Expr::Fn(FnExpr {
-								ident:Some(decl.ident),
-								function:decl.function,
-							}))),
-							definite:false,
+						span: DUMMY_SP,
+						kind: VarDeclKind::Let,
+						decls: vec![VarDeclarator {
+							span: DUMMY_SP,
+							name: decl.ident.clone().into(),
+							init: Some(Box::new(Expr::Fn(FnExpr { ident: Some(decl.ident), function: decl.function }))),
+							definite: false,
 						}],
 						..Default::default()
 					}

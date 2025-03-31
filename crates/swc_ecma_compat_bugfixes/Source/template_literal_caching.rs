@@ -19,29 +19,31 @@ use swc_trace_macro::swc_trace;
 //   Object``===Object``  // true, should be false.
 //
 // Benchmarks: https://jsperf.com/compiled-tagged-template-performance
-pub fn template_literal_caching() -> impl Pass { fold_pass(TemplateLiteralCaching::default()) }
+pub fn template_literal_caching() -> impl Pass {
+	fold_pass(TemplateLiteralCaching::default())
+}
 #[derive(Default, Clone)]
 struct TemplateLiteralCaching {
-	decls:Vec<VarDeclarator>,
-	helper_ident:Option<Ident>,
+	decls: Vec<VarDeclarator>,
+	helper_ident: Option<Ident>,
 }
 
 impl TemplateLiteralCaching {
-	fn create_binding(&mut self, name:Ident, init:Option<Expr>) {
+	fn create_binding(&mut self, name: Ident, init: Option<Expr>) {
 		let init = init.map(Box::new);
 
 		self.decls
-			.push(VarDeclarator { span:DUMMY_SP, name:name.into(), init, definite:false })
+			.push(VarDeclarator { span: DUMMY_SP, name: name.into(), init, definite: false })
 	}
 
 	fn create_var_decl(&mut self) -> Option<Stmt> {
 		if !self.decls.is_empty() {
 			return Some(
 				VarDecl {
-					span:DUMMY_SP,
-					kind:VarDeclKind::Let,
-					declare:false,
-					decls:self.decls.clone(),
+					span: DUMMY_SP,
+					kind: VarDeclKind::Let,
+					declare: false,
+					decls: self.decls.clone(),
 					..Default::default()
 				}
 				.into(),
@@ -57,7 +59,7 @@ impl TemplateLiteralCaching {
 impl Fold for TemplateLiteralCaching {
 	standard_only_fold!();
 
-	fn fold_expr(&mut self, n:Expr) -> Expr {
+	fn fold_expr(&mut self, n: Expr) -> Expr {
 		let n = n.fold_children_with(self);
 
 		match n {
@@ -75,11 +77,11 @@ impl Fold for TemplateLiteralCaching {
 						helper_ident,
 						Some(
 							ArrowExpr {
-								span:DUMMY_SP,
-								params:vec![t.clone().into()],
-								body:Box::new(BlockStmtOrExpr::Expr(t.into())),
-								is_async:false,
-								is_generator:false,
+								span: DUMMY_SP,
+								params: vec![t.clone().into()],
+								body: Box::new(BlockStmtOrExpr::Expr(t.into())),
+								is_async: false,
+								is_generator: false,
 								..Default::default()
 							}
 							.into(),
@@ -93,12 +95,12 @@ impl Fold for TemplateLiteralCaching {
 				// Strings. We replace all expressions with `0` ensure Strings has
 				// the same shape.   identity`a${0}`
 				let template = TaggedTpl {
-					span:DUMMY_SP,
-					tag:helper_ident.clone().into(),
-					tpl:Box::new(Tpl {
-						span:DUMMY_SP,
-						quasis:n.tpl.quasis,
-						exprs:n.tpl.exprs.iter().map(|_| 0.0.into()).collect(),
+					span: DUMMY_SP,
+					tag: helper_ident.clone().into(),
+					tpl: Box::new(Tpl {
+						span: DUMMY_SP,
+						quasis: n.tpl.quasis,
+						exprs: n.tpl.exprs.iter().map(|_| 0.0.into()).collect(),
 					}),
 					..Default::default()
 				};
@@ -109,15 +111,15 @@ impl Fold for TemplateLiteralCaching {
 
 				self.create_binding(t.clone(), None);
 
-				let inline_cache:Expr = BinExpr {
-					span:DUMMY_SP,
-					op:op!("||"),
-					left:t.clone().into(),
-					right:AssignExpr {
-						span:DUMMY_SP,
-						op:op!("="),
-						left:t.into(),
-						right:Box::new(Expr::TaggedTpl(template)),
+				let inline_cache: Expr = BinExpr {
+					span: DUMMY_SP,
+					op: op!("||"),
+					left: t.clone().into(),
+					right: AssignExpr {
+						span: DUMMY_SP,
+						op: op!("="),
+						left: t.into(),
+						right: Box::new(Expr::TaggedTpl(template)),
 					}
 					.into(),
 				}
@@ -128,9 +130,9 @@ impl Fold for TemplateLiteralCaching {
 				// directly applied as arguments.
 				//   tag(_t || (_t = Object`a${0}`), 'hello')
 				CallExpr {
-					span:DUMMY_SP,
-					callee:n.tag.as_callee(),
-					args:vec![inline_cache.as_arg()]
+					span: DUMMY_SP,
+					callee: n.tag.as_callee(),
+					args: vec![inline_cache.as_arg()]
 						.into_iter()
 						.chain(n.tpl.exprs.into_iter().map(|expr| expr.as_arg()))
 						.collect(),
@@ -143,7 +145,7 @@ impl Fold for TemplateLiteralCaching {
 		}
 	}
 
-	fn fold_module(&mut self, n:Module) -> Module {
+	fn fold_module(&mut self, n: Module) -> Module {
 		let mut body = n.body.fold_children_with(self);
 
 		if let Some(var) = self.create_var_decl() {
@@ -153,7 +155,7 @@ impl Fold for TemplateLiteralCaching {
 		Module { body, ..n }
 	}
 
-	fn fold_script(&mut self, n:Script) -> Script {
+	fn fold_script(&mut self, n: Script) -> Script {
 		let mut body = n.body.fold_children_with(self);
 
 		if let Some(var) = self.create_var_decl() {
@@ -172,7 +174,9 @@ mod tests {
 
 	use super::*;
 
-	fn tr() -> impl Pass { (resolver(Mark::new(), Mark::new(), false), template_literal_caching()) }
+	fn tr() -> impl Pass {
+		(resolver(Mark::new(), Mark::new(), false), template_literal_caching())
+	}
 
 	test!(::swc_ecma_parser::Syntax::default(), |_| tr(), single_tag, "t`a`;");
 

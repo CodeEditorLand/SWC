@@ -3,15 +3,7 @@ use swc_common::{DUMMY_SP, Mark, Spanned, SyntaxContext};
 use swc_ecma_ast::*;
 use swc_ecma_transforms_base::helper;
 use swc_ecma_utils::{ExprFactory, StmtLike, quote_ident};
-use swc_ecma_visit::{
-	Visit,
-	VisitMut,
-	VisitMutWith,
-	VisitWith,
-	noop_visit_mut_type,
-	noop_visit_type,
-	visit_mut_pass,
-};
+use swc_ecma_visit::{Visit, VisitMut, VisitMutWith, VisitWith, noop_visit_mut_type, noop_visit_type, visit_mut_pass};
 use swc_trace_macro::swc_trace;
 
 /// `@babel/plugin-transform-computed-properties`
@@ -45,7 +37,7 @@ use swc_trace_macro::swc_trace;
 ///
 /// TODO(kdy1): cache reference like (_f = f, mutatorMap[_f].get = function(){})
 ///     instead of (mutatorMap[f].get = function(){}
-pub fn computed_properties(c:Config) -> impl Pass {
+pub fn computed_properties(c: Config) -> impl Pass {
 	visit_mut_pass(ComputedProps { c, ..Default::default() })
 }
 
@@ -53,21 +45,21 @@ pub fn computed_properties(c:Config) -> impl Pass {
 #[serde(rename_all = "camelCase")]
 pub struct Config {
 	#[serde(default)]
-	pub loose:bool,
+	pub loose: bool,
 }
 
 #[derive(Default)]
 struct ComputedProps {
-	vars:Vec<VarDeclarator>,
-	used_define_enum_props:bool,
-	c:Config,
+	vars: Vec<VarDeclarator>,
+	used_define_enum_props: bool,
+	c: Config,
 }
 
 #[swc_trace]
 impl VisitMut for ComputedProps {
 	noop_visit_mut_type!(fail);
 
-	fn visit_mut_expr(&mut self, expr:&mut Expr) {
+	fn visit_mut_expr(&mut self, expr: &mut Expr) {
 		expr.visit_mut_children_with(self);
 
 		if let Expr::Object(ObjectLit { props, span }) = expr {
@@ -79,10 +71,9 @@ impl VisitMut for ComputedProps {
 
 			let obj_ident = quote_ident!(SyntaxContext::empty().apply_mark(mark), *span, "_obj");
 
-			let mut exprs:Vec<Box<Expr>> = Vec::with_capacity(props.len() + 2);
+			let mut exprs: Vec<Box<Expr>> = Vec::with_capacity(props.len() + 2);
 
-			let mutator_map =
-				quote_ident!(SyntaxContext::empty().apply_mark(mark), *span, "_mutatorMap");
+			let mutator_map = quote_ident!(SyntaxContext::empty().apply_mark(mark), *span, "_mutatorMap");
 
 			// Optimization
 			let obj_props = {
@@ -93,18 +84,18 @@ impl VisitMut for ComputedProps {
 
 			let props_cnt = props.len();
 
-			self.used_define_enum_props = props.iter().any(
-				|pp| matches!(*pp, PropOrSpread::Prop(ref p) if p.is_getter() || p.is_setter()),
-			);
+			self.used_define_enum_props = props
+				.iter()
+				.any(|pp| matches!(*pp, PropOrSpread::Prop(ref p) if p.is_getter() || p.is_setter()));
 
 			exprs.push(if !self.c.loose && props_cnt == 1 && !self.used_define_enum_props {
-				ObjectLit { span:DUMMY_SP, props:obj_props }.into()
+				ObjectLit { span: DUMMY_SP, props: obj_props }.into()
 			} else {
 				AssignExpr {
-					span:DUMMY_SP,
-					left:obj_ident.clone().into(),
-					op:op!("="),
-					right:Box::new(ObjectLit { span:DUMMY_SP, props:obj_props }.into()),
+					span: DUMMY_SP,
+					left: obj_ident.clone().into(),
+					op: op!("="),
+					right: Box::new(ObjectLit { span: DUMMY_SP, props: obj_props }.into()),
 				}
 				.into()
 			});
@@ -117,24 +108,17 @@ impl VisitMut for ComputedProps {
 				let ((key, is_compute), value) = match prop {
 					PropOrSpread::Prop(prop) => {
 						match *prop {
-							Prop::Shorthand(ident) => {
+							Prop::Shorthand(ident) => (
 								(
-									(
-										if self.c.loose {
-											ident.clone().into()
-										} else {
-											Lit::Str(Str {
-												span:ident.span,
-												raw:None,
-												value:ident.sym.clone(),
-											})
-											.into()
-										},
-										false,
-									),
-									ident.into(),
-								)
-							},
+									if self.c.loose {
+										ident.clone().into()
+									} else {
+										Lit::Str(Str { span: ident.span, raw: None, value: ident.sym.clone() }).into()
+									},
+									false,
+								),
+								ident.into(),
+							),
 							Prop::KeyValue(KeyValueProp { key, value }) => {
 								(prop_name_to_expr(key, self.c.loose), *value)
 							},
@@ -143,8 +127,7 @@ impl VisitMut for ComputedProps {
 								unreachable!("assign property in object literal is invalid")
 							},
 
-							prop @ Prop::Getter(GetterProp { .. })
-							| prop @ Prop::Setter(SetterProp { .. }) => {
+							prop @ Prop::Getter(GetterProp { .. }) | prop @ Prop::Setter(SetterProp { .. }) => {
 								self.used_define_enum_props = true;
 
 								// getter/setter property name
@@ -155,56 +138,47 @@ impl VisitMut for ComputedProps {
 								};
 
 								let (key, function) = match prop {
-									Prop::Getter(GetterProp { span, body, key, .. }) => {
-										(
-											key,
-											Box::new(Function {
-												span,
-												body,
-												is_async:false,
-												is_generator:false,
-												params:Vec::new(),
-												..Default::default()
-											}),
-										)
-									},
-									Prop::Setter(SetterProp { span, body, param, key, .. }) => {
-										(
-											key,
-											Box::new(Function {
-												span,
-												body,
-												is_async:false,
-												is_generator:false,
-												params:vec![(*param).into()],
-												..Default::default()
-											}),
-										)
-									},
+									Prop::Getter(GetterProp { span, body, key, .. }) => (
+										key,
+										Box::new(Function {
+											span,
+											body,
+											is_async: false,
+											is_generator: false,
+											params: Vec::new(),
+											..Default::default()
+										}),
+									),
+									Prop::Setter(SetterProp { span, body, param, key, .. }) => (
+										key,
+										Box::new(Function {
+											span,
+											body,
+											is_async: false,
+											is_generator: false,
+											params: vec![(*param).into()],
+											..Default::default()
+										}),
+									),
 									_ => unreachable!(),
 								};
 
 								// mutator[f]
-								let mutator_elem = mutator_map
-									.clone()
-									.computed_member(prop_name_to_expr(key, false).0);
+								let mutator_elem = mutator_map.clone().computed_member(prop_name_to_expr(key, false).0);
 
 								// mutator[f] = mutator[f] || {}
 
 								exprs.push(
 									AssignExpr {
 										span,
-										left:mutator_elem.clone().into(),
-										op:op!("="),
-										right:Box::new(
+										left: mutator_elem.clone().into(),
+										op: op!("="),
+										right: Box::new(
 											BinExpr {
 												span,
-												left:mutator_elem.clone().into(),
-												op:op!("||"),
-												right:Box::new(Expr::Object(ObjectLit {
-													span,
-													props:Vec::new(),
-												})),
+												left: mutator_elem.clone().into(),
+												op: op!("||"),
+												right: Box::new(Expr::Object(ObjectLit { span, props: Vec::new() })),
 											}
 											.into(),
 										),
@@ -217,11 +191,9 @@ impl VisitMut for ComputedProps {
 								exprs.push(
 									AssignExpr {
 										span,
-										left:mutator_elem
-											.make_member(quote_ident!(gs_prop_name.unwrap()))
-											.into(),
-										op:op!("="),
-										right:Box::new(FnExpr { ident:None, function }.into()),
+										left: mutator_elem.make_member(quote_ident!(gs_prop_name.unwrap())).into(),
+										op: op!("="),
+										right: Box::new(FnExpr { ident: None, function }.into()),
 									}
 									.into(),
 								);
@@ -231,10 +203,7 @@ impl VisitMut for ComputedProps {
 							},
 
 							Prop::Method(MethodProp { key, function }) => {
-								(
-									prop_name_to_expr(key, self.c.loose),
-									FnExpr { ident:None, function }.into(),
-								)
+								(prop_name_to_expr(key, self.c.loose), FnExpr { ident: None, function }.into())
 							},
 						}
 					},
@@ -245,8 +214,8 @@ impl VisitMut for ComputedProps {
 					single_cnt_prop = Some(
 						CallExpr {
 							span,
-							callee:helper!(define_property),
-							args:vec![exprs.pop().unwrap().as_arg(), key.as_arg(), value.as_arg()],
+							callee: helper!(define_property),
+							args: vec![exprs.pop().unwrap().as_arg(), key.as_arg(), value.as_arg()],
 							..Default::default()
 						}
 						.into(),
@@ -262,12 +231,12 @@ impl VisitMut for ComputedProps {
 						obj_ident.clone().make_member(key.ident().unwrap().into())
 					};
 
-					AssignExpr { span, op:op!("="), left:left.into(), right:value.into() }.into()
+					AssignExpr { span, op: op!("="), left: left.into(), right: value.into() }.into()
 				} else {
 					CallExpr {
 						span,
-						callee:helper!(define_property),
-						args:vec![obj_ident.clone().as_arg(), key.as_arg(), value.as_arg()],
+						callee: helper!(define_property),
+						args: vec![obj_ident.clone().as_arg(), key.as_arg(), value.as_arg()],
 						..Default::default()
 					}
 					.into()
@@ -280,26 +249,22 @@ impl VisitMut for ComputedProps {
 				return;
 			}
 
-			self.vars.push(VarDeclarator {
-				span:*span,
-				name:obj_ident.clone().into(),
-				init:None,
-				definite:false,
-			});
+			self.vars
+				.push(VarDeclarator { span: *span, name: obj_ident.clone().into(), init: None, definite: false });
 
 			if self.used_define_enum_props {
 				self.vars.push(VarDeclarator {
-					span:DUMMY_SP,
-					name:mutator_map.clone().into(),
-					init:Some(ObjectLit { span:DUMMY_SP, props:Vec::new() }.into()),
-					definite:false,
+					span: DUMMY_SP,
+					name: mutator_map.clone().into(),
+					init: Some(ObjectLit { span: DUMMY_SP, props: Vec::new() }.into()),
+					definite: false,
 				});
 
 				exprs.push(
 					CallExpr {
-						span:*span,
-						callee:helper!(define_enumerable_properties),
-						args:vec![obj_ident.clone().as_arg(), mutator_map.as_arg()],
+						span: *span,
+						callee: helper!(define_enumerable_properties),
+						args: vec![obj_ident.clone().as_arg(), mutator_map.as_arg()],
 						..Default::default()
 					}
 					.into(),
@@ -308,16 +273,20 @@ impl VisitMut for ComputedProps {
 
 			// Last value
 			exprs.push(obj_ident.into());
-			*expr = SeqExpr { span:DUMMY_SP, exprs }.into();
+			*expr = SeqExpr { span: DUMMY_SP, exprs }.into();
 		};
 	}
 
-	fn visit_mut_module_items(&mut self, n:&mut Vec<ModuleItem>) { self.visit_mut_stmt_like(n); }
+	fn visit_mut_module_items(&mut self, n: &mut Vec<ModuleItem>) {
+		self.visit_mut_stmt_like(n);
+	}
 
-	fn visit_mut_stmts(&mut self, n:&mut Vec<Stmt>) { self.visit_mut_stmt_like(n); }
+	fn visit_mut_stmts(&mut self, n: &mut Vec<Stmt>) {
+		self.visit_mut_stmt_like(n);
+	}
 }
 
-fn is_complex<T:VisitWith<ComplexVisitor>>(node:&T) -> bool {
+fn is_complex<T: VisitWith<ComplexVisitor>>(node: &T) -> bool {
 	let mut visitor = ComplexVisitor::default();
 
 	node.visit_children_with(&mut visitor);
@@ -327,13 +296,13 @@ fn is_complex<T:VisitWith<ComplexVisitor>>(node:&T) -> bool {
 
 #[derive(Default)]
 struct ComplexVisitor {
-	found:bool,
+	found: bool,
 }
 
 impl Visit for ComplexVisitor {
 	noop_visit_type!(fail);
 
-	fn visit_prop_name(&mut self, pn:&PropName) {
+	fn visit_prop_name(&mut self, pn: &PropName) {
 		if let PropName::Computed(..) = *pn {
 			self.found = true
 		}
@@ -342,10 +311,11 @@ impl Visit for ComplexVisitor {
 
 #[swc_trace]
 impl ComputedProps {
-	fn visit_mut_stmt_like<T>(&mut self, stmts:&mut Vec<T>)
+	fn visit_mut_stmt_like<T>(&mut self, stmts: &mut Vec<T>)
 	where
 		T: StmtLike + VisitWith<ShouldWork> + VisitMutWith<Self>,
-		Vec<T>: VisitWith<ShouldWork>, {
+		Vec<T>: VisitWith<ShouldWork>,
+	{
 		let mut stmts_updated = Vec::with_capacity(stmts.len());
 
 		for mut stmt in stmts.drain(..) {
@@ -355,7 +325,7 @@ impl ComputedProps {
 				continue;
 			}
 
-			let mut folder = Self { c:self.c, ..Default::default() };
+			let mut folder = Self { c: self.c, ..Default::default() };
 
 			stmt.visit_mut_with(&mut folder);
 
@@ -363,8 +333,7 @@ impl ComputedProps {
 			// e.g. var ref
 			if !folder.vars.is_empty() {
 				stmts_updated.push(T::from(
-					VarDecl { kind:VarDeclKind::Var, decls:folder.vars, ..Default::default() }
-						.into(),
+					VarDecl { kind: VarDeclKind::Var, decls: folder.vars, ..Default::default() }.into(),
 				));
 			}
 
@@ -375,18 +344,16 @@ impl ComputedProps {
 	}
 }
 
-fn prop_name_to_expr(p:PropName, loose:bool) -> (Expr, bool) {
+fn prop_name_to_expr(p: PropName, loose: bool) -> (Expr, bool) {
 	match p {
-		PropName::Ident(i) => {
-			(
-				if loose {
-					i.into()
-				} else {
-					Lit::Str(Str { raw:None, value:i.sym, span:i.span }).into()
-				},
-				false,
-			)
-		},
+		PropName::Ident(i) => (
+			if loose {
+				i.into()
+			} else {
+				Lit::Str(Str { raw: None, value: i.sym, span: i.span }).into()
+			},
+			false,
+		),
 		PropName::Str(s) => (Lit::Str(s).into(), true),
 		PropName::Num(n) => (Lit::Num(n).into(), true),
 		PropName::BigInt(b) => (Lit::BigInt(b).into(), true),
@@ -394,10 +361,11 @@ fn prop_name_to_expr(p:PropName, loose:bool) -> (Expr, bool) {
 	}
 }
 
-fn contains_computed_expr<N>(node:&N) -> bool
+fn contains_computed_expr<N>(node: &N) -> bool
 where
-	N: VisitWith<ShouldWork>, {
-	let mut v = ShouldWork { found:false };
+	N: VisitWith<ShouldWork>,
+{
+	let mut v = ShouldWork { found: false };
 
 	node.visit_with(&mut v);
 
@@ -405,13 +373,13 @@ where
 }
 
 struct ShouldWork {
-	found:bool,
+	found: bool,
 }
 
 impl Visit for ShouldWork {
 	noop_visit_type!(fail);
 
-	fn visit_prop_name(&mut self, node:&PropName) {
+	fn visit_prop_name(&mut self, node: &PropName) {
 		if let PropName::Computed(_) = *node {
 			self.found = true
 		}

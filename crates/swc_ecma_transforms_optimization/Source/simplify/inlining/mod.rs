@@ -8,13 +8,7 @@ use swc_ecma_ast::*;
 use swc_ecma_transforms_base::scope::IdentType;
 use swc_ecma_utils::{contains_this_expr, find_pat_ids};
 use swc_ecma_visit::{
-	Visit,
-	VisitMut,
-	VisitMutWith,
-	VisitWith,
-	noop_visit_mut_type,
-	noop_visit_type,
-	visit_mut_pass,
+	Visit, VisitMut, VisitMutWith, VisitWith, noop_visit_mut_type, noop_visit_type, visit_mut_pass,
 	visit_obj_and_computed,
 };
 use tracing::{Level, span};
@@ -39,17 +33,17 @@ pub struct Config {}
 ///
 /// Currently all functions are treated as a black box, and all the pass gives
 /// up inlining variables across a function call or a constructor call.
-pub fn inlining(_:Config) -> impl 'static + Repeated + CompilerPass + Pass + VisitMut {
+pub fn inlining(_: Config) -> impl 'static + Repeated + CompilerPass + Pass + VisitMut {
 	visit_mut_pass(Inlining {
-		phase:Phase::Analysis,
-		is_first_run:true,
-		changed:false,
-		scope:Default::default(),
-		var_decl_kind:VarDeclKind::Var,
-		ident_type:IdentType::Ref,
-		in_test:false,
-		pat_mode:PatFoldingMode::VarDecl,
-		pass:Default::default(),
+		phase: Phase::Analysis,
+		is_first_run: true,
+		changed: false,
+		scope: Default::default(),
+		var_decl_kind: VarDeclKind::Var,
+		ident_type: IdentType::Ref,
+		in_test: false,
+		pat_mode: PatFoldingMode::VarDecl,
+		pass: Default::default(),
 	})
 }
 
@@ -60,11 +54,15 @@ enum Phase {
 }
 
 impl CompilerPass for Inlining<'_> {
-	fn name(&self) -> Cow<'static, str> { Cow::Borrowed("inlining") }
+	fn name(&self) -> Cow<'static, str> {
+		Cow::Borrowed("inlining")
+	}
 }
 
 impl Repeated for Inlining<'_> {
-	fn changed(&self) -> bool { self.changed }
+	fn changed(&self) -> bool {
+		self.changed
+	}
 
 	fn reset(&mut self) {
 		self.changed = false;
@@ -76,15 +74,15 @@ impl Repeated for Inlining<'_> {
 }
 
 struct Inlining<'a> {
-	phase:Phase,
-	is_first_run:bool,
-	changed:bool,
-	scope:Scope<'a>,
-	var_decl_kind:VarDeclKind,
-	ident_type:IdentType,
-	in_test:bool,
-	pat_mode:PatFoldingMode,
-	pass:usize,
+	phase: Phase,
+	is_first_run: bool,
+	changed: bool,
+	scope: Scope<'a>,
+	var_decl_kind: VarDeclKind,
+	ident_type: IdentType,
+	in_test: bool,
+	pat_mode: PatFoldingMode,
+	pass: usize,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -96,9 +94,10 @@ enum PatFoldingMode {
 }
 
 impl Inlining<'_> {
-	fn visit_with_child<T>(&mut self, kind:ScopeKind, node:&mut T)
+	fn visit_with_child<T>(&mut self, kind: ScopeKind, node: &mut T)
 	where
-		T: 'static + for<'any> VisitMutWith<Inlining<'any>>, {
+		T: 'static + for<'any> VisitMutWith<Inlining<'any>>,
+	{
 		self.with_child(kind, |child| {
 			node.visit_mut_children_with(child);
 		});
@@ -108,18 +107,18 @@ impl Inlining<'_> {
 impl VisitMut for Inlining<'_> {
 	noop_visit_mut_type!();
 
-	fn visit_mut_arrow_expr(&mut self, node:&mut ArrowExpr) {
-		self.visit_with_child(ScopeKind::Fn { named:false }, node)
+	fn visit_mut_arrow_expr(&mut self, node: &mut ArrowExpr) {
+		self.visit_with_child(ScopeKind::Fn { named: false }, node)
 	}
 
-	fn visit_mut_assign_expr(&mut self, e:&mut AssignExpr) {
+	fn visit_mut_assign_expr(&mut self, e: &mut AssignExpr) {
 		tracing::trace!("{:?}; Fold<AssignExpr>", self.phase);
 
 		self.pat_mode = PatFoldingMode::Assign;
 
 		match e.op {
 			op!("=") => {
-				let mut v = WriteVisitor { scope:&mut self.scope };
+				let mut v = WriteVisitor { scope: &mut self.scope };
 
 				e.left.visit_with(&mut v);
 
@@ -131,7 +130,7 @@ impl VisitMut for Inlining<'_> {
 						if let SimpleAssignTarget::Member(ref left) = &*left {
 							tracing::trace!("Assign to member expression!");
 
-							let mut v = IdentListVisitor { scope:&mut self.scope };
+							let mut v = IdentListVisitor { scope: &mut self.scope };
 
 							left.visit_with(&mut v);
 
@@ -146,7 +145,7 @@ impl VisitMut for Inlining<'_> {
 			},
 
 			_ => {
-				let mut v = IdentListVisitor { scope:&mut self.scope };
+				let mut v = IdentListVisitor { scope: &mut self.scope };
 
 				e.left.visit_with(&mut v);
 
@@ -158,7 +157,7 @@ impl VisitMut for Inlining<'_> {
 
 		if self.scope.is_inline_prevented(&e.right) {
 			// Prevent inline for lhd
-			let ids:Vec<Id> = find_pat_ids(&e.left);
+			let ids: Vec<Id> = find_pat_ids(&e.left);
 
 			for id in ids {
 				self.scope.prevent_inline(&id);
@@ -189,11 +188,11 @@ impl VisitMut for Inlining<'_> {
 		}
 	}
 
-	fn visit_mut_block_stmt(&mut self, node:&mut BlockStmt) {
+	fn visit_mut_block_stmt(&mut self, node: &mut BlockStmt) {
 		self.visit_with_child(ScopeKind::Block, node)
 	}
 
-	fn visit_mut_call_expr(&mut self, node:&mut CallExpr) {
+	fn visit_mut_call_expr(&mut self, node: &mut CallExpr) {
 		node.callee.visit_mut_with(self);
 
 		if self.phase == Phase::Analysis {
@@ -203,14 +202,14 @@ impl VisitMut for Inlining<'_> {
 		}
 
 		// args should not be inlined
-		node.args.visit_children_with(&mut WriteVisitor { scope:&mut self.scope });
+		node.args.visit_children_with(&mut WriteVisitor { scope: &mut self.scope });
 
 		node.args.visit_mut_with(self);
 
 		self.scope.store_inline_barrier(self.phase);
 	}
 
-	fn visit_mut_catch_clause(&mut self, node:&mut CatchClause) {
+	fn visit_mut_catch_clause(&mut self, node: &mut CatchClause) {
 		self.with_child(ScopeKind::Block, move |child| {
 			child.pat_mode = PatFoldingMode::CatchParam;
 
@@ -218,7 +217,7 @@ impl VisitMut for Inlining<'_> {
 
 			match child.phase {
 				Phase::Analysis => {
-					let ids:Vec<Id> = find_pat_ids(&node.param);
+					let ids: Vec<Id> = find_pat_ids(&node.param);
 
 					for id in ids {
 						child.scope.prevent_inline(&id);
@@ -232,9 +231,9 @@ impl VisitMut for Inlining<'_> {
 		})
 	}
 
-	fn visit_mut_do_while_stmt(&mut self, node:&mut DoWhileStmt) {
+	fn visit_mut_do_while_stmt(&mut self, node: &mut DoWhileStmt) {
 		{
-			node.test.visit_with(&mut IdentListVisitor { scope:&mut self.scope });
+			node.test.visit_with(&mut IdentListVisitor { scope: &mut self.scope });
 		}
 
 		node.test.visit_mut_with(self);
@@ -242,7 +241,7 @@ impl VisitMut for Inlining<'_> {
 		self.visit_with_child(ScopeKind::Loop, &mut node.body);
 	}
 
-	fn visit_mut_expr(&mut self, node:&mut Expr) {
+	fn visit_mut_expr(&mut self, node: &mut Expr) {
 		node.visit_mut_children_with(self);
 
 		// Codes like
@@ -370,12 +369,12 @@ impl VisitMut for Inlining<'_> {
 		}
 	}
 
-	fn visit_mut_fn_decl(&mut self, node:&mut FnDecl) {
+	fn visit_mut_fn_decl(&mut self, node: &mut FnDecl) {
 		if self.phase == Phase::Analysis {
 			self.declare(node.ident.to_id(), None, true, VarType::Var(VarDeclKind::Var));
 		}
 
-		self.with_child(ScopeKind::Fn { named:true }, |child| {
+		self.with_child(ScopeKind::Fn { named: true }, |child| {
 			child.pat_mode = PatFoldingMode::Param;
 
 			node.function.params.visit_mut_with(child);
@@ -390,7 +389,7 @@ impl VisitMut for Inlining<'_> {
 		});
 	}
 
-	fn visit_mut_fn_expr(&mut self, node:&mut FnExpr) {
+	fn visit_mut_fn_expr(&mut self, node: &mut FnExpr) {
 		if let Some(ref ident) = node.ident {
 			self.scope.add_write(&ident.to_id(), true);
 		}
@@ -398,17 +397,17 @@ impl VisitMut for Inlining<'_> {
 		node.function.visit_mut_with(self)
 	}
 
-	fn visit_mut_for_in_stmt(&mut self, node:&mut ForInStmt) {
+	fn visit_mut_for_in_stmt(&mut self, node: &mut ForInStmt) {
 		self.pat_mode = PatFoldingMode::Param;
 
 		node.left.visit_mut_with(self);
 
 		{
-			node.left.visit_with(&mut IdentListVisitor { scope:&mut self.scope });
+			node.left.visit_with(&mut IdentListVisitor { scope: &mut self.scope });
 		}
 
 		{
-			node.right.visit_with(&mut IdentListVisitor { scope:&mut self.scope });
+			node.right.visit_with(&mut IdentListVisitor { scope: &mut self.scope });
 		}
 
 		node.right.visit_mut_with(self);
@@ -416,16 +415,16 @@ impl VisitMut for Inlining<'_> {
 		self.visit_with_child(ScopeKind::Loop, &mut node.body);
 	}
 
-	fn visit_mut_for_of_stmt(&mut self, node:&mut ForOfStmt) {
+	fn visit_mut_for_of_stmt(&mut self, node: &mut ForOfStmt) {
 		self.pat_mode = PatFoldingMode::Param;
 
 		node.left.visit_mut_with(self);
 
 		{
-			node.left.visit_with(&mut IdentListVisitor { scope:&mut self.scope });
+			node.left.visit_with(&mut IdentListVisitor { scope: &mut self.scope });
 		}
 		{
-			node.right.visit_with(&mut IdentListVisitor { scope:&mut self.scope });
+			node.right.visit_with(&mut IdentListVisitor { scope: &mut self.scope });
 		}
 
 		node.right.visit_mut_with(self);
@@ -433,15 +432,15 @@ impl VisitMut for Inlining<'_> {
 		self.visit_with_child(ScopeKind::Loop, &mut node.body);
 	}
 
-	fn visit_mut_for_stmt(&mut self, node:&mut ForStmt) {
+	fn visit_mut_for_stmt(&mut self, node: &mut ForStmt) {
 		{
-			node.init.visit_with(&mut IdentListVisitor { scope:&mut self.scope });
+			node.init.visit_with(&mut IdentListVisitor { scope: &mut self.scope });
 		}
 		{
-			node.test.visit_with(&mut IdentListVisitor { scope:&mut self.scope });
+			node.test.visit_with(&mut IdentListVisitor { scope: &mut self.scope });
 		}
 		{
-			node.update.visit_with(&mut IdentListVisitor { scope:&mut self.scope });
+			node.update.visit_with(&mut IdentListVisitor { scope: &mut self.scope });
 		}
 
 		node.init.visit_mut_with(self);
@@ -457,8 +456,8 @@ impl VisitMut for Inlining<'_> {
 		}
 	}
 
-	fn visit_mut_function(&mut self, node:&mut Function) {
-		self.with_child(ScopeKind::Fn { named:false }, move |child| {
+	fn visit_mut_function(&mut self, node: &mut Function) {
+		self.with_child(ScopeKind::Fn { named: false }, move |child| {
 			child.pat_mode = PatFoldingMode::Param;
 
 			node.params.visit_mut_with(child);
@@ -474,7 +473,7 @@ impl VisitMut for Inlining<'_> {
 		})
 	}
 
-	fn visit_mut_if_stmt(&mut self, stmt:&mut IfStmt) {
+	fn visit_mut_if_stmt(&mut self, stmt: &mut IfStmt) {
 		let old_in_test = self.in_test;
 
 		self.in_test = true;
@@ -488,7 +487,7 @@ impl VisitMut for Inlining<'_> {
 		self.visit_with_child(ScopeKind::Cond, &mut stmt.alt);
 	}
 
-	fn visit_mut_program(&mut self, program:&mut Program) {
+	fn visit_mut_program(&mut self, program: &mut Program) {
 		let _tracing = span!(Level::ERROR, "inlining", pass = self.pass).entered();
 
 		let old_phase = self.phase;
@@ -507,7 +506,7 @@ impl VisitMut for Inlining<'_> {
 		self.phase = old_phase;
 	}
 
-	fn visit_mut_new_expr(&mut self, node:&mut NewExpr) {
+	fn visit_mut_new_expr(&mut self, node: &mut NewExpr) {
 		node.callee.visit_mut_with(self);
 
 		if self.phase == Phase::Analysis {
@@ -519,18 +518,13 @@ impl VisitMut for Inlining<'_> {
 		self.scope.store_inline_barrier(self.phase);
 	}
 
-	fn visit_mut_pat(&mut self, node:&mut Pat) {
+	fn visit_mut_pat(&mut self, node: &mut Pat) {
 		node.visit_mut_children_with(self);
 
 		if let Pat::Ident(ref i) = node {
 			match self.pat_mode {
 				PatFoldingMode::Param => {
-					self.declare(
-						i.to_id(),
-						Some(Cow::Owned(Ident::from(i).into())),
-						false,
-						VarType::Param,
-					);
+					self.declare(i.to_id(), Some(Cow::Owned(Ident::from(i).into())), false, VarType::Param);
 				},
 
 				PatFoldingMode::CatchParam => {
@@ -554,7 +548,7 @@ impl VisitMut for Inlining<'_> {
 		}
 	}
 
-	fn visit_mut_stmts(&mut self, items:&mut Vec<Stmt>) {
+	fn visit_mut_stmts(&mut self, items: &mut Vec<Stmt>) {
 		let old_phase = self.phase;
 
 		match old_phase {
@@ -577,19 +571,19 @@ impl VisitMut for Inlining<'_> {
 		}
 	}
 
-	fn visit_mut_switch_case(&mut self, node:&mut SwitchCase) {
+	fn visit_mut_switch_case(&mut self, node: &mut SwitchCase) {
 		self.visit_with_child(ScopeKind::Block, node)
 	}
 
-	fn visit_mut_try_stmt(&mut self, node:&mut TryStmt) {
-		node.block.visit_with(&mut IdentListVisitor { scope:&mut self.scope });
+	fn visit_mut_try_stmt(&mut self, node: &mut TryStmt) {
+		node.block.visit_with(&mut IdentListVisitor { scope: &mut self.scope });
 
 		node.handler.visit_mut_with(self)
 	}
 
-	fn visit_mut_unary_expr(&mut self, node:&mut UnaryExpr) {
+	fn visit_mut_unary_expr(&mut self, node: &mut UnaryExpr) {
 		if let op!("delete") = node.op {
-			let mut v = IdentListVisitor { scope:&mut self.scope };
+			let mut v = IdentListVisitor { scope: &mut self.scope };
 
 			node.arg.visit_with(&mut v);
 
@@ -599,19 +593,19 @@ impl VisitMut for Inlining<'_> {
 		node.visit_mut_children_with(self)
 	}
 
-	fn visit_mut_update_expr(&mut self, node:&mut UpdateExpr) {
-		let mut v = IdentListVisitor { scope:&mut self.scope };
+	fn visit_mut_update_expr(&mut self, node: &mut UpdateExpr) {
+		let mut v = IdentListVisitor { scope: &mut self.scope };
 
 		node.arg.visit_with(&mut v);
 	}
 
-	fn visit_mut_var_decl(&mut self, decl:&mut VarDecl) {
+	fn visit_mut_var_decl(&mut self, decl: &mut VarDecl) {
 		self.var_decl_kind = decl.kind;
 
 		decl.visit_mut_children_with(self)
 	}
 
-	fn visit_mut_var_declarator(&mut self, node:&mut VarDeclarator) {
+	fn visit_mut_var_declarator(&mut self, node: &mut VarDeclarator) {
 		let kind = VarType::Var(self.var_decl_kind);
 
 		node.init.visit_mut_with(self);
@@ -630,10 +624,7 @@ impl VisitMut for Inlining<'_> {
 						},
 
 						// Constants
-						Some(e)
-							if (e.is_lit() || e.is_ident())
-								&& self.var_decl_kind == VarDeclKind::Const =>
-						{
+						Some(e) if (e.is_lit() || e.is_ident()) && self.var_decl_kind == VarDeclKind::Const => {
 							if self.is_first_run {
 								self.scope.constants.insert(name.to_id(), Some((**e).clone()));
 							}
@@ -692,12 +683,7 @@ impl VisitMut for Inlining<'_> {
 
 						if let Some(init) = &init {
 							if let Expr::Ident(ri) = &**init {
-								self.declare(
-									name.to_id(),
-									Some(Cow::Owned(ri.clone().into())),
-									false,
-									kind,
-								);
+								self.declare(name.to_id(), Some(Cow::Owned(ri.clone().into())), false, kind);
 							}
 						}
 
@@ -758,9 +744,9 @@ impl VisitMut for Inlining<'_> {
 		node.name.visit_mut_with(self);
 	}
 
-	fn visit_mut_while_stmt(&mut self, node:&mut WhileStmt) {
+	fn visit_mut_while_stmt(&mut self, node: &mut WhileStmt) {
 		{
-			node.test.visit_with(&mut IdentListVisitor { scope:&mut self.scope });
+			node.test.visit_with(&mut IdentListVisitor { scope: &mut self.scope });
 		}
 
 		node.test.visit_mut_with(self);
@@ -771,7 +757,7 @@ impl VisitMut for Inlining<'_> {
 
 #[derive(Debug)]
 struct IdentListVisitor<'a, 'b> {
-	scope:&'a mut Scope<'b>,
+	scope: &'a mut Scope<'b>,
 }
 
 impl Visit for IdentListVisitor<'_, '_> {
@@ -779,12 +765,14 @@ impl Visit for IdentListVisitor<'_, '_> {
 
 	visit_obj_and_computed!();
 
-	fn visit_ident(&mut self, node:&Ident) { self.scope.add_write(&node.to_id(), true); }
+	fn visit_ident(&mut self, node: &Ident) {
+		self.scope.add_write(&node.to_id(), true);
+	}
 }
 
 /// Mark idents as `written`.
 struct WriteVisitor<'a, 'b> {
-	scope:&'a mut Scope<'b>,
+	scope: &'a mut Scope<'b>,
 }
 
 impl Visit for WriteVisitor<'_, '_> {
@@ -792,5 +780,7 @@ impl Visit for WriteVisitor<'_, '_> {
 
 	visit_obj_and_computed!();
 
-	fn visit_ident(&mut self, node:&Ident) { self.scope.add_write(&node.to_id(), false); }
+	fn visit_ident(&mut self, node: &Ident) {
+		self.scope.add_write(&node.to_id(), false);
+	}
 }

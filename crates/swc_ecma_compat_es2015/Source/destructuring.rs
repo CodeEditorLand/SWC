@@ -7,26 +7,10 @@ use swc_ecma_compat_common::impl_visit_mut_fn;
 use swc_ecma_transforms_base::{helper, helper_expr, perf::Check};
 use swc_ecma_transforms_macros::fast_path;
 use swc_ecma_utils::{
-	ExprFactory,
-	StmtLike,
-	alias_ident_for,
-	alias_if_required,
-	has_rest_pat,
-	is_literal,
-	member_expr,
-	private_ident,
-	prop_name_to_expr,
-	quote_ident,
+	ExprFactory, StmtLike, alias_ident_for, alias_if_required, has_rest_pat, is_literal, member_expr, private_ident,
+	prop_name_to_expr, quote_ident,
 };
-use swc_ecma_visit::{
-	Visit,
-	VisitMut,
-	VisitMutWith,
-	VisitWith,
-	noop_visit_mut_type,
-	noop_visit_type,
-	visit_mut_pass,
-};
+use swc_ecma_visit::{Visit, VisitMut, VisitMutWith, VisitWith, noop_visit_mut_type, noop_visit_type, visit_mut_pass};
 use swc_trace_macro::swc_trace;
 
 /// `@babel/plugin-transform-destructuring`
@@ -50,30 +34,30 @@ use swc_trace_macro::swc_trace;
 ///     b = _arr2[1],
 ///     rest = _arr2.slice(2);
 /// ```
-pub fn destructuring(c:Config) -> impl Pass { visit_mut_pass(Destructuring { c }) }
+pub fn destructuring(c: Config) -> impl Pass {
+	visit_mut_pass(Destructuring { c })
+}
 
 struct Destructuring {
-	c:Config,
+	c: Config,
 }
 
 #[derive(Debug, Default, Clone, Copy, Deserialize)]
 pub struct Config {
 	#[serde(default)]
-	pub loose:bool,
+	pub loose: bool,
 }
 
 macro_rules! impl_for_for_stmt {
 	($name:ident, $T:tt) => {
-		fn $name(&mut self, for_stmt:&mut $T) {
+		fn $name(&mut self, for_stmt: &mut $T) {
 			for_stmt.visit_mut_children_with(self);
 
 			let (left, stmt) = match &mut for_stmt.left {
 				ForHead::VarDecl(var_decl) => {
-					let has_complex = var_decl.decls.iter().any(|d| {
-						match d.name {
-							Pat::Ident(_) => false,
-							_ => true,
-						}
+					let has_complex = var_decl.decls.iter().any(|d| match d.name {
+						Pat::Ident(_) => false,
+						_ => true,
 					});
 
 					if !has_complex {
@@ -83,15 +67,15 @@ macro_rules! impl_for_for_stmt {
 					let ref_ident = make_ref_ident_for_for_stmt();
 
 					let left = VarDecl {
-						decls:vec![VarDeclarator {
-							span:DUMMY_SP,
-							name:ref_ident.clone().into(),
-							init:None,
-							definite:false,
+						decls: vec![VarDeclarator {
+							span: DUMMY_SP,
+							name: ref_ident.clone().into(),
+							init: None,
+							definite: false,
 						}],
-						span:var_decl.span,
-						kind:var_decl.kind,
-						declare:var_decl.declare,
+						span: var_decl.span,
+						kind: var_decl.kind,
+						declare: var_decl.declare,
 						..Default::default()
 					}
 					.into();
@@ -101,24 +85,14 @@ macro_rules! impl_for_for_stmt {
 						.decls
 						.take()
 						.into_iter()
-						.map(|decl| {
-							VarDeclarator {
-								init:Some(Box::new(Expr::Ident(ref_ident.clone()))),
-								..decl
-							}
-						})
+						.map(|decl| VarDeclarator { init: Some(Box::new(Expr::Ident(ref_ident.clone()))), ..decl })
 						.collect::<Vec<_>>();
 
 					decls.visit_mut_children_with(self);
 
 					// Unpack variables
-					let stmt:Stmt = VarDecl {
-						span:var_decl.span(),
-						kind:VarDeclKind::Let,
-						decls,
-						..Default::default()
-					}
-					.into();
+					let stmt: Stmt =
+						VarDecl { span: var_decl.span(), kind: VarDeclKind::Let, decls, ..Default::default() }.into();
 					(left, stmt)
 				},
 
@@ -134,10 +108,10 @@ macro_rules! impl_for_for_stmt {
 							let left = ForHead::Pat(left_ident.clone().into());
 							// Unpack variables
 							let stmt = AssignExpr {
-								span:DUMMY_SP,
-								left:pat.take().try_into().unwrap(),
-								op:op!("="),
-								right:Box::new(left_ident.into()),
+								span: DUMMY_SP,
+								left: pat.take().try_into().unwrap(),
+								op: op!("="),
+								right: Box::new(left_ident.into()),
 							}
 							.into_stmt();
 							(left, stmt)
@@ -154,30 +128,25 @@ macro_rules! impl_for_for_stmt {
 
 			for_stmt.body = Box::new(Stmt::Block(match &mut *for_stmt.body {
 				Stmt::Block(BlockStmt { span, stmts, ctxt }) => {
-					BlockStmt {
-						span:*span,
-						stmts:iter::once(stmt).chain(stmts.take()).collect(),
-						ctxt:*ctxt,
-					}
+					BlockStmt { span: *span, stmts: iter::once(stmt).chain(stmts.take()).collect(), ctxt: *ctxt }
 				},
-				body => BlockStmt { stmts:vec![stmt, body.take()], ..Default::default() },
+				body => BlockStmt { stmts: vec![stmt, body.take()], ..Default::default() },
 			}));
 		}
 	};
 }
 
-fn make_ref_ident_for_for_stmt() -> Ident { private_ident!("ref") }
+fn make_ref_ident_for_for_stmt() -> Ident {
+	private_ident!("ref")
+}
 
 #[swc_trace]
 impl AssignFolder {
-	fn visit_mut_var_decl(&mut self, decls:&mut Vec<VarDeclarator>, decl:VarDeclarator) {
+	fn visit_mut_var_decl(&mut self, decls: &mut Vec<VarDeclarator>, decl: VarDeclarator) {
 		match decl.name {
 			Pat::Ident(..) => decls.push(decl),
 			Pat::Rest(..) => {
-				unreachable!(
-					"rest pattern should handled by array pattern handler: {:?}",
-					decl.name
-				)
+				unreachable!("rest pattern should handled by array pattern handler: {:?}", decl.name)
 			},
 			Pat::Array(ArrayPat { elems, .. }) => {
 				assert!(decl.init.is_some(), "destructuring pattern binding requires initializer");
@@ -193,58 +162,46 @@ impl AssignFolder {
 						{
 							let mut arr_elems = Some(arr.elems.into_iter());
 
-							elems.into_iter().for_each(|p| {
-								match p {
-									Some(Pat::Rest(p)) => {
-										self.visit_mut_var_decl(
-											decls,
-											VarDeclarator {
-												span:p.span(),
-												name:*p.arg,
-												init:Some(
-													ArrayLit {
-														span:DUMMY_SP,
-														elems:arr_elems
-															.take()
-															.expect("two rest element?")
-															.collect(),
-													}
-													.into(),
-												),
-												definite:false,
-											},
-										);
-									},
+							elems.into_iter().for_each(|p| match p {
+								Some(Pat::Rest(p)) => {
+									self.visit_mut_var_decl(
+										decls,
+										VarDeclarator {
+											span: p.span(),
+											name: *p.arg,
+											init: Some(
+												ArrayLit {
+													span: DUMMY_SP,
+													elems: arr_elems.take().expect("two rest element?").collect(),
+												}
+												.into(),
+											),
+											definite: false,
+										},
+									);
+								},
 
-									Some(p) => {
-										let e = arr_elems
-											.as_mut()
-											.expect("pattern after rest element?")
-											.next()
-											.unwrap();
+								Some(p) => {
+									let e = arr_elems.as_mut().expect("pattern after rest element?").next().unwrap();
 
-										self.visit_mut_var_decl(
-											decls,
-											VarDeclarator {
-												span:p.span(),
-												init:e.map(|e| {
-													debug_assert_eq!(e.spread, None);
+									self.visit_mut_var_decl(
+										decls,
+										VarDeclarator {
+											span: p.span(),
+											init: e.map(|e| {
+												debug_assert_eq!(e.spread, None);
 
-													e.expr
-												}),
-												name:p,
-												definite:false,
-											},
-										)
-									},
+												e.expr
+											}),
+											name: p,
+											definite: false,
+										},
+									)
+								},
 
-									None => {
-										arr_elems
-											.as_mut()
-											.expect("pattern after rest element?")
-											.next();
-									},
-								}
+								None => {
+									arr_elems.as_mut().expect("pattern after rest element?").next();
+								},
 							});
 
 							return;
@@ -262,42 +219,34 @@ impl AssignFolder {
 				);
 
 				for (i, elem) in elems.into_iter().enumerate() {
-					let elem:Pat = match elem {
+					let elem: Pat = match elem {
 						Some(elem) => elem,
 						None => continue,
 					};
 
 					let var_decl = match elem {
-						Pat::Rest(RestPat { dot3_token, arg, .. }) => {
-							VarDeclarator {
-								span:dot3_token,
-								name:*arg,
-								init:Some(
-									CallExpr {
-										span:DUMMY_SP,
-										callee:ref_ident
-											.clone()
-											.make_member(quote_ident!("slice"))
-											.as_callee(),
-										args:vec![
-											Number { value:i as f64, span:dot3_token, raw:None }
-												.as_arg(),
-										],
-										..Default::default()
-									}
-									.into(),
-								),
-								definite:false,
-							}
+						Pat::Rest(RestPat { dot3_token, arg, .. }) => VarDeclarator {
+							span: dot3_token,
+							name: *arg,
+							init: Some(
+								CallExpr {
+									span: DUMMY_SP,
+									callee: ref_ident.clone().make_member(quote_ident!("slice")).as_callee(),
+									args: vec![Number { value: i as f64, span: dot3_token, raw: None }.as_arg()],
+									..Default::default()
+								}
+								.into(),
+							),
+							definite: false,
 						},
 						_ => {
 							VarDeclarator {
-								span:elem.span(),
+								span: elem.span(),
 								// This might be pattern.
 								// So we fold it again.
-								name:elem,
-								init:Some(make_ref_idx_expr(&ref_ident, i).into()),
-								definite:false,
+								name: elem,
+								init: Some(make_ref_idx_expr(&ref_ident, i).into()),
+								definite: false,
 							}
 						},
 					};
@@ -321,16 +270,14 @@ impl AssignFolder {
 				//      _object_destructuring_empty(_ref);
 				//
 
-				let expr = helper_expr!(object_destructuring_empty).as_call(
-					DUMMY_SP,
-					vec![decl.init.expect("destructuring must be initialized").as_arg()],
-				);
+				let expr = helper_expr!(object_destructuring_empty)
+					.as_call(DUMMY_SP, vec![decl.init.expect("destructuring must be initialized").as_arg()]);
 
 				let var_decl = VarDeclarator {
-					span:DUMMY_SP,
-					name:private_ident!(span, "ref").into(),
-					init:Some(Box::new(expr)),
-					definite:false,
+					span: DUMMY_SP,
+					name: private_ident!(span, "ref").into(),
+					init: Some(Box::new(expr)),
+					definite: false,
 				};
 
 				decls.push(var_decl);
@@ -340,13 +287,12 @@ impl AssignFolder {
 				assert!(decl.init.is_some(), "destructuring pattern binding requires initializer");
 
 				if props.len() == 1 {
-					if let ObjectPatProp::Assign(p @ AssignPatProp { value: None, .. }) = &props[0]
-					{
+					if let ObjectPatProp::Assign(p @ AssignPatProp { value: None, .. }) = &props[0] {
 						decls.push(VarDeclarator {
-							span:decl.span,
-							name:p.key.clone().into(),
-							init:Some(decl.init.unwrap().make_member(p.key.clone().into()).into()),
-							definite:false,
+							span: decl.span,
+							name: p.key.clone().into(),
+							init: Some(decl.init.unwrap().make_member(p.key.clone().into()).into()),
+							definite: false,
 						});
 
 						return;
@@ -375,14 +321,14 @@ impl AssignFolder {
 							let computed = matches!(key, PropName::Computed(..));
 
 							let var_decl = VarDeclarator {
-								span:prop_span,
-								name:*value,
-								init:Some(Box::new(make_ref_prop_expr(
+								span: prop_span,
+								name: *value,
+								init: Some(Box::new(make_ref_prop_expr(
 									&ref_ident,
 									Box::new(prop_name_to_expr(key)),
 									computed,
 								))),
-								definite:false,
+								definite: false,
 							};
 
 							let mut var_decls = vec![var_decl];
@@ -400,18 +346,14 @@ impl AssignFolder {
 									let ref_ident = make_ref_ident(
 										self.c,
 										decls,
-										Some(Box::new(make_ref_prop_expr(
-											&ref_ident,
-											key.clone().into(),
-											computed,
-										))),
+										Some(Box::new(make_ref_prop_expr(&ref_ident, key.clone().into(), computed))),
 									);
 
 									let var_decl = VarDeclarator {
-										span:prop_span,
-										name:key.clone().into(),
-										init:Some(Box::new(make_cond_expr(ref_ident, value))),
-										definite:false,
+										span: prop_span,
+										name: key.clone().into(),
+										init: Some(Box::new(make_cond_expr(ref_ident, value))),
+										definite: false,
 									};
 
 									let mut var_decls = vec![var_decl];
@@ -423,14 +365,14 @@ impl AssignFolder {
 
 								None => {
 									let var_decl = VarDeclarator {
-										span:prop_span,
-										name:key.clone().into(),
-										init:Some(Box::new(make_ref_prop_expr(
+										span: prop_span,
+										name: key.clone().into(),
+										init: Some(Box::new(make_ref_prop_expr(
 											&ref_ident,
 											key.clone().into(),
 											computed,
 										))),
-										definite:false,
+										definite: false,
 									};
 
 									let mut var_decls = vec![var_decl];
@@ -461,10 +403,10 @@ impl AssignFolder {
 							let tmp_ident = private_ident!(span, "tmp");
 
 							decls.push(VarDeclarator {
-								span:DUMMY_SP,
-								name:tmp_ident.clone().into(),
-								init:Some(init),
-								definite:false,
+								span: DUMMY_SP,
+								name: tmp_ident.clone().into(),
+								init: Some(init),
+								definite: false,
 							});
 
 							tmp_ident
@@ -477,7 +419,7 @@ impl AssignFolder {
 					Some(def_value)
 				};
 
-				let var_decl = VarDeclarator { span, name:*left, init, definite:false };
+				let var_decl = VarDeclarator { span, name: *left, init, definite: false };
 
 				let mut var_decls = vec![var_decl];
 
@@ -502,18 +444,18 @@ impl VisitMut for Destructuring {
 
 	impl_visit_mut_fn!();
 
-	fn visit_mut_module_items(&mut self, n:&mut Vec<ModuleItem>) { self.visit_mut_stmt_like(n); }
+	fn visit_mut_module_items(&mut self, n: &mut Vec<ModuleItem>) {
+		self.visit_mut_stmt_like(n);
+	}
 
-	fn visit_mut_stmts(&mut self, n:&mut Vec<Stmt>) { self.visit_mut_stmt_like(n); }
+	fn visit_mut_stmts(&mut self, n: &mut Vec<Stmt>) {
+		self.visit_mut_stmt_like(n);
+	}
 }
 
 #[swc_trace]
 impl Destructuring {
-	fn visit_mut_fn_like(
-		&mut self,
-		ps:&mut Vec<Param>,
-		body:&mut BlockStmt,
-	) -> (Vec<Param>, BlockStmt) {
+	fn visit_mut_fn_like(&mut self, ps: &mut Vec<Param>, body: &mut BlockStmt) -> (Vec<Param>, BlockStmt) {
 		let mut params = Vec::new();
 
 		let mut decls = Vec::new();
@@ -527,17 +469,12 @@ impl Destructuring {
 					let ref_ident = private_ident!(span, "ref");
 
 					params.push(Param {
-						span:DUMMY_SP,
-						decorators:Default::default(),
-						pat:ref_ident.clone().into(),
+						span: DUMMY_SP,
+						decorators: Default::default(),
+						pat: ref_ident.clone().into(),
 					});
 
-					decls.push(VarDeclarator {
-						span,
-						name:param.pat,
-						init:Some(ref_ident.into()),
-						definite:false,
-					})
+					decls.push(VarDeclarator { span, name: param.pat, init: Some(ref_ident.into()), definite: false })
 				},
 
 				Pat::Rest(..) | Pat::Expr(..) => params.push(param),
@@ -548,11 +485,11 @@ impl Destructuring {
 		let stmts = if decls.is_empty() {
 			body.stmts.take()
 		} else {
-			let mut stmt:Stmt = VarDecl {
-				span:DUMMY_SP,
-				kind:VarDeclKind::Let,
+			let mut stmt: Stmt = VarDecl {
+				span: DUMMY_SP,
+				kind: VarDeclKind::Let,
 				decls,
-				declare:false,
+				declare: false,
 				..Default::default()
 			}
 			.into();
@@ -567,32 +504,26 @@ impl Destructuring {
 }
 
 struct AssignFolder {
-	c:Config,
-	exporting:bool,
-	vars:Vec<VarDeclarator>,
+	c: Config,
+	exporting: bool,
+	vars: Vec<VarDeclarator>,
 	/// Used like `.take().is_some()`.
-	ignore_return_value:Option<()>,
+	ignore_return_value: Option<()>,
 }
 
 impl AssignFolder {
-	pub fn handle_assign_pat(
-		&mut self,
-		span:Span,
-		mut pat:AssignPat,
-		right:&mut Box<Expr>,
-	) -> Expr {
+	pub fn handle_assign_pat(&mut self, span: Span, mut pat: AssignPat, right: &mut Box<Expr>) -> Expr {
 		let ref_ident = make_ref_ident(self.c, &mut self.vars, None);
 
 		let mut exprs = vec![Box::new(
-			AssignExpr { span, left:ref_ident.clone().into(), op:op!("="), right:right.take() }
-				.into(),
+			AssignExpr { span, left: ref_ident.clone().into(), op: op!("="), right: right.take() }.into(),
 		)];
 
-		let mut assign_cond_expr:Expr = AssignExpr {
+		let mut assign_cond_expr: Expr = AssignExpr {
 			span,
-			left:pat.left.take().try_into().unwrap(),
-			op:op!("="),
-			right:Box::new(make_cond_expr(ref_ident, pat.right.take())),
+			left: pat.left.take().try_into().unwrap(),
+			op: op!("="),
+			right: Box::new(make_cond_expr(ref_ident, pat.right.take())),
 		}
 		.into();
 
@@ -600,7 +531,7 @@ impl AssignFolder {
 
 		exprs.push(Box::new(assign_cond_expr));
 
-		SeqExpr { span:DUMMY_SP, exprs }.into()
+		SeqExpr { span: DUMMY_SP, exprs }.into()
 	}
 }
 
@@ -609,7 +540,7 @@ impl AssignFolder {
 impl VisitMut for AssignFolder {
 	noop_visit_mut_type!(fail);
 
-	fn visit_mut_export_decl(&mut self, decl:&mut ExportDecl) {
+	fn visit_mut_export_decl(&mut self, decl: &mut ExportDecl) {
 		let old = self.exporting;
 
 		self.exporting = true;
@@ -619,7 +550,7 @@ impl VisitMut for AssignFolder {
 		self.exporting = old;
 	}
 
-	fn visit_mut_function(&mut self, f:&mut Function) {
+	fn visit_mut_function(&mut self, f: &mut Function) {
 		let exporting = mem::replace(&mut self.exporting, false);
 
 		f.visit_mut_children_with(self);
@@ -627,7 +558,7 @@ impl VisitMut for AssignFolder {
 		self.exporting = exporting;
 	}
 
-	fn visit_mut_class(&mut self, f:&mut Class) {
+	fn visit_mut_class(&mut self, f: &mut Class) {
 		let exporting = mem::replace(&mut self.exporting, false);
 
 		f.visit_mut_children_with(self);
@@ -635,7 +566,7 @@ impl VisitMut for AssignFolder {
 		self.exporting = exporting;
 	}
 
-	fn visit_mut_object_lit(&mut self, f:&mut ObjectLit) {
+	fn visit_mut_object_lit(&mut self, f: &mut ObjectLit) {
 		let exporting = mem::replace(&mut self.exporting, false);
 
 		f.visit_mut_children_with(self);
@@ -643,7 +574,7 @@ impl VisitMut for AssignFolder {
 		self.exporting = exporting;
 	}
 
-	fn visit_mut_arrow_expr(&mut self, f:&mut ArrowExpr) {
+	fn visit_mut_arrow_expr(&mut self, f: &mut ArrowExpr) {
 		let exporting = mem::replace(&mut self.exporting, false);
 
 		f.visit_mut_children_with(self);
@@ -651,23 +582,17 @@ impl VisitMut for AssignFolder {
 		self.exporting = exporting;
 	}
 
-	fn visit_mut_expr(&mut self, expr:&mut Expr) {
+	fn visit_mut_expr(&mut self, expr: &mut Expr) {
 		let ignore_return_value = self.ignore_return_value.take().is_some();
 
 		match expr {
 			// Handle iife
-			Expr::Fn(..) | Expr::Object(..) => expr.visit_mut_with(&mut Destructuring { c:self.c }),
+			Expr::Fn(..) | Expr::Object(..) => expr.visit_mut_with(&mut Destructuring { c: self.c }),
 
 			_ => expr.visit_mut_children_with(self),
 		};
 
-		if let Expr::Assign(AssignExpr {
-			span,
-			left: AssignTarget::Pat(pat),
-			op: op!("="),
-			right,
-		}) = expr
-		{
+		if let Expr::Assign(AssignExpr { span, left: AssignTarget::Pat(pat), op: op!("="), right }) = expr {
 			match pat {
 				// Pat::Expr(pat_expr) => {
 				//     *expr = Expr::Assign(AssignExpr {
@@ -688,72 +613,64 @@ impl VisitMut for AssignFolder {
 							{
 								let mut arr_elems = Some(arr.elems.take().into_iter());
 
-								elems.iter_mut().for_each(|p| {
-									match p {
-										Some(Pat::Rest(p)) => {
-											exprs.push(
-												AssignExpr {
-													span:p.span(),
-													left:p.arg.take().try_into().unwrap(),
-													op:op!("="),
-													right:Box::new(
-														ArrayLit {
-															span:DUMMY_SP,
-															elems:arr_elems
-																.take()
-																.expect("two rest element?")
-																.collect(),
-														}
-														.into(),
-													),
-												}
-												.into(),
-											);
-										},
+								elems.iter_mut().for_each(|p| match p {
+									Some(Pat::Rest(p)) => {
+										exprs.push(
+											AssignExpr {
+												span: p.span(),
+												left: p.arg.take().try_into().unwrap(),
+												op: op!("="),
+												right: Box::new(
+													ArrayLit {
+														span: DUMMY_SP,
+														elems: arr_elems.take().expect("two rest element?").collect(),
+													}
+													.into(),
+												),
+											}
+											.into(),
+										);
+									},
 
-										Some(p) => {
-											let e = arr_elems
-												.as_mut()
-												.expect("pattern after rest element?")
-												.next()
-												.and_then(|v| v);
+									Some(p) => {
+										let e = arr_elems
+											.as_mut()
+											.expect("pattern after rest element?")
+											.next()
+											.and_then(|v| v);
 
-											let mut right = e
-												.map(|e| {
-													debug_assert_eq!(e.spread, None);
+										let mut right = e
+											.map(|e| {
+												debug_assert_eq!(e.spread, None);
 
-													e.expr
-												})
-												.unwrap_or_else(|| Expr::undefined(p.span()));
+												e.expr
+											})
+											.unwrap_or_else(|| Expr::undefined(p.span()));
 
-											let p = p.take();
+										let p = p.take();
 
-											let mut expr = if let Pat::Assign(pat) = p {
-												self.handle_assign_pat(*span, pat, &mut right)
-											} else {
-												AssignExpr {
-													span:p.span(),
-													left:p.try_into().unwrap(),
-													op:op!("="),
-													right,
-												}
-												.into()
-											};
+										let mut expr = if let Pat::Assign(pat) = p {
+											self.handle_assign_pat(*span, pat, &mut right)
+										} else {
+											AssignExpr {
+												span: p.span(),
+												left: p.try_into().unwrap(),
+												op: op!("="),
+												right,
+											}
+											.into()
+										};
 
-											self.visit_mut_expr(&mut expr);
+										self.visit_mut_expr(&mut expr);
 
-											exprs.push(Box::new(expr));
-										},
+										exprs.push(Box::new(expr));
+									},
 
-										None => {
-											arr_elems
-												.as_mut()
-												.expect("pattern after rest element?")
-												.next();
-										},
-									}
+									None => {
+										arr_elems.as_mut().expect("pattern after rest element?").next();
+									},
 								});
-								*expr = SeqExpr { span:*span, exprs }.into();
+								*expr = SeqExpr { span: *span, exprs }.into();
 
 								return;
 							},
@@ -772,43 +689,38 @@ impl VisitMut for AssignFolder {
 
 					exprs.push(
 						AssignExpr {
-							span:DUMMY_SP,
-							op:op!("="),
-							left:ref_ident.clone().into(),
-							right:if self.c.loose {
+							span: DUMMY_SP,
+							op: op!("="),
+							left: ref_ident.clone().into(),
+							right: if self.c.loose {
 								right.take()
 							} else {
 								match &mut **right {
-									Expr::Ident(Ident { sym, .. }) if &**sym == "arguments" => {
-										Box::new(
-											CallExpr {
-												span:DUMMY_SP,
-												callee:member_expr!(
-													Default::default(),
-													Default::default(),
-													Array.prototype.slice.call
-												)
-												.as_callee(),
-												args:vec![right.take().as_arg()],
-												..Default::default()
-											}
-											.into(),
-										)
-									},
+									Expr::Ident(Ident { sym, .. }) if &**sym == "arguments" => Box::new(
+										CallExpr {
+											span: DUMMY_SP,
+											callee: member_expr!(
+												Default::default(),
+												Default::default(),
+												Array.prototype.slice.call
+											)
+											.as_callee(),
+											args: vec![right.take().as_arg()],
+											..Default::default()
+										}
+										.into(),
+									),
 
 									Expr::Array(..) => right.take(),
 									_ => {
 										// if left has rest then need `_to_array`
 										// else `_sliced_to_array`
-										if elems
-											.iter()
-											.any(|elem| matches!(elem, Some(Pat::Rest(..))))
-										{
+										if elems.iter().any(|elem| matches!(elem, Some(Pat::Rest(..)))) {
 											Box::new(
 												CallExpr {
-													span:DUMMY_SP,
-													callee:helper!(to_array),
-													args:vec![right.take().as_arg()],
+													span: DUMMY_SP,
+													callee: helper!(to_array),
+													args: vec![right.take().as_arg()],
 													..Default::default()
 												}
 												.into(),
@@ -816,12 +728,9 @@ impl VisitMut for AssignFolder {
 										} else {
 											Box::new(
 												CallExpr {
-													span:DUMMY_SP,
-													callee:helper!(sliced_to_array),
-													args:vec![
-														right.take().as_arg(),
-														elems.len().as_arg(),
-													],
+													span: DUMMY_SP,
+													callee: helper!(sliced_to_array),
+													args: vec![right.take().as_arg(), elems.len().as_arg()],
 													..Default::default()
 												}
 												.into(),
@@ -849,19 +758,19 @@ impl VisitMut for AssignFolder {
 
 								exprs.push(
 									AssignExpr {
-										span:DUMMY_SP,
-										left:assign_ref_ident.clone().into(),
-										op:op!("="),
-										right:ref_ident.clone().computed_member(i as f64).into(),
+										span: DUMMY_SP,
+										left: assign_ref_ident.clone().into(),
+										op: op!("="),
+										right: ref_ident.clone().computed_member(i as f64).into(),
 									}
 									.into(),
 								);
 
-								let mut assign_expr:Expr = AssignExpr {
-									span:*span,
-									left:left.take().try_into().unwrap(),
-									op:op!("="),
-									right:Box::new(make_cond_expr(assign_ref_ident, right.take())),
+								let mut assign_expr: Expr = AssignExpr {
+									span: *span,
+									left: left.take().try_into().unwrap(),
+									op: op!("="),
+									right: Box::new(make_cond_expr(assign_ref_ident, right.take())),
 								}
 								.into();
 
@@ -871,17 +780,14 @@ impl VisitMut for AssignFolder {
 							},
 
 							Pat::Rest(RestPat { arg, .. }) => {
-								let mut assign_expr:Expr = AssignExpr {
-									span:elem_span,
-									op:op!("="),
-									left:arg.take().try_into().unwrap(),
-									right:CallExpr {
-										span:DUMMY_SP,
-										callee:ref_ident
-											.clone()
-											.make_member(quote_ident!("slice"))
-											.as_callee(),
-										args:vec![(i as f64).as_arg()],
+								let mut assign_expr: Expr = AssignExpr {
+									span: elem_span,
+									op: op!("="),
+									left: arg.take().try_into().unwrap(),
+									right: CallExpr {
+										span: DUMMY_SP,
+										callee: ref_ident.clone().make_member(quote_ident!("slice")).as_callee(),
+										args: vec![(i as f64).as_arg()],
 										..Default::default()
 									}
 									.into(),
@@ -894,11 +800,11 @@ impl VisitMut for AssignFolder {
 							},
 
 							_ => {
-								let mut assign_expr:Expr = AssignExpr {
-									span:elem_span,
-									op:op!("="),
-									left:elem.take().try_into().unwrap(),
-									right:make_ref_idx_expr(&ref_ident, i).into(),
+								let mut assign_expr: Expr = AssignExpr {
+									span: elem_span,
+									op: op!("="),
+									left: elem.take().try_into().unwrap(),
+									right: make_ref_idx_expr(&ref_ident, i).into(),
 								}
 								.into();
 
@@ -912,7 +818,7 @@ impl VisitMut for AssignFolder {
 					// last one should be `ref`
 					exprs.push(ref_ident.into());
 
-					*expr = SeqExpr { span:DUMMY_SP, exprs }.into()
+					*expr = SeqExpr { span: DUMMY_SP, exprs }.into()
 				},
 
 				AssignTargetPat::Object(ObjectPat { props, .. }) if props.is_empty() => {
@@ -920,20 +826,17 @@ impl VisitMut for AssignFolder {
 
 					right.visit_mut_with(self);
 
-					*expr = helper_expr!(object_destructuring_empty)
-						.as_call(DUMMY_SP, vec![right.as_arg()]);
+					*expr = helper_expr!(object_destructuring_empty).as_call(DUMMY_SP, vec![right.as_arg()]);
 				},
 
 				AssignTargetPat::Object(ObjectPat { span, props, .. }) => {
 					if props.len() == 1 {
-						if let ObjectPatProp::Assign(p @ AssignPatProp { value: None, .. }) =
-							&props[0]
-						{
+						if let ObjectPatProp::Assign(p @ AssignPatProp { value: None, .. }) = &props[0] {
 							*expr = AssignExpr {
-								span:*span,
-								op:op!("="),
-								left:p.key.clone().into(),
-								right:right.take().make_member(p.key.clone().into()).into(),
+								span: *span,
+								op: op!("="),
+								left: p.key.clone().into(),
+								right: right.take().make_member(p.key.clone().into()).into(),
 							}
 							.into();
 
@@ -944,10 +847,10 @@ impl VisitMut for AssignFolder {
 					let ref_ident = make_ref_ident(self.c, &mut self.vars, None);
 
 					let mut exprs = vec![Box::new(Expr::Assign(AssignExpr {
-						span:*span,
-						left:ref_ident.clone().into(),
-						op:op!("="),
-						right:right.take(),
+						span: *span,
+						left: ref_ident.clone().into(),
+						op: op!("="),
+						right: right.take(),
 					}))];
 
 					for prop in props {
@@ -968,13 +871,7 @@ impl VisitMut for AssignFolder {
 								let mut expr = if let Pat::Assign(pat) = *value {
 									self.handle_assign_pat(span, pat, &mut right)
 								} else {
-									AssignExpr {
-										span,
-										left:value.try_into().unwrap(),
-										op:op!("="),
-										right,
-									}
-									.into()
+									AssignExpr { span, left: value.try_into().unwrap(), op: op!("="), right }.into()
 								};
 
 								expr.visit_mut_with(self);
@@ -987,15 +884,14 @@ impl VisitMut for AssignFolder {
 
 								match value {
 									Some(value) => {
-										let prop_ident =
-											make_ref_ident(self.c, &mut self.vars, None);
+										let prop_ident = make_ref_ident(self.c, &mut self.vars, None);
 
 										exprs.push(
 											AssignExpr {
 												span,
-												left:prop_ident.clone().into(),
-												op:op!("="),
-												right:Box::new(make_ref_prop_expr(
+												left: prop_ident.clone().into(),
+												op: op!("="),
+												right: Box::new(make_ref_prop_expr(
 													&ref_ident,
 													key.clone().into(),
 													computed,
@@ -1007,12 +903,9 @@ impl VisitMut for AssignFolder {
 										exprs.push(
 											AssignExpr {
 												span,
-												left:key.clone().into(),
-												op:op!("="),
-												right:Box::new(make_cond_expr(
-													prop_ident,
-													value.take(),
-												)),
+												left: key.clone().into(),
+												op: op!("="),
+												right: Box::new(make_cond_expr(prop_ident, value.take())),
 											}
 											.into(),
 										);
@@ -1022,9 +915,9 @@ impl VisitMut for AssignFolder {
 										exprs.push(
 											AssignExpr {
 												span,
-												left:key.clone().into(),
-												op:op!("="),
-												right:Box::new(make_ref_prop_expr(
+												left: key.clone().into(),
+												op: op!("="),
+												right: Box::new(make_ref_prop_expr(
 													&ref_ident,
 													key.clone().into(),
 													computed,
@@ -1048,7 +941,7 @@ impl VisitMut for AssignFolder {
 					// Last one should be object itself.
 					exprs.push(ref_ident.into());
 
-					*expr = SeqExpr { span:DUMMY_SP, exprs }.into();
+					*expr = SeqExpr { span: DUMMY_SP, exprs }.into();
 				},
 
 				AssignTargetPat::Invalid(..) => unreachable!(),
@@ -1056,7 +949,7 @@ impl VisitMut for AssignFolder {
 		};
 	}
 
-	fn visit_mut_stmt(&mut self, s:&mut Stmt) {
+	fn visit_mut_stmt(&mut self, s: &mut Stmt) {
 		match s {
 			Stmt::Expr(e) => {
 				self.ignore_return_value = Some(());
@@ -1070,7 +963,7 @@ impl VisitMut for AssignFolder {
 		};
 	}
 
-	fn visit_mut_var_declarators(&mut self, declarators:&mut Vec<VarDeclarator>) {
+	fn visit_mut_var_declarators(&mut self, declarators: &mut Vec<VarDeclarator>) {
 		declarators.visit_mut_children_with(self);
 
 		let is_complex = declarators.iter().any(|d| !matches!(d.name, Pat::Ident(..)));
@@ -1088,7 +981,7 @@ impl VisitMut for AssignFolder {
 		*declarators = decls;
 	}
 
-	fn visit_mut_var_decl(&mut self, var_decl:&mut VarDecl) {
+	fn visit_mut_var_decl(&mut self, var_decl: &mut VarDecl) {
 		var_decl.decls.visit_mut_with(self);
 
 		if var_decl.kind == VarDeclKind::Const {
@@ -1103,21 +996,17 @@ impl VisitMut for AssignFolder {
 
 #[swc_trace]
 impl Destructuring {
-	fn visit_mut_stmt_like<T>(&mut self, stmts:&mut Vec<T>)
+	fn visit_mut_stmt_like<T>(&mut self, stmts: &mut Vec<T>)
 	where
 		Vec<T>: VisitMutWith<Self>,
-		T: StmtLike + VisitMutWith<AssignFolder>, {
+		T: StmtLike + VisitMutWith<AssignFolder>,
+	{
 		stmts.visit_mut_children_with(self);
 
 		let mut stmts_updated = Vec::with_capacity(stmts.len());
 
 		for stmt in stmts.drain(..) {
-			let mut folder = AssignFolder {
-				c:self.c,
-				exporting:false,
-				vars:Vec::new(),
-				ignore_return_value:None,
-			};
+			let mut folder = AssignFolder { c: self.c, exporting: false, vars: Vec::new(), ignore_return_value: None };
 
 			match stmt.try_into_stmt() {
 				Err(mut item) => {
@@ -1128,9 +1017,9 @@ impl Destructuring {
 					if !folder.vars.is_empty() {
 						stmts_updated.push(T::from(
 							VarDecl {
-								span:DUMMY_SP,
-								kind:VarDeclKind::Var,
-								decls:folder.vars,
+								span: DUMMY_SP,
+								kind: VarDeclKind::Var,
+								decls: folder.vars,
 								..Default::default()
 							}
 							.into(),
@@ -1148,9 +1037,9 @@ impl Destructuring {
 					if !folder.vars.is_empty() {
 						stmts_updated.push(T::from(
 							VarDecl {
-								span:DUMMY_SP,
-								kind:VarDeclKind::Var,
-								decls:folder.vars,
+								span: DUMMY_SP,
+								kind: VarDeclKind::Var,
+								decls: folder.vars,
 								..Default::default()
 							}
 							.into(),
@@ -1166,20 +1055,20 @@ impl Destructuring {
 	}
 }
 
-fn make_ref_idx_expr(ref_ident:&Ident, i:usize) -> MemberExpr {
+fn make_ref_idx_expr(ref_ident: &Ident, i: usize) -> MemberExpr {
 	ref_ident.clone().computed_member(i as f64)
 }
 
-fn make_ref_ident(c:Config, decls:&mut Vec<VarDeclarator>, init:Option<Box<Expr>>) -> Ident {
+fn make_ref_ident(c: Config, decls: &mut Vec<VarDeclarator>, init: Option<Box<Expr>>) -> Ident {
 	make_ref_ident_for_array(c, decls, init, None)
 }
 
 #[tracing::instrument(level = "info", skip_all)]
 fn make_ref_ident_for_array(
-	c:Config,
-	decls:&mut Vec<VarDeclarator>,
-	mut init:Option<Box<Expr>>,
-	elem_cnt:Option<usize>,
+	c: Config,
+	decls: &mut Vec<VarDeclarator>,
+	mut init: Option<Box<Expr>>,
+	elem_cnt: Option<usize>,
 ) -> Ident {
 	if elem_cnt.is_none() {
 		if let Some(e) = init {
@@ -1207,53 +1096,49 @@ fn make_ref_ident_for_array(
 	if aliased {
 		decls.push(VarDeclarator {
 			span,
-			name:ref_ident.clone().into(),
-			init:init.map(|v| {
+			name: ref_ident.clone().into(),
+			init: init.map(|v| {
 				if c.loose || matches!(*v, Expr::Array(..)) {
 					v
 				} else {
 					match elem_cnt {
 						None => v,
-						Some(std::usize::MAX) => {
-							Box::new(
-								CallExpr {
-									span:DUMMY_SP,
-									callee:helper!(to_array),
-									args:vec![v.as_arg()],
-									..Default::default()
-								}
-								.into(),
-							)
-						},
-						Some(value) => {
-							Box::new(
-								CallExpr {
-									span:DUMMY_SP,
-									callee:helper!(sliced_to_array),
-									args:vec![v.as_arg(), value.as_arg()],
-									..Default::default()
-								}
-								.into(),
-							)
-						},
+						Some(std::usize::MAX) => Box::new(
+							CallExpr {
+								span: DUMMY_SP,
+								callee: helper!(to_array),
+								args: vec![v.as_arg()],
+								..Default::default()
+							}
+							.into(),
+						),
+						Some(value) => Box::new(
+							CallExpr {
+								span: DUMMY_SP,
+								callee: helper!(sliced_to_array),
+								args: vec![v.as_arg(), value.as_arg()],
+								..Default::default()
+							}
+							.into(),
+						),
 					}
 				}
 			}),
-			definite:false,
+			definite: false,
 		});
 	}
 
 	ref_ident
 }
 
-fn make_ref_prop_expr(ref_ident:&Ident, prop:Box<Expr>, mut computed:bool) -> Expr {
+fn make_ref_prop_expr(ref_ident: &Ident, prop: Box<Expr>, mut computed: bool) -> Expr {
 	computed |= !matches!(*prop, Expr::Ident(..));
 
 	MemberExpr {
-		span:DUMMY_SP,
-		obj:Box::new(ref_ident.clone().into()),
-		prop:if computed {
-			MemberProp::Computed(ComputedPropName { span:DUMMY_SP, expr:prop })
+		span: DUMMY_SP,
+		obj: Box::new(ref_ident.clone().into()),
+		prop: if computed {
+			MemberProp::Computed(ComputedPropName { span: DUMMY_SP, expr: prop })
 		} else {
 			MemberProp::Ident(prop.ident().unwrap().into())
 		},
@@ -1262,27 +1147,23 @@ fn make_ref_prop_expr(ref_ident:&Ident, prop:Box<Expr>, mut computed:bool) -> Ex
 }
 
 /// Creates `tmp === void 0 ? def_value : tmp`
-fn make_cond_expr(tmp:Ident, def_value:Box<Expr>) -> Expr {
+fn make_cond_expr(tmp: Ident, def_value: Box<Expr>) -> Expr {
 	CondExpr {
-		span:DUMMY_SP,
-		test:BinExpr {
-			span:DUMMY_SP,
-			left:Box::new(Expr::Ident(tmp.clone())),
-			op:op!("==="),
-			right:Box::new(Expr::Unary(UnaryExpr {
-				span:DUMMY_SP,
-				op:op!("void"),
-				arg:0.0.into(),
-			})),
+		span: DUMMY_SP,
+		test: BinExpr {
+			span: DUMMY_SP,
+			left: Box::new(Expr::Ident(tmp.clone())),
+			op: op!("==="),
+			right: Box::new(Expr::Unary(UnaryExpr { span: DUMMY_SP, op: op!("void"), arg: 0.0.into() })),
 		}
 		.into(),
-		cons:def_value,
-		alt:tmp.into(),
+		cons: def_value,
+		alt: tmp.into(),
 	}
 	.into()
 }
 
-fn can_be_null(e:&Expr) -> bool {
+fn can_be_null(e: &Expr) -> bool {
 	match *e {
 		Expr::Lit(Lit::Null(..))
 		| Expr::This(..)
@@ -1299,19 +1180,12 @@ fn can_be_null(e:&Expr) -> bool {
 
 		Expr::Lit(..) => false,
 
-		Expr::Array(..)
-		| Expr::Arrow(..)
-		| Expr::Object(..)
-		| Expr::Fn(..)
-		| Expr::Class(..)
-		| Expr::Tpl(..) => false,
+		Expr::Array(..) | Expr::Arrow(..) | Expr::Object(..) | Expr::Fn(..) | Expr::Class(..) | Expr::Tpl(..) => false,
 
 		Expr::TaggedTpl(..) => true,
 
 		Expr::Paren(ParenExpr { ref expr, .. }) => can_be_null(expr),
-		Expr::Seq(SeqExpr { ref exprs, .. }) => {
-			exprs.last().map(|e| can_be_null(e)).unwrap_or(true)
-		},
+		Expr::Seq(SeqExpr { ref exprs, .. }) => exprs.last().map(|e| can_be_null(e)).unwrap_or(true),
 
 		Expr::Assign(AssignExpr { ref right, .. }) => can_be_null(right),
 		Expr::Cond(CondExpr { ref cons, ref alt, .. }) => can_be_null(cons) || can_be_null(alt),
@@ -1337,15 +1211,17 @@ fn can_be_null(e:&Expr) -> bool {
 
 #[derive(Default)]
 struct DestructuringVisitor {
-	found:bool,
+	found: bool,
 }
 
 impl Visit for DestructuringVisitor {
 	noop_visit_type!(fail);
 
-	fn visit_assign_target_pat(&mut self, _:&AssignTargetPat) { self.found = true; }
+	fn visit_assign_target_pat(&mut self, _: &AssignTargetPat) {
+		self.found = true;
+	}
 
-	fn visit_pat(&mut self, node:&Pat) {
+	fn visit_pat(&mut self, node: &Pat) {
 		node.visit_children_with(self);
 
 		match *node {
@@ -1357,7 +1233,9 @@ impl Visit for DestructuringVisitor {
 }
 
 impl Check for DestructuringVisitor {
-	fn should_handle(&self) -> bool { self.found }
+	fn should_handle(&self) -> bool {
+		self.found
+	}
 }
 
 #[cfg(test)]

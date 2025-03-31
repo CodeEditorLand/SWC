@@ -9,13 +9,13 @@ pub type SourceFileInput<'a> = StringInput<'a>;
 /// Implementation of [Input].
 #[derive(Clone)]
 pub struct StringInput<'a> {
-	last_pos:BytePos,
+	last_pos: BytePos,
 	/// Current cursor
-	iter:str::Chars<'a>,
-	orig:&'a str,
+	iter: str::Chars<'a>,
+	orig: &'a str,
 	/// Original start position.
-	orig_start:BytePos,
-	orig_end:BytePos,
+	orig_start: BytePos,
+	orig_end: BytePos,
 }
 
 impl<'a> StringInput<'a> {
@@ -27,26 +27,32 @@ impl<'a> StringInput<'a> {
 	/// some methods of [SourceMap].
 	/// If you are not going to use methods from
 	/// [SourceMap], you may use any value.
-	pub fn new(src:&'a str, start:BytePos, end:BytePos) -> Self {
+	pub fn new(src: &'a str, start: BytePos, end: BytePos) -> Self {
 		assert!(start <= end);
 
-		StringInput { last_pos:start, orig:src, iter:src.chars(), orig_start:start, orig_end:end }
+		StringInput { last_pos: start, orig: src, iter: src.chars(), orig_start: start, orig_end: end }
 	}
 
 	#[inline(always)]
-	pub fn as_str(&self) -> &str { self.iter.as_str() }
+	pub fn as_str(&self) -> &str {
+		self.iter.as_str()
+	}
 
 	#[inline]
-	pub fn bump_bytes(&mut self, n:usize) {
+	pub fn bump_bytes(&mut self, n: usize) {
 		unsafe {
 			// Safety: We only proceed, not go back.
 			self.reset_to(self.last_pos + BytePos(n as u32));
 		}
 	}
 
-	pub fn start_pos(&self) -> BytePos { self.orig_start }
+	pub fn start_pos(&self) -> BytePos {
+		self.orig_start
+	}
 
-	pub fn end_pos(&self) -> BytePos { self.orig_end }
+	pub fn end_pos(&self) -> BytePos {
+		self.orig_end
+	}
 }
 
 /// Creates an [Input] from [SourceFile]. This is an alias for
@@ -55,18 +61,26 @@ impl<'a> StringInput<'a> {
 ///    StringInput::new(&fm.src, fm.start_pos, fm.end_pos)
 /// ```
 impl<'a> From<&'a SourceFile> for StringInput<'a> {
-	fn from(fm:&'a SourceFile) -> Self { StringInput::new(&fm.src, fm.start_pos, fm.end_pos) }
+	fn from(fm: &'a SourceFile) -> Self {
+		StringInput::new(&fm.src, fm.start_pos, fm.end_pos)
+	}
 }
 
 impl Input for StringInput<'_> {
 	#[inline]
-	fn cur(&mut self) -> Option<char> { self.iter.clone().next() }
+	fn cur(&mut self) -> Option<char> {
+		self.iter.clone().next()
+	}
 
 	#[inline]
-	fn peek(&mut self) -> Option<char> { self.iter.clone().nth(1) }
+	fn peek(&mut self) -> Option<char> {
+		self.iter.clone().nth(1)
+	}
 
 	#[inline]
-	fn peek_ahead(&mut self) -> Option<char> { self.iter.clone().nth(2) }
+	fn peek_ahead(&mut self) -> Option<char> {
+		self.iter.clone().nth(2)
+	}
 
 	#[inline]
 	unsafe fn bump(&mut self) {
@@ -87,17 +101,23 @@ impl Input for StringInput<'_> {
 	}
 
 	#[inline]
-	fn is_at_start(&self) -> bool { self.orig_start == self.last_pos }
+	fn is_at_start(&self) -> bool {
+		self.orig_start == self.last_pos
+	}
 
 	/// TODO(kdy1): Remove this?
 	#[inline]
-	fn cur_pos(&mut self) -> BytePos { self.last_pos }
+	fn cur_pos(&mut self) -> BytePos {
+		self.last_pos
+	}
 
 	#[inline]
-	fn last_pos(&self) -> BytePos { self.last_pos }
+	fn last_pos(&self) -> BytePos {
+		self.last_pos
+	}
 
 	#[inline]
-	unsafe fn slice(&mut self, start:BytePos, end:BytePos) -> &str {
+	unsafe fn slice(&mut self, start: BytePos, end: BytePos) -> &str {
 		debug_assert!(start <= end, "Cannot slice {:?}..{:?}", start, end);
 
 		let s = self.orig;
@@ -118,9 +138,10 @@ impl Input for StringInput<'_> {
 	}
 
 	#[inline]
-	fn uncons_while<F>(&mut self, mut pred:F) -> &str
+	fn uncons_while<F>(&mut self, mut pred: F) -> &str
 	where
-		F: FnMut(char) -> bool, {
+		F: FnMut(char) -> bool,
+	{
 		let s = self.iter.as_str();
 
 		let mut last = 0;
@@ -144,9 +165,10 @@ impl Input for StringInput<'_> {
 		ret
 	}
 
-	fn find<F>(&mut self, mut pred:F) -> Option<BytePos>
+	fn find<F>(&mut self, mut pred: F) -> Option<BytePos>
 	where
-		F: FnMut(char) -> bool, {
+		F: FnMut(char) -> bool,
+	{
 		let s = self.iter.as_str();
 
 		let mut last = 0;
@@ -173,7 +195,7 @@ impl Input for StringInput<'_> {
 	}
 
 	#[inline]
-	unsafe fn reset_to(&mut self, to:BytePos) {
+	unsafe fn reset_to(&mut self, to: BytePos) {
 		let orig = self.orig;
 
 		let idx = (to - self.orig_start).0 as usize;
@@ -188,15 +210,17 @@ impl Input for StringInput<'_> {
 	}
 
 	#[inline]
-	fn is_byte(&mut self, c:u8) -> bool {
+	fn is_byte(&mut self, c: u8) -> bool {
 		self.iter.as_str().as_bytes().first().map(|b| *b == c).unwrap_or(false)
 	}
 
 	#[inline]
-	fn is_str(&self, s:&str) -> bool { self.as_str().starts_with(s) }
+	fn is_str(&self, s: &str) -> bool {
+		self.as_str().starts_with(s)
+	}
 
 	#[inline]
-	fn eat_byte(&mut self, c:u8) -> bool {
+	fn eat_byte(&mut self, c: u8) -> bool {
 		if self.is_byte(c) {
 			self.iter.next();
 
@@ -245,30 +269,30 @@ pub trait Input: Clone {
 	///
 	/// - start should be less than or equal to end.
 	/// - start and end should be in the valid range of input.
-	unsafe fn slice(&mut self, start:BytePos, end:BytePos) -> &str;
+	unsafe fn slice(&mut self, start: BytePos, end: BytePos) -> &str;
 
 	/// Takes items from stream, testing each one with predicate. returns the
 	/// range of items which passed predicate.
-	fn uncons_while<F>(&mut self, f:F) -> &str
+	fn uncons_while<F>(&mut self, f: F) -> &str
 	where
 		F: FnMut(char) -> bool;
 
 	/// This method modifies [last_pos()] and [cur_pos()].
-	fn find<F>(&mut self, f:F) -> Option<BytePos>
+	fn find<F>(&mut self, f: F) -> Option<BytePos>
 	where
 		F: FnMut(char) -> bool;
 
 	/// # Safety
 	///
 	/// - `to` be in the valid range of input.
-	unsafe fn reset_to(&mut self, to:BytePos);
+	unsafe fn reset_to(&mut self, to: BytePos);
 
 	/// Implementors can override the method to make it faster.
 	///
 	/// `c` must be ASCII.
 	#[inline]
 	#[allow(clippy::wrong_self_convention)]
-	fn is_byte(&mut self, c:u8) -> bool {
+	fn is_byte(&mut self, c: u8) -> bool {
 		match self.cur() {
 			Some(ch) => ch == c as char,
 			_ => false,
@@ -278,13 +302,13 @@ pub trait Input: Clone {
 	/// Implementors can override the method to make it faster.
 	///
 	/// `s` must be ASCII only.
-	fn is_str(&self, s:&str) -> bool;
+	fn is_str(&self, s: &str) -> bool;
 
 	/// Implementors can override the method to make it faster.
 	///
 	/// `c` must be ASCII.
 	#[inline]
-	fn eat_byte(&mut self, c:u8) -> bool {
+	fn eat_byte(&mut self, c: u8) -> bool {
 		if self.is_byte(c) {
 			unsafe {
 				// Safety: We are sure that the input is not empty
@@ -305,9 +329,10 @@ mod tests {
 	use super::*;
 	use crate::{FileName, FilePathMapping, SourceMap};
 
-	fn with_test_sess<F>(src:&str, f:F)
+	fn with_test_sess<F>(src: &str, f: F)
 	where
-		F: FnOnce(StringInput<'_>), {
+		F: FnOnce(StringInput<'_>),
+	{
 		let cm = Arc::new(SourceMap::new(FilePathMapping::empty()));
 
 		let fm = cm.new_source_file(FileName::Real("testing".into()).into(), src.into());

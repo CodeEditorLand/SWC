@@ -27,27 +27,33 @@ use swc_ecma_visit::{VisitMut, VisitMutWith, noop_visit_mut_type, visit_mut_pass
 ///   - Object literal is deeply nested (threshold: )
 ///
 /// See https://github.com/swc-project/swc/issues/409
-pub fn json_parse(min_cost:usize) -> impl Pass { visit_mut_pass(JsonParse { min_cost }) }
+pub fn json_parse(min_cost: usize) -> impl Pass {
+	visit_mut_pass(JsonParse { min_cost })
+}
 
 struct JsonParse {
-	pub min_cost:usize,
+	pub min_cost: usize,
 }
 
 impl Parallel for JsonParse {
-	fn create(&self) -> Self { JsonParse { min_cost:self.min_cost } }
+	fn create(&self) -> Self {
+		JsonParse { min_cost: self.min_cost }
+	}
 
-	fn merge(&mut self, _:Self) {}
+	fn merge(&mut self, _: Self) {}
 }
 
 impl Default for JsonParse {
-	fn default() -> Self { JsonParse { min_cost:1024 } }
+	fn default() -> Self {
+		JsonParse { min_cost: 1024 }
+	}
 }
 
 impl VisitMut for JsonParse {
 	noop_visit_mut_type!(fail);
 
 	/// Handles parent expressions before child expressions.
-	fn visit_mut_expr(&mut self, expr:&mut Expr) {
+	fn visit_mut_expr(&mut self, expr: &mut Expr) {
 		if self.min_cost == usize::MAX {
 			return;
 		}
@@ -57,17 +63,13 @@ impl VisitMut for JsonParse {
 				let (is_lit, cost) = calc_literal_cost(&*expr, false);
 
 				if is_lit && cost >= self.min_cost {
-					let value =
-						serde_json::to_string(&jsonify(expr.take())).unwrap_or_else(|err| {
-							unreachable!("failed to serialize serde_json::Value as json: {}", err)
-						});
+					let value = serde_json::to_string(&jsonify(expr.take()))
+						.unwrap_or_else(|err| unreachable!("failed to serialize serde_json::Value as json: {}", err));
 
 					*expr = CallExpr {
-						span:expr.span(),
-						callee:member_expr!(Default::default(), DUMMY_SP, JSON.parse).as_callee(),
-						args:vec![
-							Lit::Str(Str { span:DUMMY_SP, raw:None, value:value.into() }).as_arg(),
-						],
+						span: expr.span(),
+						callee: member_expr!(Default::default(), DUMMY_SP, JSON.parse).as_callee(),
+						args: vec![Lit::Str(Str { span: DUMMY_SP, raw: None, value: value.into() }).as_arg()],
 						..Default::default()
 					}
 					.into();
@@ -85,45 +87,37 @@ impl VisitMut for JsonParse {
 	}
 }
 
-fn jsonify(e:Expr) -> Value {
+fn jsonify(e: Expr) -> Value {
 	match e {
-		Expr::Object(obj) => {
-			Value::Object(
-				obj.props
-					.into_iter()
-					.map(|v| {
-						match v {
-							PropOrSpread::Prop(p) if p.is_key_value() => p.key_value().unwrap(),
-							_ => unreachable!(),
-						}
-					})
-					.map(|p:KeyValueProp| {
-						let value = jsonify(*p.value);
+		Expr::Object(obj) => Value::Object(
+			obj.props
+				.into_iter()
+				.map(|v| match v {
+					PropOrSpread::Prop(p) if p.is_key_value() => p.key_value().unwrap(),
+					_ => unreachable!(),
+				})
+				.map(|p: KeyValueProp| {
+					let value = jsonify(*p.value);
 
-						let key = match p.key {
-							PropName::Str(s) => s.value.to_string(),
-							PropName::Ident(id) => id.sym.to_string(),
-							PropName::Num(n) => format!("{}", n.value),
-							_ => unreachable!(),
-						};
-						(key, value)
-					})
-					.collect(),
-			)
-		},
-		Expr::Array(arr) => {
-			Value::Array(arr.elems.into_iter().map(|v| jsonify(*v.unwrap().expr)).collect())
-		},
+					let key = match p.key {
+						PropName::Str(s) => s.value.to_string(),
+						PropName::Ident(id) => id.sym.to_string(),
+						PropName::Num(n) => format!("{}", n.value),
+						_ => unreachable!(),
+					};
+					(key, value)
+				})
+				.collect(),
+		),
+		Expr::Array(arr) => Value::Array(arr.elems.into_iter().map(|v| jsonify(*v.unwrap().expr)).collect()),
 		Expr::Lit(Lit::Str(Str { value, .. })) => Value::String(value.to_string()),
 		Expr::Lit(Lit::Num(Number { value, .. })) => Value::Number((value as i64).into()),
 		Expr::Lit(Lit::Null(..)) => Value::Null,
 		Expr::Lit(Lit::Bool(v)) => Value::Bool(v.value),
-		Expr::Tpl(Tpl { quasis, .. }) => {
-			Value::String(match quasis.first() {
-				Some(TplElement { cooked: Some(value), .. }) => value.to_string(),
-				_ => String::new(),
-			})
-		},
+		Expr::Tpl(Tpl { quasis, .. }) => Value::String(match quasis.first() {
+			Some(TplElement { cooked: Some(value), .. }) => value.to_string(),
+			_ => String::new(),
+		}),
 		_ => unreachable!("jsonify: Expr {:?} cannot be converted to json", e),
 	}
 }

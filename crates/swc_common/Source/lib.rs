@@ -40,25 +40,8 @@ pub use self::{
 	eq::{EqIgnoreSpan, TypeEq},
 	errors::{SourceMapper, SourceMapperDyn},
 	pos::{
-		BytePos,
-		CharPos,
-		DUMMY_SP,
-		FileName,
-		GLOBALS,
-		Globals,
-		Loc,
-		LocWithOpt,
-		Mark,
-		MultiSpan,
-		NO_EXPANSION,
-		SourceFile,
-		SourceFileAndBytePos,
-		SourceFileAndLine,
-		Span,
-		SpanLinesError,
-		Spanned,
-		SyntaxContext,
-		hygiene,
+		BytePos, CharPos, DUMMY_SP, FileName, GLOBALS, Globals, Loc, LocWithOpt, Mark, MultiSpan, NO_EXPANSION,
+		SourceFile, SourceFileAndBytePos, SourceFileAndLine, Span, SpanLinesError, Spanned, SyntaxContext, hygiene,
 	},
 	source_map::{FileLines, FileLoader, FilePathMapping, SourceMap, SpanSnippetError},
 	syntax_pos::LineCol,
@@ -66,7 +49,7 @@ pub use self::{
 
 /// A trait for ast nodes.
 pub trait AstNode: Debug + PartialEq + Clone + Spanned {
-	const TYPE:&'static str;
+	const TYPE: &'static str;
 }
 
 pub mod cache;
@@ -98,13 +81,6 @@ compile_error!("You can't enable `plugin-rt` and `plugin-mode` at the same time"
 #[cfg(feature = "rkyv-impl")]
 #[doc(hidden)]
 pub use self::syntax_pos::{
-	ArchivedBytePos,
-	ArchivedCharPos,
-	ArchivedFileName,
-	ArchivedMultiSpan,
-	ArchivedSourceFile,
-	ArchivedSourceFileAndBytePos,
-	ArchivedSpan,
-	ArchivedSpanLinesError,
-	ArchivedSpanSnippetError,
+	ArchivedBytePos, ArchivedCharPos, ArchivedFileName, ArchivedMultiSpan, ArchivedSourceFile,
+	ArchivedSourceFileAndBytePos, ArchivedSpan, ArchivedSpanLinesError, ArchivedSpanSnippetError,
 };

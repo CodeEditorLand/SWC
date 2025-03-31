@@ -18,37 +18,36 @@ use testing::NormalizedOutput;
 
 use crate::{exec_with_node_test_runner, parse_options, stdout_of};
 
-pub type PassFactory<'a> =
-	Box<dyn 'a + FnMut(&PassContext, &str, Option<Value>) -> Option<Box<dyn 'static + Pass>>>;
+pub type PassFactory<'a> = Box<dyn 'a + FnMut(&PassContext, &str, Option<Value>) -> Option<Box<dyn 'static + Pass>>>;
 
 /// These tests use `options.json`.
 ///
 ///
 /// Note: You should **not** use [resolver] by yourself.
 pub struct BabelLikeFixtureTest<'a> {
-	input:&'a Path,
+	input: &'a Path,
 
 	/// Default to [`Syntax::default`]
-	syntax:Syntax,
+	syntax: Syntax,
 
-	factories:Vec<Box<dyn 'a + FnOnce() -> PassFactory<'a>>>,
+	factories: Vec<Box<dyn 'a + FnOnce() -> PassFactory<'a>>>,
 
-	source_map:bool,
-	allow_error:bool,
+	source_map: bool,
+	allow_error: bool,
 }
 
 impl<'a> BabelLikeFixtureTest<'a> {
-	pub fn new(input:&'a Path) -> Self {
+	pub fn new(input: &'a Path) -> Self {
 		Self {
 			input,
-			syntax:Default::default(),
-			factories:Default::default(),
-			source_map:false,
-			allow_error:false,
+			syntax: Default::default(),
+			factories: Default::default(),
+			source_map: false,
+			allow_error: false,
 		}
 	}
 
-	pub fn syntax(mut self, syntax:Syntax) -> Self {
+	pub fn syntax(mut self, syntax: Syntax) -> Self {
 		self.syntax = syntax;
 
 		self
@@ -69,13 +68,13 @@ impl<'a> BabelLikeFixtureTest<'a> {
 	/// This takes a closure which returns a [PassFactory]. This is because you
 	/// may need to create [Mark], which requires [swc_common::GLOBALS] to be
 	/// configured.
-	pub fn add_factory(mut self, factory:impl 'a + FnOnce() -> PassFactory<'a>) -> Self {
+	pub fn add_factory(mut self, factory: impl 'a + FnOnce() -> PassFactory<'a>) -> Self {
 		self.factories.push(Box::new(factory));
 
 		self
 	}
 
-	fn run(self, output_path:Option<&Path>, compare_stdout:bool) {
+	fn run(self, output_path: Option<&Path>, compare_stdout: bool) {
 		let err = testing::run_test(false, |cm, handler| {
 			let mut factories = self.factories.into_iter().map(|f| f()).collect::<Vec<_>>();
 
@@ -84,14 +83,14 @@ impl<'a> BabelLikeFixtureTest<'a> {
 			let comments = SingleThreadedComments::default();
 
 			let mut builder = PassContext {
-				cm:cm.clone(),
-				assumptions:options.assumptions,
-				unresolved_mark:Mark::new(),
-				top_level_mark:Mark::new(),
-				comments:comments.clone(),
+				cm: cm.clone(),
+				assumptions: options.assumptions,
+				unresolved_mark: Mark::new(),
+				top_level_mark: Mark::new(),
+				comments: comments.clone(),
 			};
 
-			let mut pass:Box<dyn Pass> = Box::new(resolver(
+			let mut pass: Box<dyn Pass> = Box::new(resolver(
 				builder.unresolved_mark,
 				builder.top_level_mark,
 				self.syntax.typescript(),
@@ -139,18 +138,12 @@ impl<'a> BabelLikeFixtureTest<'a> {
 				src
 			};
 
-			let fm = cm
-				.new_source_file(swc_common::FileName::Real(self.input.to_path_buf()).into(), src);
+			let fm = cm.new_source_file(swc_common::FileName::Real(self.input.to_path_buf()).into(), src);
 
 			let mut errors = Vec::new();
 
-			let input_program = parse_file_as_program(
-				&fm,
-				self.syntax,
-				EsVersion::latest(),
-				Some(&comments),
-				&mut errors,
-			);
+			let input_program =
+				parse_file_as_program(&fm, self.syntax, EsVersion::latest(), Some(&comments), &mut errors);
 
 			let errored = !errors.is_empty();
 
@@ -207,11 +200,9 @@ impl<'a> BabelLikeFixtureTest<'a> {
 			} else if compare_stdout {
 				// Execution test, but compare stdout
 
-				let actual_stdout:String =
-					stdout_of(&code).expect("failed to execute transfomred code");
+				let actual_stdout: String = stdout_of(&code).expect("failed to execute transfomred code");
 
-				let expected_stdout =
-					stdout_of(&fm.src).expect("failed to execute transfomred code");
+				let expected_stdout = stdout_of(&fm.src).expect("failed to execute transfomred code");
 
 				testing::assert_eq!(actual_stdout, expected_stdout);
 			} else {
@@ -236,22 +227,28 @@ impl<'a> BabelLikeFixtureTest<'a> {
 	}
 
 	/// Execute using node.js and mocha
-	pub fn exec_with_test_runner(self) { self.run(None, false) }
+	pub fn exec_with_test_runner(self) {
+		self.run(None, false)
+	}
 
 	/// Execute using node.js
-	pub fn compare_stdout(self) { self.run(None, true) }
+	pub fn compare_stdout(self) {
+		self.run(None, true)
+	}
 
 	/// Run a fixture test
-	pub fn fixture(self, output:&Path) { self.run(Some(output), false) }
+	pub fn fixture(self, output: &Path) {
+		self.run(Some(output), false)
+	}
 }
 
 #[derive(Debug, Deserialize)]
 struct BabelOptions {
 	#[serde(default)]
-	assumptions:Assumptions,
+	assumptions: Assumptions,
 
 	#[serde(default)]
-	plugins:Vec<BabelPluginEntry>,
+	plugins: Vec<BabelPluginEntry>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -263,30 +260,30 @@ enum BabelPluginEntry {
 
 #[derive(Clone)]
 pub struct PassContext {
-	pub cm:Lrc<SourceMap>,
+	pub cm: Lrc<SourceMap>,
 
-	pub assumptions:Assumptions,
-	pub unresolved_mark:Mark,
-	pub top_level_mark:Mark,
+	pub assumptions: Assumptions,
+	pub unresolved_mark: Mark,
+	pub top_level_mark: Mark,
 
 	/// [SingleThreadedComments] is cheap to clone.
-	pub comments:SingleThreadedComments,
+	pub comments: SingleThreadedComments,
 }
 
 impl PassContext {
-	fn print(&mut self, program:&Program) -> String {
+	fn print(&mut self, program: &Program) -> String {
 		let mut buf = Vec::new();
 		{
 			let mut emitter = Emitter {
-				cfg:Default::default(),
-				cm:self.cm.clone(),
-				wr:Box::new(swc_ecma_codegen::text_writer::JsWriter::new(
+				cfg: Default::default(),
+				cm: self.cm.clone(),
+				wr: Box::new(swc_ecma_codegen::text_writer::JsWriter::new(
 					self.cm.clone(),
 					"\n",
 					&mut buf,
 					None,
 				)),
-				comments:Some(&self.comments),
+				comments: Some(&self.comments),
 			};
 
 			emitter.emit_program(program).unwrap();

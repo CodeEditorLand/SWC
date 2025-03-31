@@ -2,9 +2,10 @@ use std::mem::take;
 
 use swc_common::EqIgnoreSpan;
 
-pub(crate) fn dedup<T>(v:&mut Vec<T>)
+pub(crate) fn dedup<T>(v: &mut Vec<T>)
 where
-	T: EqIgnoreSpan, {
+	T: EqIgnoreSpan,
+{
 	let mut remove_list = Vec::new();
 
 	for (i, i1) in v.iter().enumerate() {

@@ -62,7 +62,7 @@ use syn::{parse::Parse, *};
 ///
 /// All formatting flags are handled correctly.
 #[proc_macro_derive(StringEnum, attributes(string_enum))]
-pub fn derive_string_enum(input:proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn derive_string_enum(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 	let input = syn::parse::<syn::DeriveInput>(input)
 		.map(From::from)
 		.expect("failed to parse derive input");
@@ -84,10 +84,10 @@ pub fn derive_string_enum(input:proc_macro::TokenStream) -> proc_macro::TokenStr
 	print("derive(StringEnum)", tts)
 }
 
-fn derive_fmt(i:&DeriveInput, trait_path:TokenStream) -> ItemImpl {
+fn derive_fmt(i: &DeriveInput, trait_path: TokenStream) -> ItemImpl {
 	let ty = &i.ident;
 
-	let item:ItemImpl = parse_quote!(
+	let item: ItemImpl = parse_quote!(
 		impl #trait_path for #ty {
 			fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
 				let s = self.as_str();
@@ -99,15 +99,15 @@ fn derive_fmt(i:&DeriveInput, trait_path:TokenStream) -> ItemImpl {
 	item.with_generics(i.generics.clone())
 }
 
-fn get_str_value(attrs:&[Attribute]) -> String {
+fn get_str_value(attrs: &[Attribute]) -> String {
 	// TODO: Accept multiline string
-	let docs:Vec<_> = attrs.iter().filter_map(doc_str).collect();
+	let docs: Vec<_> = attrs.iter().filter_map(doc_str).collect();
 
 	for raw_line in docs {
 		let line = raw_line.trim();
 
 		if line.starts_with('`') && line.ends_with('`') {
-			let mut s:String = line.split_at(1).1.into();
+			let mut s: String = line.split_at(1).1.into();
 
 			let new_len = s.len() - 1;
 
@@ -120,7 +120,7 @@ fn get_str_value(attrs:&[Attribute]) -> String {
 	panic!("StringEnum: Cannot determine string value of this variant")
 }
 
-fn make_from_str(i:&DeriveInput) -> ItemImpl {
+fn make_from_str(i: &DeriveInput) -> ItemImpl {
 	let arms = Binder::new_from(i)
 		.variants()
 		.into_iter()
@@ -130,9 +130,9 @@ fn make_from_str(i:&DeriveInput) -> ItemImpl {
 
 			let str_value = get_str_value(v.attrs());
 
-			let mut pat:Pat = Pat::Lit(ExprLit {
-				attrs:Default::default(),
-				lit:Lit::Str(LitStr::new(&str_value, Span::call_site())),
+			let mut pat: Pat = Pat::Lit(ExprLit {
+				attrs: Default::default(),
+				lit: Lit::Str(LitStr::new(&str_value, Span::call_site())),
 			});
 
 			// Handle `string_enum(alias("foo"))`
@@ -146,13 +146,10 @@ fn make_from_str(i:&DeriveInput) -> ItemImpl {
 						.expect("failed to parse `#[string_enum]`")
 						.aliases
 					{
-						cases.push(Pat::Lit(PatLit {
-							attrs:Default::default(),
-							lit:Lit::Str(item.alias),
-						}));
+						cases.push(Pat::Lit(PatLit { attrs: Default::default(), lit: Lit::Str(item.alias) }));
 					}
 
-					pat = Pat::Or(PatOr { attrs:Default::default(), leading_vert:None, cases });
+					pat = Pat::Or(PatOr { attrs: Default::default(), leading_vert: None, cases });
 
 					continue;
 				}
@@ -167,27 +164,27 @@ fn make_from_str(i:&DeriveInput) -> ItemImpl {
 
 			Arm {
 				body,
-				attrs:v.attrs().iter().filter(|attr| is_attr_name(attr, "cfg")).cloned().collect(),
+				attrs: v.attrs().iter().filter(|attr| is_attr_name(attr, "cfg")).cloned().collect(),
 				pat,
-				guard:None,
-				fat_arrow_token:Default::default(),
-				comma:Some(Token![,](def_site())),
+				guard: None,
+				fat_arrow_token: Default::default(),
+				comma: Some(Token![,](def_site())),
 			}
 		})
 		.chain(::std::iter::once(parse_quote!(_ => Err(()))))
 		.collect();
 
 	let body = Expr::Match(ExprMatch {
-		attrs:Default::default(),
-		match_token:Default::default(),
-		brace_token:Default::default(),
-		expr:Box::new(parse_quote!(s)),
+		attrs: Default::default(),
+		match_token: Default::default(),
+		brace_token: Default::default(),
+		expr: Box::new(parse_quote!(s)),
 		arms,
 	});
 
 	let ty = &i.ident;
 
-	let item:ItemImpl = parse_quote!(
+	let item: ItemImpl = parse_quote!(
 		impl ::std::str::FromStr for #ty {
 			type Err = ();
 
@@ -200,7 +197,7 @@ fn make_from_str(i:&DeriveInput) -> ItemImpl {
 	item.with_generics(i.generics.clone())
 }
 
-fn make_as_str(i:&DeriveInput) -> ItemImpl {
+fn make_as_str(i: &DeriveInput) -> ItemImpl {
 	let arms = Binder::new_from(i)
 		.variants()
 		.into_iter()
@@ -214,48 +211,39 @@ fn make_as_str(i:&DeriveInput) -> ItemImpl {
 
 			let pat = match *v.data() {
 				Fields::Unit => {
-					Box::new(Pat::Path(PatPath {
-						qself:None,
-						path:qual_name,
-						attrs:Default::default(),
-					}))
+					Box::new(Pat::Path(PatPath { qself: None, path: qual_name, attrs: Default::default() }))
 				},
-				_ => {
-					Box::new(Pat::Struct(PatStruct {
-						attrs:Default::default(),
-						qself:None,
-						path:qual_name,
-						brace_token:Default::default(),
-						fields:Default::default(),
-						rest:Some(PatRest {
-							attrs:Default::default(),
-							dot2_token:Default::default(),
-						}),
-					}))
-				},
+				_ => Box::new(Pat::Struct(PatStruct {
+					attrs: Default::default(),
+					qself: None,
+					path: qual_name,
+					brace_token: Default::default(),
+					fields: Default::default(),
+					rest: Some(PatRest { attrs: Default::default(), dot2_token: Default::default() }),
+				})),
 			};
 
 			Arm {
 				body,
-				attrs:v.attrs().iter().filter(|attr| is_attr_name(attr, "cfg")).cloned().collect(),
-				pat:Pat::Reference(PatReference {
-					and_token:Default::default(),
-					mutability:None,
+				attrs: v.attrs().iter().filter(|attr| is_attr_name(attr, "cfg")).cloned().collect(),
+				pat: Pat::Reference(PatReference {
+					and_token: Default::default(),
+					mutability: None,
 					pat,
-					attrs:Default::default(),
+					attrs: Default::default(),
 				}),
-				guard:None,
-				fat_arrow_token:Default::default(),
-				comma:Some(Token![,](def_site())),
+				guard: None,
+				fat_arrow_token: Default::default(),
+				comma: Some(Token![,](def_site())),
 			}
 		})
 		.collect();
 
 	let body = Expr::Match(ExprMatch {
-		attrs:Default::default(),
-		match_token:Default::default(),
-		brace_token:Default::default(),
-		expr:Box::new(parse_quote!(self)),
+		attrs: Default::default(),
+		match_token: Default::default(),
+		brace_token: Default::default(),
+		expr: Box::new(parse_quote!(self)),
 		arms,
 	});
 
@@ -263,7 +251,7 @@ fn make_as_str(i:&DeriveInput) -> ItemImpl {
 
 	let as_str = make_as_str_ident();
 
-	let item:ItemImpl = parse_quote!(
+	let item: ItemImpl = parse_quote!(
 		impl #ty {
 			pub fn #as_str(&self) -> &'static str {
 				#body
@@ -274,12 +262,14 @@ fn make_as_str(i:&DeriveInput) -> ItemImpl {
 	item.with_generics(i.generics.clone())
 }
 
-fn make_as_str_ident() -> Ident { Ident::new("as_str", call_site()) }
+fn make_as_str_ident() -> Ident {
+	Ident::new("as_str", call_site())
+}
 
-fn make_serialize(i:&DeriveInput) -> ItemImpl {
+fn make_serialize(i: &DeriveInput) -> ItemImpl {
 	let ty = &i.ident;
 
-	let item:ItemImpl = parse_quote!(
+	let item: ItemImpl = parse_quote!(
 		#[cfg(feature = "serde")]
 		impl ::serde::Serialize for #ty {
 			fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -294,10 +284,10 @@ fn make_serialize(i:&DeriveInput) -> ItemImpl {
 	item.with_generics(i.generics.clone())
 }
 
-fn make_deserialize(i:&DeriveInput) -> ItemImpl {
+fn make_deserialize(i: &DeriveInput) -> ItemImpl {
 	let ty = &i.ident;
 
-	let item:ItemImpl = parse_quote!(
+	let item: ItemImpl = parse_quote!(
 		#[cfg(feature = "serde")]
 		impl<'de> ::serde::Deserialize<'de> for #ty {
 			fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -332,23 +322,23 @@ fn make_deserialize(i:&DeriveInput) -> ItemImpl {
 }
 
 struct FieldAttr {
-	aliases:Punctuated<FieldAttrItem, Token![,]>,
+	aliases: Punctuated<FieldAttrItem, Token![,]>,
 }
 
 impl Parse for FieldAttr {
-	fn parse(input:parse::ParseStream) -> Result<Self> {
-		Ok(Self { aliases:input.call(Punctuated::parse_terminated)? })
+	fn parse(input: parse::ParseStream) -> Result<Self> {
+		Ok(Self { aliases: input.call(Punctuated::parse_terminated)? })
 	}
 }
 
 /// `alias("text")` in `#[string_enum(alias("text"))]`.
 struct FieldAttrItem {
-	alias:LitStr,
+	alias: LitStr,
 }
 
 impl Parse for FieldAttrItem {
-	fn parse(input:parse::ParseStream) -> Result<Self> {
-		let name:Ident = input.parse()?;
+	fn parse(input: parse::ParseStream) -> Result<Self> {
+		let name: Ident = input.parse()?;
 
 		assert!(
 			name == "alias",
@@ -359,6 +349,6 @@ impl Parse for FieldAttrItem {
 
 		parenthesized!(alias in input);
 
-		Ok(Self { alias:alias.parse()? })
+		Ok(Self { alias: alias.parse()? })
 	}
 }

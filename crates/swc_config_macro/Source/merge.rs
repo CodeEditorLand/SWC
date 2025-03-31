@@ -3,7 +3,7 @@ use quote::{ToTokens, quote};
 use swc_macros_common::{access_field, join_stmts};
 use syn::{DeriveInput, Expr, Field, Fields, Stmt, Token, parse_quote};
 
-pub fn expand(input:DeriveInput) -> TokenStream {
+pub fn expand(input: DeriveInput) -> TokenStream {
 	match &input.data {
 		syn::Data::Struct(s) => {
 			let body = call_merge_for_fields(&quote!(self), &s.fields);
@@ -27,8 +27,8 @@ pub fn expand(input:DeriveInput) -> TokenStream {
 	}
 }
 
-fn call_merge_for_fields(obj:&dyn ToTokens, fields:&Fields) -> Vec<Stmt> {
-	fn call_merge(obj:&dyn ToTokens, idx:usize, f:&Field) -> Expr {
+fn call_merge_for_fields(obj: &dyn ToTokens, fields: &Fields) -> Vec<Stmt> {
+	fn call_merge(obj: &dyn ToTokens, idx: usize, f: &Field) -> Expr {
 		let r = quote!(_other);
 
 		let l = access_field(obj, idx, f);
@@ -39,22 +39,20 @@ fn call_merge_for_fields(obj:&dyn ToTokens, fields:&Fields) -> Vec<Stmt> {
 	}
 
 	match fields {
-		Fields::Named(fs) => {
-			fs.named
-				.iter()
-				.enumerate()
-				.map(|(idx, f)| call_merge(obj, idx, f))
-				.map(|expr| Stmt::Expr(expr, Some(Token![;](fs.brace_token.span.join()))))
-				.collect()
-		},
-		Fields::Unnamed(fs) => {
-			fs.unnamed
-				.iter()
-				.enumerate()
-				.map(|(idx, f)| call_merge(obj, idx, f))
-				.map(|expr| Stmt::Expr(expr, Some(Token![;](fs.paren_token.span.join()))))
-				.collect()
-		},
+		Fields::Named(fs) => fs
+			.named
+			.iter()
+			.enumerate()
+			.map(|(idx, f)| call_merge(obj, idx, f))
+			.map(|expr| Stmt::Expr(expr, Some(Token![;](fs.brace_token.span.join()))))
+			.collect(),
+		Fields::Unnamed(fs) => fs
+			.unnamed
+			.iter()
+			.enumerate()
+			.map(|(idx, f)| call_merge(obj, idx, f))
+			.map(|expr| Stmt::Expr(expr, Some(Token![;](fs.paren_token.span.join()))))
+			.collect(),
 		Fields::Unit => unimplemented!("derive(Merge) does not support a unit struct"),
 	}
 }

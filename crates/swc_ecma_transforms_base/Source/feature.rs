@@ -157,16 +157,14 @@ bitflags! {
 	}
 }
 
-pub fn enable_available_feature_from_es_version(version:EsVersion) -> FeatureFlag {
+pub fn enable_available_feature_from_es_version(version: EsVersion) -> FeatureFlag {
 	let mut feature = FeatureFlag::empty();
 
 	if version < Es5 {
 		return feature;
 	}
 
-	feature |= FeatureFlag::PropertyLiterals
-		| FeatureFlag::MemberExpressionLiterals
-		| FeatureFlag::ReservedWords;
+	feature |= FeatureFlag::PropertyLiterals | FeatureFlag::MemberExpressionLiterals | FeatureFlag::ReservedWords;
 
 	if version < Es2015 {
 		return feature;
@@ -224,9 +222,7 @@ pub fn enable_available_feature_from_es_version(version:EsVersion) -> FeatureFla
 		return feature;
 	}
 
-	feature |= FeatureFlag::ExportNamespaceFrom
-		| FeatureFlag::NullishCoalescing
-		| FeatureFlag::OptionalChaining;
+	feature |= FeatureFlag::ExportNamespaceFrom | FeatureFlag::NullishCoalescing | FeatureFlag::OptionalChaining;
 
 	if version < Es2021 {
 		return feature;
@@ -238,9 +234,7 @@ pub fn enable_available_feature_from_es_version(version:EsVersion) -> FeatureFla
 		return feature;
 	}
 
-	feature |= FeatureFlag::ClassProperties
-		| FeatureFlag::ClassStaticBlock
-		| FeatureFlag::PrivatePropertyInObject;
+	feature |= FeatureFlag::ClassProperties | FeatureFlag::ClassStaticBlock | FeatureFlag::PrivatePropertyInObject;
 
 	feature
 }

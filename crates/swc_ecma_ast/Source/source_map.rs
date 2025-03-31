@@ -6,9 +6,11 @@ use crate::list::ListFormat;
 
 pub trait SpanExt: Spanned {
 	#[inline]
-	fn is_synthesized(&self) -> bool { false }
+	fn is_synthesized(&self) -> bool {
+		false
+	}
 
-	fn starts_on_new_line(&self, format:ListFormat) -> bool {
+	fn starts_on_new_line(&self, format: ListFormat) -> bool {
 		format.intersects(ListFormat::PreferNewLine)
 	}
 
@@ -18,12 +20,12 @@ pub trait SpanExt: Spanned {
 		self.span()
 	}
 }
-impl<T:Spanned> SpanExt for T {}
+impl<T: Spanned> SpanExt for T {}
 
 pub trait SourceMapperExt {
 	fn get_code_map(&self) -> &dyn SourceMapper;
 
-	fn is_on_same_line(&self, _lo:BytePos, _hi:BytePos) -> bool {
+	fn is_on_same_line(&self, _lo: BytePos, _hi: BytePos) -> bool {
 		// let cm = self.get_code_map();
 
 		// let lo = cm.lookup_char_pos(lo);
@@ -35,9 +37,9 @@ pub trait SourceMapperExt {
 
 	fn should_write_separating_line_terminator(
 		&self,
-		prev:Option<Span>,
-		next:Option<Span>,
-		format:ListFormat,
+		prev: Option<Span>,
+		next: Option<Span>,
+		format: ListFormat,
 	) -> bool {
 		if format.contains(ListFormat::MultiLine) {
 			return true;
@@ -60,9 +62,9 @@ pub trait SourceMapperExt {
 
 	fn should_write_leading_line_terminator(
 		&self,
-		parent_node:Span,
-		first_child:Option<Span>,
-		format:ListFormat,
+		parent_node: Span,
+		first_child: Option<Span>,
+		format: ListFormat,
 	) -> bool {
 		if format.contains(ListFormat::MultiLine) {
 			return true;
@@ -91,9 +93,9 @@ pub trait SourceMapperExt {
 
 	fn should_write_closing_line_terminator(
 		&self,
-		parent_node:Span,
-		last_child:Option<Span>,
-		format:ListFormat,
+		parent_node: Span,
+		last_child: Option<Span>,
+		format: ListFormat,
 	) -> bool {
 		if format.contains(ListFormat::MultiLine) {
 			return (format & ListFormat::NoTrailingNewLine) == ListFormat::None;
@@ -122,24 +124,36 @@ pub trait SourceMapperExt {
 }
 
 impl SourceMapperExt for SourceMap {
-	fn get_code_map(&self) -> &dyn SourceMapper { self }
+	fn get_code_map(&self) -> &dyn SourceMapper {
+		self
+	}
 }
 
 impl SourceMapperExt for dyn SourceMapper {
-	fn get_code_map(&self) -> &dyn SourceMapper { self }
+	fn get_code_map(&self) -> &dyn SourceMapper {
+		self
+	}
 }
 
 impl SourceMapperExt for Arc<SourceMapperDyn> {
-	fn get_code_map(&self) -> &dyn SourceMapper { &**self }
+	fn get_code_map(&self) -> &dyn SourceMapper {
+		&**self
+	}
 }
 impl SourceMapperExt for Rc<SourceMapperDyn> {
-	fn get_code_map(&self) -> &dyn SourceMapper { &**self }
+	fn get_code_map(&self) -> &dyn SourceMapper {
+		&**self
+	}
 }
 
 impl SourceMapperExt for Arc<SourceMap> {
-	fn get_code_map(&self) -> &dyn SourceMapper { &**self }
+	fn get_code_map(&self) -> &dyn SourceMapper {
+		&**self
+	}
 }
 
 impl SourceMapperExt for Rc<SourceMap> {
-	fn get_code_map(&self) -> &dyn SourceMapper { &**self }
+	fn get_code_map(&self) -> &dyn SourceMapper {
+		&**self
+	}
 }

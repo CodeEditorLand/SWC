@@ -5,13 +5,13 @@ use swc_ecma_codegen_macros::emitter;
 use super::{Emitter, Result};
 use crate::text_writer::WriteJs;
 
-impl<W, S:SourceMapper> Emitter<'_, W, S>
+impl<W, S: SourceMapper> Emitter<'_, W, S>
 where
 	W: WriteJs,
 	S: SourceMapperExt,
 {
 	#[emitter]
-	fn emit_decl(&mut self, node:&Decl) -> Result {
+	fn emit_decl(&mut self, node: &Decl) -> Result {
 		match node {
 			Decl::Class(ref n) => emit!(n),
 			Decl::Fn(ref n) => emit!(n),
@@ -33,12 +33,12 @@ where
 	}
 
 	#[emitter]
-	fn emit_class_decl(&mut self, node:&ClassDecl) -> Result {
+	fn emit_class_decl(&mut self, node: &ClassDecl) -> Result {
 		self.emit_class_decl_inner(node, false)?;
 	}
 
 	#[emitter]
-	fn emit_using_decl(&mut self, node:&UsingDecl) -> Result {
+	fn emit_using_decl(&mut self, node: &UsingDecl) -> Result {
 		self.emit_leading_comments_of_span(node.span(), false)?;
 
 		if node.is_await {
@@ -54,11 +54,7 @@ where
 		self.emit_list(node.span, Some(&node.decls), ListFormat::VariableDeclarationList)?;
 	}
 
-	pub(super) fn emit_class_decl_inner(
-		&mut self,
-		node:&ClassDecl,
-		skip_decorators:bool,
-	) -> Result {
+	pub(super) fn emit_class_decl_inner(&mut self, node: &ClassDecl, skip_decorators: bool) -> Result {
 		self.emit_leading_comments_of_span(node.span(), false)?;
 
 		srcmap!(self, node, true);
@@ -95,7 +91,7 @@ where
 	}
 
 	#[emitter]
-	fn emit_fn_decl(&mut self, node:&FnDecl) -> Result {
+	fn emit_fn_decl(&mut self, node: &FnDecl) -> Result {
 		self.emit_leading_comments_of_span(node.span(), false)?;
 
 		self.wr.commit_pending_semi()?;
@@ -130,9 +126,11 @@ where
 	}
 
 	#[emitter]
-	fn emit_var_decl(&mut self, node:&VarDecl) -> Result { self.emit_var_decl_inner(node)?; }
+	fn emit_var_decl(&mut self, node: &VarDecl) -> Result {
+		self.emit_var_decl_inner(node)?;
+	}
 
-	fn emit_var_decl_inner(&mut self, node:&VarDecl) -> Result {
+	fn emit_var_decl_inner(&mut self, node: &VarDecl) -> Result {
 		self.emit_leading_comments_of_span(node.span, false)?;
 
 		self.wr.commit_pending_semi()?;
@@ -148,9 +146,7 @@ where
 		keyword!(self, node.kind.as_str());
 
 		let starts_with_ident = match node.decls.first() {
-			Some(VarDeclarator {
-				name: Pat::Array(..) | Pat::Rest(..) | Pat::Object(..), ..
-			}) => false,
+			Some(VarDeclarator { name: Pat::Array(..) | Pat::Rest(..) | Pat::Object(..), .. }) => false,
 			_ => true,
 		};
 
@@ -166,7 +162,7 @@ where
 	}
 
 	#[emitter]
-	fn emit_var_declarator(&mut self, node:&VarDeclarator) -> Result {
+	fn emit_var_declarator(&mut self, node: &VarDeclarator) -> Result {
 		self.emit_leading_comments_of_span(node.span(), false)?;
 
 		srcmap!(node, true);

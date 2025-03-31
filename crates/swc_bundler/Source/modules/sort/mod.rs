@@ -21,10 +21,10 @@ impl Modules {
 	#[allow(clippy::ptr_arg)]
 	pub fn sort(
 		&mut self,
-		entry_id:ModuleId,
-		module_graph:&ModuleGraph,
-		cycles:&Vec<Vec<ModuleId>>,
-		cm:&Lrc<SourceMap>,
+		entry_id: ModuleId,
+		module_graph: &ModuleGraph,
+		cycles: &Vec<Vec<ModuleId>>,
+		cm: &Lrc<SourceMap>,
 	) {
 		tracing::debug!("Sorting {:?}", entry_id);
 
@@ -41,7 +41,7 @@ impl Modules {
 
 		let buf = chunks.into_iter().flat_map(|chunk| chunk.stmts).collect::<Vec<_>>();
 
-		let module = Module { span:DUMMY_SP, body:buf, shebang:None };
+		let module = Module { span: DUMMY_SP, body: buf, shebang: None };
 
 		// print_hygiene("after sort", cm, &module);
 

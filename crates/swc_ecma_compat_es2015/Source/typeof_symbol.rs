@@ -5,23 +5,27 @@ use swc_ecma_utils::{ExprFactory, quote_str};
 use swc_ecma_visit::{VisitMut, VisitMutWith, noop_visit_mut_type, visit_mut_pass};
 use swc_trace_macro::swc_trace;
 
-pub fn typeof_symbol() -> impl Pass { visit_mut_pass(TypeOfSymbol) }
+pub fn typeof_symbol() -> impl Pass {
+	visit_mut_pass(TypeOfSymbol)
+}
 
 #[derive(Clone, Copy)]
 struct TypeOfSymbol;
 
 #[swc_trace]
 impl Parallel for TypeOfSymbol {
-	fn merge(&mut self, _:Self) {}
+	fn merge(&mut self, _: Self) {}
 
-	fn create(&self) -> Self { TypeOfSymbol }
+	fn create(&self) -> Self {
+		TypeOfSymbol
+	}
 }
 
 #[swc_trace]
 impl VisitMut for TypeOfSymbol {
 	noop_visit_mut_type!(fail);
 
-	fn visit_mut_bin_expr(&mut self, expr:&mut BinExpr) {
+	fn visit_mut_bin_expr(&mut self, expr: &mut BinExpr) {
 		match expr.op {
 			op!("==") | op!("!=") | op!("===") | op!("!==") => {},
 
@@ -47,41 +51,38 @@ impl VisitMut for TypeOfSymbol {
 		expr.visit_mut_children_with(self)
 	}
 
-	fn visit_mut_expr(&mut self, expr:&mut Expr) {
+	fn visit_mut_expr(&mut self, expr: &mut Expr) {
 		expr.visit_mut_children_with(self);
 
 		if let Expr::Unary(UnaryExpr { span, op: op!("typeof"), arg }) = expr {
 			match &**arg {
 				Expr::Ident(..) => {
-					let undefined_str:Box<Expr> = quote_str!("undefined").into();
+					let undefined_str: Box<Expr> = quote_str!("undefined").into();
 
 					let test = BinExpr {
-						span:DUMMY_SP,
-						op:op!("==="),
-						left:Box::new(
-							UnaryExpr { span:DUMMY_SP, op:op!("typeof"), arg:arg.clone() }.into(),
-						),
-						right:undefined_str.clone(),
+						span: DUMMY_SP,
+						op: op!("==="),
+						left: Box::new(UnaryExpr { span: DUMMY_SP, op: op!("typeof"), arg: arg.clone() }.into()),
+						right: undefined_str.clone(),
 					}
 					.into();
 
 					let call = CallExpr {
-						span:*span,
-						callee:helper!(*span, type_of),
-						args:vec![arg.take().as_arg()],
+						span: *span,
+						callee: helper!(*span, type_of),
+						args: vec![arg.take().as_arg()],
 						..Default::default()
 					}
 					.into();
 
-					*expr = CondExpr { span:*span, test, cons:undefined_str, alt:Box::new(call) }
-						.into();
+					*expr = CondExpr { span: *span, test, cons: undefined_str, alt: Box::new(call) }.into();
 				},
 
 				_ => {
 					let call = CallExpr {
-						span:*span,
-						callee:helper!(*span, type_of),
-						args:vec![arg.take().as_arg()],
+						span: *span,
+						callee: helper!(*span, type_of),
+						args: vec![arg.take().as_arg()],
 
 						..Default::default()
 					}
@@ -93,7 +94,7 @@ impl VisitMut for TypeOfSymbol {
 		}
 	}
 
-	fn visit_mut_fn_decl(&mut self, f:&mut FnDecl) {
+	fn visit_mut_fn_decl(&mut self, f: &mut FnDecl) {
 		if &f.ident.sym == "_type_of" {
 			return;
 		}
@@ -101,7 +102,7 @@ impl VisitMut for TypeOfSymbol {
 		f.visit_mut_children_with(self);
 	}
 
-	fn visit_mut_function(&mut self, f:&mut Function) {
+	fn visit_mut_function(&mut self, f: &mut Function) {
 		if let Some(body) = &f.body {
 			if let Some(Stmt::Expr(first)) = body.stmts.first() {
 				if let Expr::Lit(Lit::Str(s)) = &*first.expr {
@@ -118,7 +119,7 @@ impl VisitMut for TypeOfSymbol {
 }
 
 #[tracing::instrument(level = "info", skip_all)]
-fn is_non_symbol_literal(e:&Expr) -> bool {
+fn is_non_symbol_literal(e: &Expr) -> bool {
 	match e {
 		Expr::Lit(Lit::Str(Str { value, .. })) => {
 			matches!(&**value, "undefined" | "boolean" | "number" | "string" | "function")

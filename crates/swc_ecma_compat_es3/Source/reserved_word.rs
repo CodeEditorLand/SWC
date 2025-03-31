@@ -19,17 +19,17 @@ use swc_ecma_visit::{VisitMut, VisitMutWith, noop_visit_mut_type, visit_mut_pass
 /// var _abstract = 1;
 /// var x = _abstract + 1;
 /// ```
-pub fn reserved_words(preserve_import:bool) -> impl Pass {
+pub fn reserved_words(preserve_import: bool) -> impl Pass {
 	visit_mut_pass(ReservedWord { preserve_import })
 }
 struct ReservedWord {
-	pub preserve_import:bool,
+	pub preserve_import: bool,
 }
 
 impl VisitMut for ReservedWord {
 	noop_visit_mut_type!(fail);
 
-	fn visit_mut_module_items(&mut self, n:&mut Vec<ModuleItem>) {
+	fn visit_mut_module_items(&mut self, n: &mut Vec<ModuleItem>) {
 		let mut extra_exports = Vec::new();
 
 		n.iter_mut().for_each(|module_item| {
@@ -58,25 +58,18 @@ impl VisitMut for ReservedWord {
 
 					extra_exports.push(
 						ExportNamedSpecifier {
-							span:DUMMY_SP,
-							orig:orig.into(),
-							exported:Some(ident.into()),
-							is_type_only:false,
+							span: DUMMY_SP,
+							orig: orig.into(),
+							exported: Some(ident.into()),
+							is_type_only: false,
 						}
 						.into(),
 					);
 				},
 
-				ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl {
-					decl: Decl::Var(var),
-					..
-				})) => {
+				ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(ExportDecl { decl: Decl::Var(var), .. })) => {
 					if var.decls.iter().all(|var| {
-						if let Pat::Ident(i) = &var.name {
-							!i.sym.is_reserved_in_es3()
-						} else {
-							true
-						}
+						if let Pat::Ident(i) = &var.name { !i.sym.is_reserved_in_es3() } else { true }
 					}) {
 						return;
 					}
@@ -94,10 +87,10 @@ impl VisitMut for ReservedWord {
 
 						extra_exports.push(
 							ExportNamedSpecifier {
-								span:DUMMY_SP,
-								orig:orig.into(),
-								exported:Some(ident.into()),
-								is_type_only:false,
+								span: DUMMY_SP,
+								orig: orig.into(),
+								exported: Some(ident.into()),
+								is_type_only: false,
 							}
 							.into(),
 						);
@@ -114,11 +107,11 @@ impl VisitMut for ReservedWord {
 
 		if !extra_exports.is_empty() {
 			let module_item = NamedExport {
-				span:DUMMY_SP,
-				specifiers:extra_exports,
-				src:None,
-				type_only:false,
-				with:None,
+				span: DUMMY_SP,
+				specifiers: extra_exports,
+				src: None,
+				type_only: false,
+				with: None,
 			}
 			.into();
 
@@ -126,7 +119,7 @@ impl VisitMut for ReservedWord {
 		}
 	}
 
-	fn visit_mut_export_named_specifier(&mut self, n:&mut ExportNamedSpecifier) {
+	fn visit_mut_export_named_specifier(&mut self, n: &mut ExportNamedSpecifier) {
 		if matches!(&n.orig, ModuleExportName::Ident(ident) if ident.is_reserved_in_es3()) {
 			n.exported.get_or_insert_with(|| n.orig.clone());
 
@@ -134,13 +127,13 @@ impl VisitMut for ReservedWord {
 		}
 	}
 
-	fn visit_mut_named_export(&mut self, n:&mut NamedExport) {
+	fn visit_mut_named_export(&mut self, n: &mut NamedExport) {
 		if n.src.is_none() {
 			n.visit_mut_children_with(self);
 		}
 	}
 
-	fn visit_mut_ident(&mut self, i:&mut Ident) {
+	fn visit_mut_ident(&mut self, i: &mut Ident) {
 		if self.preserve_import && i.sym == *"import" {
 			return;
 		}
@@ -150,7 +143,7 @@ impl VisitMut for ReservedWord {
 		}
 	}
 
-	fn visit_mut_import_named_specifier(&mut self, s:&mut ImportNamedSpecifier) {
+	fn visit_mut_import_named_specifier(&mut self, s: &mut ImportNamedSpecifier) {
 		if s.local.is_reserved_in_es3() {
 			s.imported.get_or_insert_with(|| s.local.clone().into());
 
@@ -158,7 +151,7 @@ impl VisitMut for ReservedWord {
 		}
 	}
 
-	fn visit_mut_member_expr(&mut self, e:&mut MemberExpr) {
+	fn visit_mut_member_expr(&mut self, e: &mut MemberExpr) {
 		e.obj.visit_mut_with(self);
 
 		if let MemberProp::Computed(c) = &mut e.prop {
@@ -166,7 +159,7 @@ impl VisitMut for ReservedWord {
 		}
 	}
 
-	fn visit_mut_prop_name(&mut self, _:&mut PropName) {}
+	fn visit_mut_prop_name(&mut self, _: &mut PropName) {}
 }
 
 #[cfg(test)]

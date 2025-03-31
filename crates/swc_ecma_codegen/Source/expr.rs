@@ -23,7 +23,9 @@ mod tests {
 	}
 
 	#[test]
-	fn bin_expr() { assert_min("1+2+3+4+5", "1+2+3+4+5"); }
+	fn bin_expr() {
+		assert_min("1+2+3+4+5", "1+2+3+4+5");
+	}
 
 	#[test]
 	fn template_expression() {
@@ -155,7 +157,9 @@ mod tests {
 	}
 
 	#[test]
-	fn conditional_expression() { assert_min("true ? foo : bar", "true?foo:bar") }
+	fn conditional_expression() {
+		assert_min("true ? foo : bar", "true?foo:bar")
+	}
 
 	#[test]
 	fn function_expression() {
@@ -208,7 +212,9 @@ mod tests {
 	}
 
 	#[test]
-	fn array_spread() { assert_min("[...foo,...bar]", "[...foo,...bar]"); }
+	fn array_spread() {
+		assert_min("[...foo,...bar]", "[...foo,...bar]");
+	}
 
 	#[test]
 	fn sparse_array_expression() {
@@ -294,5 +300,7 @@ mod tests {
 	}
 
 	#[test]
-	fn html_comment() { assert_min("a < !--b && c-- > d;", "a< !--b&&c-- >d"); }
+	fn html_comment() {
+		assert_min("a < !--b && c-- > d;", "a< !--b&&c-- >d");
+	}
 }

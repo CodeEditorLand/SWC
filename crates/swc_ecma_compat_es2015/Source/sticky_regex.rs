@@ -18,29 +18,33 @@ use swc_trace_macro::swc_trace;
 /// ```js
 /// new RegExp("o+", "y")
 /// ```
-pub fn sticky_regex() -> impl Pass { visit_mut_pass(StickyRegex) }
+pub fn sticky_regex() -> impl Pass {
+	visit_mut_pass(StickyRegex)
+}
 
 struct StickyRegex;
 
 impl Parallel for StickyRegex {
-	fn merge(&mut self, _:Self) {}
+	fn merge(&mut self, _: Self) {}
 
-	fn create(&self) -> Self { StickyRegex }
+	fn create(&self) -> Self {
+		StickyRegex
+	}
 }
 
 #[swc_trace]
 impl VisitMut for StickyRegex {
 	noop_visit_mut_type!(fail);
 
-	fn visit_mut_expr(&mut self, e:&mut Expr) {
+	fn visit_mut_expr(&mut self, e: &mut Expr) {
 		e.visit_mut_children_with(self);
 
 		if let Expr::Lit(Lit::Regex(Regex { exp, flags, span })) = e {
 			if flags.contains('y') {
 				*e = NewExpr {
-					span:*span,
-					callee:Box::new(quote_ident!(Default::default(), *span, "RegExp").into()),
-					args:Some(vec![exp.clone().as_arg(), flags.clone().as_arg()]),
+					span: *span,
+					callee: Box::new(quote_ident!(Default::default(), *span, "RegExp").into()),
+					args: Some(vec![exp.clone().as_arg(), flags.clone().as_arg()]),
 					..Default::default()
 				}
 				.into()

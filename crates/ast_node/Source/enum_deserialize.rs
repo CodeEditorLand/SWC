@@ -5,16 +5,16 @@ use syn::{
 };
 
 struct VariantAttr {
-	tags:Punctuated<Lit, Token![,]>,
+	tags: Punctuated<Lit, Token![,]>,
 }
 
 impl Parse for VariantAttr {
-	fn parse(input:ParseStream<'_>) -> syn::Result<Self> {
-		Ok(VariantAttr { tags:input.call(Punctuated::parse_terminated)? })
+	fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+		Ok(VariantAttr { tags: input.call(Punctuated::parse_terminated)? })
 	}
 }
 
-pub fn expand(DeriveInput { generics, ident, data, .. }:DeriveInput) -> ItemImpl {
+pub fn expand(DeriveInput { generics, ident, data, .. }: DeriveInput) -> ItemImpl {
 	let data = match data {
 		Data::Enum(data) => data,
 		_ => unreachable!("expand_enum is called with none-enum item"),
@@ -23,7 +23,7 @@ pub fn expand(DeriveInput { generics, ident, data, .. }:DeriveInput) -> ItemImpl
 	let mut has_wildcard = false;
 
 	let deserialize = {
-		let mut all_tags:Punctuated<_, token::Comma> = Default::default();
+		let mut all_tags: Punctuated<_, token::Comma> = Default::default();
 
 		let tag_match_arms = data
 			.variants
@@ -85,11 +85,11 @@ pub fn expand(DeriveInput { generics, ident, data, .. }:DeriveInput) -> ItemImpl
 				let vi = &variant.ident;
 
 				Arm {
-					attrs:Default::default(),
-					pat:Pat::Path(parse_quote!(__TypeVariant::#vi)),
-					guard:Default::default(),
-					fat_arrow_token:Token![=>](variant.ident.span()),
-					body:parse_quote!(
+					attrs: Default::default(),
+					pat: Pat::Path(parse_quote!(__TypeVariant::#vi)),
+					guard: Default::default(),
+					fat_arrow_token: Token![=>](variant.ident.span()),
+					body: parse_quote!(
 						swc_common::private::serde::Result::map(
 							<#field_type as serde::Deserialize>::deserialize(
 								swc_common::private::serde::de::ContentDeserializer::<
@@ -99,12 +99,12 @@ pub fn expand(DeriveInput { generics, ident, data, .. }:DeriveInput) -> ItemImpl
 							Self::#vi,
 						)
 					),
-					comma:Some(Token![,](variant.ident.span())),
+					comma: Some(Token![,](variant.ident.span())),
 				}
 			})
 			.collect::<Vec<Arm>>();
 
-		let tag_expr:Expr = {
+		let tag_expr: Expr = {
 			let mut visit_str_arms = Vec::new();
 
 			let mut visit_bytes_arms = Vec::new();
@@ -142,16 +142,16 @@ pub fn expand(DeriveInput { generics, ident, data, .. }:DeriveInput) -> ItemImpl
 						} {
 						(
 							Pat::Wild(PatWild {
-								attrs:Default::default(),
-								underscore_token:Token![_](variant.ident.span()),
+								attrs: Default::default(),
+								underscore_token: Token![_](variant.ident.span()),
 							}),
 							Pat::Wild(PatWild {
-								attrs:Default::default(),
-								underscore_token:Token![_](variant.ident.span()),
+								attrs: Default::default(),
+								underscore_token: Token![_](variant.ident.span()),
 							}),
 						)
 					} else {
-						fn make_pat(lit:Lit) -> (Pat, Pat) {
+						fn make_pat(lit: Lit) -> (Pat, Pat) {
 							let s = match lit.clone() {
 								Lit::Str(s) => s.value(),
 								_ => {
@@ -159,10 +159,10 @@ pub fn expand(DeriveInput { generics, ident, data, .. }:DeriveInput) -> ItemImpl
 								},
 							};
 							(
-								Pat::Lit(PatLit { attrs:Default::default(), lit }),
+								Pat::Lit(PatLit { attrs: Default::default(), lit }),
 								Pat::Lit(PatLit {
-									attrs:Default::default(),
-									lit:Lit::ByteStr(LitByteStr::new(s.as_bytes(), call_site())),
+									attrs: Default::default(),
+									lit: Lit::ByteStr(LitByteStr::new(s.as_bytes(), call_site())),
 								}),
 							)
 						}
@@ -184,14 +184,14 @@ pub fn expand(DeriveInput { generics, ident, data, .. }:DeriveInput) -> ItemImpl
 
 							(
 								Pat::Or(PatOr {
-									attrs:Default::default(),
-									leading_vert:Default::default(),
-									cases:str_cases,
+									attrs: Default::default(),
+									leading_vert: Default::default(),
+									cases: str_cases,
 								}),
 								Pat::Or(PatOr {
-									attrs:Default::default(),
-									leading_vert:Default::default(),
-									cases:bytes_cases,
+									attrs: Default::default(),
+									leading_vert: Default::default(),
+									cases: bytes_cases,
 								}),
 							)
 						}
@@ -199,80 +199,72 @@ pub fn expand(DeriveInput { generics, ident, data, .. }:DeriveInput) -> ItemImpl
 				};
 
 				visit_str_arms.push(Arm {
-					attrs:Default::default(),
-					pat:str_pat,
-					guard:None,
-					fat_arrow_token:Token![=>](variant.ident.span()),
-					body:{
+					attrs: Default::default(),
+					pat: str_pat,
+					guard: None,
+					fat_arrow_token: Token![=>](variant.ident.span()),
+					body: {
 						let vi = &variant.ident;
 
 						parse_quote!(Ok(__TypeVariant::#vi))
 					},
-					comma:Some(Token![,](variant.ident.span())),
+					comma: Some(Token![,](variant.ident.span())),
 				});
 
 				visit_bytes_arms.push(Arm {
-					attrs:Default::default(),
-					pat:bytes_pat,
-					guard:None,
-					fat_arrow_token:Token![=>](variant.ident.span()),
-					body:{
+					attrs: Default::default(),
+					pat: bytes_pat,
+					guard: None,
+					fat_arrow_token: Token![=>](variant.ident.span()),
+					body: {
 						let vi = &variant.ident;
 
 						parse_quote!(Ok(__TypeVariant::#vi))
 					},
-					comma:Some(Token![,](variant.ident.span())),
+					comma: Some(Token![,](variant.ident.span())),
 				});
 			}
 
 			if !has_wildcard {
 				visit_str_arms.push(Arm {
-					attrs:Default::default(),
-					pat:Pat::Wild(PatWild {
-						attrs:Default::default(),
-						underscore_token:Token![_](ident.span()),
-					}),
-					guard:None,
-					fat_arrow_token:Token![=>](ident.span()),
-					body:parse_quote!(swc_common::private::serde::Err(
-						serde::de::Error::unknown_variant(__value, VARIANTS,)
-					)),
-					comma:Some(Token![,](ident.span())),
+					attrs: Default::default(),
+					pat: Pat::Wild(PatWild { attrs: Default::default(), underscore_token: Token![_](ident.span()) }),
+					guard: None,
+					fat_arrow_token: Token![=>](ident.span()),
+					body: parse_quote!(swc_common::private::serde::Err(serde::de::Error::unknown_variant(
+						__value, VARIANTS,
+					))),
+					comma: Some(Token![,](ident.span())),
 				});
 
 				visit_bytes_arms.push(Arm {
-					attrs:Default::default(),
-					pat:Pat::Wild(PatWild {
-						attrs:Default::default(),
-						underscore_token:Token!(_)(ident.span()),
-					}),
-					guard:None,
-					fat_arrow_token:Token![=>](ident.span()),
-					body:parse_quote!({
+					attrs: Default::default(),
+					pat: Pat::Wild(PatWild { attrs: Default::default(), underscore_token: Token!(_)(ident.span()) }),
+					guard: None,
+					fat_arrow_token: Token![=>](ident.span()),
+					body: parse_quote!({
 						let __value = &swc_common::private::serde::from_utf8_lossy(__value);
 
-						swc_common::private::serde::Err(serde::de::Error::unknown_variant(
-							__value, VARIANTS,
-						))
+						swc_common::private::serde::Err(serde::de::Error::unknown_variant(__value, VARIANTS))
 					}),
-					comma:Some(Token![,](ident.span())),
+					comma: Some(Token![,](ident.span())),
 				});
 			}
 
 			let visit_str_body = Expr::Match(ExprMatch {
-				attrs:Default::default(),
-				match_token:Default::default(),
-				expr:parse_quote!(__value),
-				brace_token:Default::default(),
-				arms:visit_str_arms,
+				attrs: Default::default(),
+				match_token: Default::default(),
+				expr: parse_quote!(__value),
+				brace_token: Default::default(),
+				arms: visit_str_arms,
 			});
 
 			let visit_bytes_body = Expr::Match(ExprMatch {
-				attrs:Default::default(),
-				match_token:Default::default(),
-				expr:parse_quote!(__value),
-				brace_token:Default::default(),
-				arms:visit_bytes_arms,
+				attrs: Default::default(),
+				match_token: Default::default(),
+				expr: parse_quote!(__value),
+				brace_token: Default::default(),
+				arms: visit_bytes_arms,
 			});
 
 			parse_quote!({
@@ -346,22 +338,22 @@ pub fn expand(DeriveInput { generics, ident, data, .. }:DeriveInput) -> ItemImpl
 		};
 
 		let match_type_expr = Expr::Match(ExprMatch {
-			attrs:Default::default(),
-			match_token:Default::default(),
-			expr:parse_quote!(__tagged),
-			brace_token:Default::default(),
-			arms:tag_match_arms,
+			attrs: Default::default(),
+			match_token: Default::default(),
+			expr: parse_quote!(__tagged),
+			brace_token: Default::default(),
+			arms: tag_match_arms,
 		});
 
-		let variants:Punctuated<Variant, Token![,]> = {
+		let variants: Punctuated<Variant, Token![,]> = {
 			data.variants
 				.iter()
 				.cloned()
-				.map(|variant| Variant { attrs:Default::default(), fields:Fields::Unit, ..variant })
+				.map(|variant| Variant { attrs: Default::default(), fields: Fields::Unit, ..variant })
 				.collect()
 		};
 
-		let item:ItemImpl = parse_quote!(
+		let item: ItemImpl = parse_quote!(
 			#[cfg(feature = "serde-impl")]
 			impl<'de> serde::Deserialize<'de> for #ident {
 				#[allow(unreachable_code)]

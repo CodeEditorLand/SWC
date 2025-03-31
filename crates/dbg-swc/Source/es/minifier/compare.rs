@@ -14,11 +14,11 @@ use crate::util::{
 /// terser/esbuild
 #[derive(Debug, Args)]
 pub struct CompareCommand {
-	pub path:PathBuf,
+	pub path: PathBuf,
 }
 
 impl CompareCommand {
-	pub fn run(self, cm:Arc<SourceMap>) -> Result<()> {
+	pub fn run(self, cm: Arc<SourceMap>) -> Result<()> {
 		let record = get_minified(cm.clone(), &self.path, true, false)?;
 
 		let code = print_js(cm, &record.module, true).context("failed to convert ast to code")?;
@@ -29,13 +29,11 @@ impl CompareCommand {
 
 		eprintln!("swc: {} bytes (newline stripped)", code.replace("\\n", "_").as_bytes().len());
 
-		std::fs::write("swc.output.js", code.as_bytes())
-			.context("failed to write swc.output.js")?;
+		std::fs::write("swc.output.js", code.as_bytes()).context("failed to write swc.output.js")?;
 
 		make_pretty("swc.output.js".as_ref())?;
 
-		std::fs::write("terser.output.js", terser_mangled.as_bytes())
-			.context("failed to write terser.output.js")?;
+		std::fs::write("terser.output.js", terser_mangled.as_bytes()).context("failed to write terser.output.js")?;
 
 		eprintln!("terser: {} bytes", terser_mangled.as_bytes().len());
 

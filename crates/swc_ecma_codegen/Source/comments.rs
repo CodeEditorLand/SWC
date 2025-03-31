@@ -56,17 +56,12 @@ macro_rules! write_comments {
 	}};
 }
 
-impl<W, S:SourceMapper> Emitter<'_, W, S>
+impl<W, S: SourceMapper> Emitter<'_, W, S>
 where
 	W: WriteJs,
 	S: SourceMapperExt,
 {
-	pub(super) fn emit_trailing_comments_of_pos(
-		&mut self,
-		pos:BytePos,
-		prefix_space:bool,
-		_is_hi:bool,
-	) -> Result {
+	pub(super) fn emit_trailing_comments_of_pos(&mut self, pos: BytePos, prefix_space: bool, _is_hi: bool) -> Result {
 		if pos.is_dummy() {
 			return Ok(());
 		}
@@ -81,7 +76,7 @@ where
 		write_comments!(self, prefix_space, &cmts)
 	}
 
-	pub(super) fn emit_leading_comments(&mut self, mut pos:BytePos, is_hi:bool) -> Result {
+	pub(super) fn emit_leading_comments(&mut self, mut pos: BytePos, is_hi: bool) -> Result {
 		if pos.is_dummy() {
 			return Ok(());
 		}
@@ -91,9 +86,9 @@ where
 				self,
 				false,
 				Some(vec![Comment {
-					kind:CommentKind::Block,
-					span:DUMMY_SP,
-					text:"#__PURE__".into(),
+					kind: CommentKind::Block,
+					span: DUMMY_SP,
+					text: "#__PURE__".into(),
 				}])
 			);
 		}
@@ -111,7 +106,7 @@ where
 	}
 
 	#[inline(always)]
-	pub(super) fn emit_leading_comments_of_span(&mut self, span:Span, is_hi:bool) -> Result {
+	pub(super) fn emit_leading_comments_of_span(&mut self, span: Span, is_hi: bool) -> Result {
 		let pos = if is_hi { span.hi } else { span.lo };
 
 		self.emit_leading_comments(pos, is_hi)

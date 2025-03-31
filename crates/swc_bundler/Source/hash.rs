@@ -6,7 +6,7 @@ use swc_common::{BytePos, SourceMap, Span, sync::Lrc};
 use swc_ecma_ast::Module;
 use swc_ecma_codegen::{Emitter, text_writer::WriteJs};
 
-pub(crate) fn calc_hash(cm:Lrc<SourceMap>, m:&Module) -> Result<String, Error> {
+pub(crate) fn calc_hash(cm: Lrc<SourceMap>, m: &Module) -> Result<String, Error> {
 	let crc = Crc::<u64>::new(&CRC_64_ECMA_182);
 
 	let digest = crc.digest();
@@ -15,10 +15,10 @@ pub(crate) fn calc_hash(cm:Lrc<SourceMap>, m:&Module) -> Result<String, Error> {
 
 	{
 		let mut emitter = Emitter {
-			cfg:Default::default(),
+			cfg: Default::default(),
 			cm,
-			comments:None,
-			wr:Box::new(&mut buf) as Box<dyn WriteJs>,
+			comments: None,
+			wr: Box::new(&mut buf) as Box<dyn WriteJs>,
 		};
 
 		emitter.emit_module(m).context("failed to emit module to calculate hash")?;
@@ -31,19 +31,25 @@ pub(crate) fn calc_hash(cm:Lrc<SourceMap>, m:&Module) -> Result<String, Error> {
 }
 
 struct Hasher<'a> {
-	digest:Digest<'a, u64>,
+	digest: Digest<'a, u64>,
 }
 
 impl Hasher<'_> {
-	fn w(&mut self, s:&str) { self.digest.update(s.as_bytes()); }
+	fn w(&mut self, s: &str) {
+		self.digest.update(s.as_bytes());
+	}
 }
 
 impl WriteJs for &mut Hasher<'_> {
-	fn increase_indent(&mut self) -> io::Result<()> { Ok(()) }
+	fn increase_indent(&mut self) -> io::Result<()> {
+		Ok(())
+	}
 
-	fn decrease_indent(&mut self) -> io::Result<()> { Ok(()) }
+	fn decrease_indent(&mut self) -> io::Result<()> {
+		Ok(())
+	}
 
-	fn write_semi(&mut self, _:Option<Span>) -> io::Result<()> {
+	fn write_semi(&mut self, _: Option<Span>) -> io::Result<()> {
 		self.w(";");
 
 		Ok(())
@@ -55,25 +61,25 @@ impl WriteJs for &mut Hasher<'_> {
 		Ok(())
 	}
 
-	fn write_keyword(&mut self, _:Option<Span>, s:&'static str) -> io::Result<()> {
+	fn write_keyword(&mut self, _: Option<Span>, s: &'static str) -> io::Result<()> {
 		self.w(s);
 
 		Ok(())
 	}
 
-	fn write_operator(&mut self, _:Option<Span>, s:&str) -> io::Result<()> {
+	fn write_operator(&mut self, _: Option<Span>, s: &str) -> io::Result<()> {
 		self.w(s);
 
 		Ok(())
 	}
 
-	fn write_param(&mut self, s:&str) -> io::Result<()> {
+	fn write_param(&mut self, s: &str) -> io::Result<()> {
 		self.w(s);
 
 		Ok(())
 	}
 
-	fn write_property(&mut self, s:&str) -> io::Result<()> {
+	fn write_property(&mut self, s: &str) -> io::Result<()> {
 		self.w(s);
 
 		Ok(())
@@ -85,49 +91,57 @@ impl WriteJs for &mut Hasher<'_> {
 		Ok(())
 	}
 
-	fn write_lit(&mut self, _:Span, s:&str) -> io::Result<()> {
+	fn write_lit(&mut self, _: Span, s: &str) -> io::Result<()> {
 		self.w(s);
 
 		Ok(())
 	}
 
-	fn write_comment(&mut self, s:&str) -> io::Result<()> {
+	fn write_comment(&mut self, s: &str) -> io::Result<()> {
 		self.w(s);
 
 		Ok(())
 	}
 
-	fn write_str_lit(&mut self, _:Span, s:&str) -> io::Result<()> {
+	fn write_str_lit(&mut self, _: Span, s: &str) -> io::Result<()> {
 		self.w(s);
 
 		Ok(())
 	}
 
-	fn write_str(&mut self, s:&str) -> io::Result<()> {
+	fn write_str(&mut self, s: &str) -> io::Result<()> {
 		self.w(s);
 
 		Ok(())
 	}
 
-	fn write_symbol(&mut self, _:Span, s:&str) -> io::Result<()> {
+	fn write_symbol(&mut self, _: Span, s: &str) -> io::Result<()> {
 		self.w(s);
 
 		Ok(())
 	}
 
-	fn write_punct(&mut self, _:Option<Span>, s:&'static str) -> io::Result<()> {
+	fn write_punct(&mut self, _: Option<Span>, s: &'static str) -> io::Result<()> {
 		self.w(s);
 
 		Ok(())
 	}
 
 	#[inline]
-	fn care_about_srcmap(&self) -> bool { false }
+	fn care_about_srcmap(&self) -> bool {
+		false
+	}
 
 	#[inline]
-	fn add_srcmap(&mut self, _:BytePos) -> io::Result<()> { Ok(()) }
+	fn add_srcmap(&mut self, _: BytePos) -> io::Result<()> {
+		Ok(())
+	}
 
-	fn commit_pending_semi(&mut self) -> io::Result<()> { Ok(()) }
+	fn commit_pending_semi(&mut self) -> io::Result<()> {
+		Ok(())
+	}
 
-	fn can_ignore_invalid_unicodes(&mut self) -> bool { true }
+	fn can_ignore_invalid_unicodes(&mut self) -> bool {
+		true
+	}
 }

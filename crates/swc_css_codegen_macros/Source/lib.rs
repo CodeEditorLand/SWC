@@ -6,18 +6,15 @@ use quote::ToTokens;
 use syn::{FnArg, ImplItemFn, Type, TypeReference, parse_quote};
 
 #[proc_macro_attribute]
-pub fn emitter(
-	_attr:proc_macro::TokenStream,
-	item:proc_macro::TokenStream,
-) -> proc_macro::TokenStream {
-	let item:ImplItemFn = syn::parse(item).expect("failed to parse input as an item");
+pub fn emitter(_attr: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_macro::TokenStream {
+	let item: ImplItemFn = syn::parse(item).expect("failed to parse input as an item");
 
 	let item = expand(item);
 
 	item.into_token_stream().into()
 }
 
-fn expand(i:ImplItemFn) -> ImplItemFn {
+fn expand(i: ImplItemFn) -> ImplItemFn {
 	let mtd_name = i.sig.ident.clone();
 
 	assert!(
@@ -32,21 +29,16 @@ fn expand(i:ImplItemFn) -> ImplItemFn {
 				.clone()
 				.into_iter()
 				.nth(1)
-				.and_then(|arg| {
-					match arg {
-						FnArg::Typed(ty) => Some(ty.ty),
-						_ => None,
-					}
+				.and_then(|arg| match arg {
+					FnArg::Typed(ty) => Some(ty.ty),
+					_ => None,
 				})
 				.map(|ty| {
 					// &Ident -> Ident
 					match *ty {
 						Type::Reference(TypeReference { elem, .. }) => *elem,
 						_ => {
-							panic!(
-								"Type of node parameter should be reference but got {}",
-								ty.into_token_stream()
-							)
+							panic!("Type of node parameter should be reference but got {}", ty.into_token_stream())
 						},
 					}
 				})

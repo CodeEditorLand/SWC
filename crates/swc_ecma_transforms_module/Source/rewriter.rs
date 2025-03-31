@@ -8,17 +8,17 @@ use swc_ecma_visit::{VisitMut, VisitMutWith, visit_mut_pass};
 use crate::path::ImportResolver;
 
 /// Import rewriter, which rewrites imports as es modules.
-pub fn import_rewriter(base:FileName, resolver:Arc<dyn ImportResolver>) -> impl Pass {
+pub fn import_rewriter(base: FileName, resolver: Arc<dyn ImportResolver>) -> impl Pass {
 	visit_mut_pass(Rewriter { base, resolver })
 }
 
 struct Rewriter {
-	base:FileName,
-	resolver:Arc<dyn ImportResolver>,
+	base: FileName,
+	resolver: Arc<dyn ImportResolver>,
 }
 
 impl VisitMut for Rewriter {
-	fn visit_mut_call_expr(&mut self, e:&mut CallExpr) {
+	fn visit_mut_call_expr(&mut self, e: &mut CallExpr) {
 		e.visit_mut_children_with(self);
 
 		if let Callee::Import(_) = &e.callee {
@@ -38,7 +38,7 @@ impl VisitMut for Rewriter {
 		}
 	}
 
-	fn visit_mut_import_decl(&mut self, i:&mut ImportDecl) {
+	fn visit_mut_import_decl(&mut self, i: &mut ImportDecl) {
 		let src = self
 			.resolver
 			.resolve_import(&self.base, &i.src.value)
@@ -50,7 +50,7 @@ impl VisitMut for Rewriter {
 		i.src.value = src;
 	}
 
-	fn visit_mut_named_export(&mut self, e:&mut NamedExport) {
+	fn visit_mut_named_export(&mut self, e: &mut NamedExport) {
 		if let Some(src) = &mut e.src {
 			let new = self
 				.resolver
@@ -64,7 +64,7 @@ impl VisitMut for Rewriter {
 		}
 	}
 
-	fn visit_mut_export_all(&mut self, n:&mut ExportAll) {
+	fn visit_mut_export_all(&mut self, n: &mut ExportAll) {
 		let src = &mut n.src;
 
 		let new = self

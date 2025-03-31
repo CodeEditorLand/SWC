@@ -10,15 +10,16 @@ where
 	fn identify_last(mut self) -> Iter<Self> {
 		let e = self.next();
 
-		Iter { iter:self, buffer:e }
+		Iter { iter: self, buffer: e }
 	}
 }
 
 pub struct Iter<It>
 where
-	It: Iterator, {
-	iter:It,
-	buffer:Option<It::Item>,
+	It: Iterator,
+{
+	iter: It,
+	buffer: Option<It::Item>,
 }
 
 impl<It> Iterator for Iter<It>
@@ -30,15 +31,13 @@ where
 	fn next(&mut self) -> Option<Self::Item> {
 		match self.buffer.take() {
 			None => None,
-			Some(e) => {
-				match self.iter.next() {
-					None => Some((true, e)),
-					Some(f) => {
-						self.buffer = Some(f);
+			Some(e) => match self.iter.next() {
+				None => Some((true, e)),
+				Some(f) => {
+					self.buffer = Some(f);
 
-						Some((false, e))
-					},
-				}
+					Some((false, e))
+				},
 			},
 		}
 	}

@@ -9,37 +9,37 @@ use crate::util::{repository_root, run_cmd};
 #[derive(Debug, Args)]
 pub(super) struct BenchCmd {
 	#[clap(long, short = 'p')]
-	package:String,
+	package: String,
 
 	/// Build benchmarks in debug mode.
 	#[clap(long)]
-	debug:bool,
+	debug: bool,
 
 	/// Template to use while instrumenting
 	#[clap(short = 't')]
-	template:Option<String>,
+	template: Option<String>,
 
 	#[clap(long)]
-	no_lib:bool,
+	no_lib: bool,
 
 	#[clap(long)]
-	benches:bool,
+	benches: bool,
 
 	#[clap(long)]
-	bench:Option<String>,
+	bench: Option<String>,
 
 	/// Instrument using https://github.com/dudykr/ddt
 	#[clap(long)]
-	instrument:bool,
+	instrument: bool,
 
 	/// Instrument using https://github.com/mstange/samply
 	#[clap(long)]
-	samply:bool,
+	samply: bool,
 
 	#[clap(long)]
-	features:Vec<String>,
+	features: Vec<String>,
 
-	args:Vec<String>,
+	args: Vec<String>,
 }
 
 impl BenchCmd {

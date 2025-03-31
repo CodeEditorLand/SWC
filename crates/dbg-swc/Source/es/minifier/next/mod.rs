@@ -15,7 +15,7 @@ pub enum NextCommand {
 }
 
 impl NextCommand {
-	pub fn run(self, cm:Arc<SourceMap>) -> Result<()> {
+	pub fn run(self, cm: Arc<SourceMap>) -> Result<()> {
 		match self {
 			NextCommand::CheckSize(cmd) => cmd.run(cm),
 		}

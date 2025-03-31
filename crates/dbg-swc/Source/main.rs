@@ -4,9 +4,7 @@ use anyhow::{Result, bail};
 use clap::{StructOpt, Subcommand};
 use es::EsCommand;
 use swc_common::{
-	GLOBALS,
-	Globals,
-	SourceMap,
+	GLOBALS, Globals, SourceMap,
 	errors::{ColorConfig, HANDLER},
 };
 use swc_error_reporters::handler::{HandlerOpts, try_with_handler};
@@ -19,14 +17,14 @@ mod bundle;
 mod es;
 mod util;
 
-const CREDUCE_INPUT_ENV_VAR:&str = "CREDUCE_INPUT";
+const CREDUCE_INPUT_ENV_VAR: &str = "CREDUCE_INPUT";
 
-const CREDUCE_MODE_ENV_VAR:&str = "CREDUCE_COMPARE";
+const CREDUCE_MODE_ENV_VAR: &str = "CREDUCE_COMPARE";
 
 #[derive(Debug, clap::Parser)]
 struct AppArgs {
 	#[clap(subcommand)]
-	cmd:Cmd,
+	cmd: Cmd,
 }
 
 #[derive(Debug, Subcommand)]
@@ -36,8 +34,7 @@ enum Cmd {
 }
 
 fn init() -> Result<()> {
-	let log_env =
-		env::var("RUST_LOG").unwrap_or_else(|_| "info,swc_ecma_minifier=warn,swc_timer=off".into());
+	let log_env = env::var("RUST_LOG").unwrap_or_else(|_| "info,swc_ecma_minifier=warn,swc_timer=off".into());
 
 	let logger = tracing_subscriber::FmtSubscriber::builder()
 		.without_time()
@@ -61,14 +58,13 @@ fn main() -> Result<()> {
 	if let Ok(mode) = env::var(CREDUCE_MODE_ENV_VAR) {
 		return try_with_handler(
 			cm.clone(),
-			HandlerOpts { color:ColorConfig::Always, skip_filename:false },
+			HandlerOpts { color: ColorConfig::Always, skip_filename: false },
 			|handler| {
 				GLOBALS.set(&Globals::default(), || {
 					HANDLER.set(handler, || {
 						//
 						let input = PathBuf::from(
-							env::var(CREDUCE_INPUT_ENV_VAR)
-								.expect("creduce is invoked without the name of input file"),
+							env::var(CREDUCE_INPUT_ENV_VAR).expect("creduce is invoked without the name of input file"),
 						);
 
 						if mode == "SIZE" {
@@ -111,13 +107,11 @@ fn main() -> Result<()> {
 
 	try_with_handler(
 		cm.clone(),
-		HandlerOpts { color:ColorConfig::Always, skip_filename:false },
+		HandlerOpts { color: ColorConfig::Always, skip_filename: false },
 		|handler| {
 			GLOBALS.set(&Globals::default(), || {
-				HANDLER.set(handler, || {
-					match args.cmd {
-						Cmd::Es(cmd) => cmd.run(cm),
-					}
+				HANDLER.set(handler, || match args.cmd {
+					Cmd::Es(cmd) => cmd.run(cm),
 				})
 			})
 		},

@@ -57,24 +57,24 @@ use swc_trace_macro::swc_trace;
 /// };
 /// console.log(bob.printFriends());
 /// ```
-pub fn arrow(unresolved_mark:Mark) -> impl Pass + VisitMut + InjectVars {
+pub fn arrow(unresolved_mark: Mark) -> impl Pass + VisitMut + InjectVars {
 	visit_mut_pass(Arrow {
-		in_subclass:false,
-		hoister:FnEnvHoister::new(SyntaxContext::empty().apply_mark(unresolved_mark)),
+		in_subclass: false,
+		hoister: FnEnvHoister::new(SyntaxContext::empty().apply_mark(unresolved_mark)),
 	})
 }
 
 #[derive(Default)]
 struct Arrow {
-	in_subclass:bool,
-	hoister:FnEnvHoister,
+	in_subclass: bool,
+	hoister: FnEnvHoister,
 }
 
 #[swc_trace]
 impl VisitMut for Arrow {
 	noop_visit_mut_type!(fail);
 
-	fn visit_mut_class(&mut self, c:&mut Class) {
+	fn visit_mut_class(&mut self, c: &mut Class) {
 		let old = self.in_subclass;
 
 		if c.super_class.is_some() {
@@ -86,7 +86,7 @@ impl VisitMut for Arrow {
 		self.in_subclass = old;
 	}
 
-	fn visit_mut_constructor(&mut self, c:&mut Constructor) {
+	fn visit_mut_constructor(&mut self, c: &mut Constructor) {
 		c.params.visit_mut_children_with(self);
 
 		if let Some(BlockStmt { span: _, stmts, .. }) = &mut c.body {
@@ -95,8 +95,7 @@ impl VisitMut for Arrow {
 			stmts.visit_mut_children_with(self);
 
 			if self.in_subclass {
-				let (decl, this_id) =
-					mem::replace(&mut self.hoister, old_rep).to_stmt_in_subclass();
+				let (decl, this_id) = mem::replace(&mut self.hoister, old_rep).to_stmt_in_subclass();
 
 				if let Some(stmt) = decl {
 					if let Some(this_id) = this_id {
@@ -115,17 +114,17 @@ impl VisitMut for Arrow {
 		}
 	}
 
-	fn visit_mut_expr(&mut self, expr:&mut Expr) {
+	fn visit_mut_expr(&mut self, expr: &mut Expr) {
 		match expr {
 			Expr::Arrow(ArrowExpr { span, params, body, is_async, is_generator, .. }) => {
 				params.visit_mut_with(self);
 
 				params.visit_mut_with(&mut self.hoister);
 
-				let params:Vec<Param> = params
+				let params: Vec<Param> = params
 					.take()
 					.into_iter()
-					.map(|pat| Param { span:DUMMY_SP, decorators:Default::default(), pat })
+					.map(|pat| Param { span: DUMMY_SP, decorators: Default::default(), pat })
 					.collect();
 
 				body.visit_mut_with(self);
@@ -133,22 +132,22 @@ impl VisitMut for Arrow {
 				body.visit_mut_with(&mut self.hoister);
 
 				let fn_expr = Function {
-					decorators:Vec::new(),
-					span:*span,
+					decorators: Vec::new(),
+					span: *span,
 					params,
-					is_async:*is_async,
-					is_generator:*is_generator,
-					body:Some(match &mut **body {
+					is_async: *is_async,
+					is_generator: *is_generator,
+					body: Some(match &mut **body {
 						BlockStmtOrExpr::BlockStmt(block) => block.take(),
 						BlockStmtOrExpr::Expr(expr) => {
 							BlockStmt {
-								span:DUMMY_SP,
-								stmts:vec![Stmt::Return(ReturnStmt {
+								span: DUMMY_SP,
+								stmts: vec![Stmt::Return(ReturnStmt {
 									// this is needed so
 									// () => /* 123 */ 1 would become
 									// function { return /*123 */ 123 }
-									span:DUMMY_SP,
-									arg:Some(expr.take()),
+									span: DUMMY_SP,
+									arg: Some(expr.take()),
 								})],
 								..Default::default()
 							}
@@ -167,7 +166,7 @@ impl VisitMut for Arrow {
 		}
 	}
 
-	fn visit_mut_function(&mut self, f:&mut Function) {
+	fn visit_mut_function(&mut self, f: &mut Function) {
 		let old_rep = self.hoister.take();
 
 		f.visit_mut_children_with(self);
@@ -179,7 +178,7 @@ impl VisitMut for Arrow {
 		}
 	}
 
-	fn visit_mut_getter_prop(&mut self, f:&mut GetterProp) {
+	fn visit_mut_getter_prop(&mut self, f: &mut GetterProp) {
 		f.key.visit_mut_with(self);
 
 		if let Some(body) = &mut f.body {
@@ -195,7 +194,7 @@ impl VisitMut for Arrow {
 		}
 	}
 
-	fn visit_mut_module_items(&mut self, stmts:&mut Vec<ModuleItem>) {
+	fn visit_mut_module_items(&mut self, stmts: &mut Vec<ModuleItem>) {
 		stmts.visit_mut_children_with(self);
 
 		let decl = self.hoister.take().to_stmt();
@@ -205,7 +204,7 @@ impl VisitMut for Arrow {
 		}
 	}
 
-	fn visit_mut_script(&mut self, script:&mut Script) {
+	fn visit_mut_script(&mut self, script: &mut Script) {
 		script.visit_mut_children_with(self);
 
 		let decl = self.hoister.take().to_stmt();
@@ -215,7 +214,7 @@ impl VisitMut for Arrow {
 		}
 	}
 
-	fn visit_mut_setter_prop(&mut self, f:&mut SetterProp) {
+	fn visit_mut_setter_prop(&mut self, f: &mut SetterProp) {
 		f.key.visit_mut_with(self);
 
 		f.param.visit_mut_with(self);
@@ -235,5 +234,7 @@ impl VisitMut for Arrow {
 }
 
 impl InjectVars for Arrow {
-	fn take_vars(&mut self) -> Vec<VarDeclarator> { self.hoister.take().to_decl() }
+	fn take_vars(&mut self) -> Vec<VarDeclarator> {
+		self.hoister.take().to_decl()
+	}
 }

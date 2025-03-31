@@ -2,7 +2,7 @@
 #[macro_export]
 macro_rules! impl_visit_mut_fn {
 	() => {
-		fn visit_mut_function(&mut self, f:&mut Function) {
+		fn visit_mut_function(&mut self, f: &mut Function) {
 			if f.body.is_none() {
 				return;
 			}
@@ -16,7 +16,7 @@ macro_rules! impl_visit_mut_fn {
 			f.body = Some(body);
 		}
 
-		fn visit_mut_arrow_expr(&mut self, f:&mut ArrowExpr) {
+		fn visit_mut_arrow_expr(&mut self, f: &mut ArrowExpr) {
 			use swc_common::Spanned;
 
 			f.visit_mut_children_with(self);
@@ -31,18 +31,13 @@ macro_rules! impl_visit_mut_fn {
 					.params
 					.take()
 					.into_iter()
-					.map(|pat| Param { span:DUMMY_SP, decorators:Default::default(), pat })
+					.map(|pat| Param { span: DUMMY_SP, decorators: Default::default(), pat })
 					.collect(),
 				&mut match &mut *f.body {
 					BlockStmtOrExpr::BlockStmt(block) => block.take(),
-					BlockStmtOrExpr::Expr(expr) => {
-						BlockStmt {
-							stmts:vec![Stmt::Return(ReturnStmt {
-								span:DUMMY_SP,
-								arg:Some(expr.take()),
-							})],
-							..Default::default()
-						}
+					BlockStmtOrExpr::Expr(expr) => BlockStmt {
+						stmts: vec![Stmt::Return(ReturnStmt { span: DUMMY_SP, arg: Some(expr.take()) })],
+						..Default::default()
 					},
 				},
 			);
@@ -54,9 +49,7 @@ macro_rules! impl_visit_mut_fn {
 					_ => false,
 				} {
 				match body.stmts.pop().unwrap() {
-					Stmt::Return(ReturnStmt { arg: Some(arg), .. }) => {
-						Box::new(BlockStmtOrExpr::Expr(arg))
-					},
+					Stmt::Return(ReturnStmt { arg: Some(arg), .. }) => Box::new(BlockStmtOrExpr::Expr(arg)),
 
 					_ => unreachable!(),
 				}
@@ -69,7 +62,7 @@ macro_rules! impl_visit_mut_fn {
 			f.body = body;
 		}
 
-		fn visit_mut_setter_prop(&mut self, f:&mut SetterProp) {
+		fn visit_mut_setter_prop(&mut self, f: &mut SetterProp) {
 			if f.body.is_none() {
 				return;
 			}
@@ -77,7 +70,7 @@ macro_rules! impl_visit_mut_fn {
 			f.visit_mut_children_with(self);
 
 			let (mut params, body) = self.visit_mut_fn_like(
-				&mut vec![Param { span:DUMMY_SP, decorators:Vec::new(), pat:*f.param.take() }],
+				&mut vec![Param { span: DUMMY_SP, decorators: Vec::new(), pat: *f.param.take() }],
 				&mut f.body.take().unwrap(),
 			);
 
@@ -88,31 +81,28 @@ macro_rules! impl_visit_mut_fn {
 			f.body = Some(body);
 		}
 
-		fn visit_mut_getter_prop(&mut self, f:&mut GetterProp) {
+		fn visit_mut_getter_prop(&mut self, f: &mut GetterProp) {
 			if f.body.is_none() {
 				return;
 			}
 
 			f.visit_mut_children_with(self);
 
-			let (params, body) =
-				self.visit_mut_fn_like(&mut Vec::new(), &mut f.body.take().unwrap());
+			let (params, body) = self.visit_mut_fn_like(&mut Vec::new(), &mut f.body.take().unwrap());
 
 			debug_assert_eq!(params, Vec::new());
 
 			f.body = Some(body);
 		}
 
-		fn visit_mut_catch_clause(&mut self, f:&mut CatchClause) {
+		fn visit_mut_catch_clause(&mut self, f: &mut CatchClause) {
 			f.visit_mut_children_with(self);
 
 			let (mut params, body) = match &mut f.param {
-				Some(pat) => {
-					self.visit_mut_fn_like(
-						&mut vec![Param { span:DUMMY_SP, decorators:Vec::new(), pat:pat.take() }],
-						&mut f.body.take(),
-					)
-				},
+				Some(pat) => self.visit_mut_fn_like(
+					&mut vec![Param { span: DUMMY_SP, decorators: Vec::new(), pat: pat.take() }],
+					&mut f.body.take(),
+				),
 				None => self.visit_mut_fn_like(&mut Vec::new(), &mut f.body.take()),
 			};
 
@@ -128,7 +118,7 @@ macro_rules! impl_visit_mut_fn {
 			f.body = body;
 		}
 
-		fn visit_mut_constructor(&mut self, f:&mut Constructor) {
+		fn visit_mut_constructor(&mut self, f: &mut Constructor) {
 			if f.body.is_none() {
 				return;
 			}
@@ -141,15 +131,11 @@ macro_rules! impl_visit_mut_fn {
 				.params
 				.take()
 				.into_iter()
-				.map(|pat| {
-					match pat {
-						ParamOrTsParamProp::Param(p) => p,
-						_ => {
-							unreachable!(
-								"TsParameterProperty should be removed by typescript::strip pass"
-							)
-						},
-					}
+				.map(|pat| match pat {
+					ParamOrTsParamProp::Param(p) => p,
+					_ => {
+						unreachable!("TsParameterProperty should be removed by typescript::strip pass")
+					},
 				})
 				.collect();
 

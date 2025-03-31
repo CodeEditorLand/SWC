@@ -21,12 +21,11 @@ mod ret_type;
 /// Don't invoke this macro directly, use the `quote!` macro from
 /// `swc_ecma_quote` instead.
 #[proc_macro]
-pub fn internal_quote(input:proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn internal_quote(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
 	let QuoteInput { src, as_token: _, output_type, vars } =
 		syn::parse::<QuoteInput>(input).expect("failed to parse input to quote!()");
 
-	let ret_type =
-		parse_input_type(&src.value(), &output_type).expect("failed to parse input type");
+	let ret_type = parse_input_type(&src.value(), &output_type).expect("failed to parse input type");
 
 	let vars = vars.map(|v| v.1);
 
@@ -41,11 +40,11 @@ pub fn internal_quote(input:proc_macro::TokenStream) -> proc_macro::TokenStream 
 	let expr_for_ast_creation = ret_type.to_code(&cx);
 
 	syn::Expr::Block(ExprBlock {
-		attrs:Default::default(),
-		label:Default::default(),
-		block:Block {
-			brace_token:Default::default(),
-			stmts:stmts
+		attrs: Default::default(),
+		label: Default::default(),
+		block: Block {
+			brace_token: Default::default(),
+			stmts: stmts
 				.into_iter()
 				.chain(once(syn::Stmt::Expr(expr_for_ast_creation, None)))
 				.collect(),

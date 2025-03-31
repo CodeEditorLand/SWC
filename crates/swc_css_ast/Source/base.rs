@@ -3,42 +3,17 @@ use swc_atoms::Atom;
 use swc_common::{EqIgnoreSpan, Span, ast_node, util::take::Take};
 
 use crate::{
-	AlphaValue,
-	AnglePercentage,
-	AtRule,
-	CalcSum,
-	CmykComponent,
-	Color,
-	ComplexSelector,
-	DashedIdent,
-	Delimiter,
-	Dimension,
-	FrequencyPercentage,
-	Hue,
-	IdSelector,
-	Ident,
-	Integer,
-	KeyframeBlock,
-	LayerName,
-	LengthPercentage,
-	Number,
-	Percentage,
-	Ratio,
-	RelativeSelectorList,
-	SelectorList,
-	Str,
-	SupportsCondition,
-	TimePercentage,
-	TokenAndSpan,
-	UnicodeRange,
-	Url,
+	AlphaValue, AnglePercentage, AtRule, CalcSum, CmykComponent, Color, ComplexSelector, DashedIdent, Delimiter,
+	Dimension, FrequencyPercentage, Hue, IdSelector, Ident, Integer, KeyframeBlock, LayerName, LengthPercentage,
+	Number, Percentage, Ratio, RelativeSelectorList, SelectorList, Str, SupportsCondition, TimePercentage,
+	TokenAndSpan, UnicodeRange, Url,
 };
 
 #[ast_node("Stylesheet")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct Stylesheet {
-	pub span:Span,
-	pub rules:Vec<Rule>,
+	pub span: Span,
+	pub rules: Vec<Rule>,
 }
 
 #[ast_node]
@@ -55,19 +30,23 @@ pub enum Rule {
 }
 
 impl Take for Rule {
-	fn dummy() -> Self { Self::QualifiedRule(Take::dummy()) }
+	fn dummy() -> Self {
+		Self::QualifiedRule(Take::dummy())
+	}
 }
 
 #[ast_node("QualifiedRule")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct QualifiedRule {
-	pub span:Span,
-	pub prelude:QualifiedRulePrelude,
-	pub block:SimpleBlock,
+	pub span: Span,
+	pub prelude: QualifiedRulePrelude,
+	pub block: SimpleBlock,
 }
 
 impl Take for QualifiedRule {
-	fn dummy() -> Self { Self { span:Take::dummy(), prelude:Take::dummy(), block:Take::dummy() } }
+	fn dummy() -> Self {
+		Self { span: Take::dummy(), prelude: Take::dummy(), block: Take::dummy() }
+	}
 }
 
 #[ast_node]
@@ -82,7 +61,9 @@ pub enum QualifiedRulePrelude {
 }
 
 impl Take for QualifiedRulePrelude {
-	fn dummy() -> Self { Self::SelectorList(Take::dummy()) }
+	fn dummy() -> Self {
+		Self::SelectorList(Take::dummy())
+	}
 }
 
 #[ast_node]
@@ -101,13 +82,15 @@ pub enum StyleBlock {
 #[ast_node("SimpleBlock")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct SimpleBlock {
-	pub span:Span,
-	pub name:TokenAndSpan,
-	pub value:Vec<ComponentValue>,
+	pub span: Span,
+	pub name: TokenAndSpan,
+	pub value: Vec<ComponentValue>,
 }
 
 impl Take for SimpleBlock {
-	fn dummy() -> Self { Self { span:Take::dummy(), name:Take::dummy(), value:Take::dummy() } }
+	fn dummy() -> Self {
+		Self { span: Take::dummy(), name: Take::dummy(), value: Take::dummy() }
+	}
 }
 
 #[ast_node]
@@ -120,7 +103,7 @@ pub enum FunctionName {
 }
 
 impl PartialEq<str> for FunctionName {
-	fn eq(&self, other:&str) -> bool {
+	fn eq(&self, other: &str) -> bool {
 		match self {
 			FunctionName::DashedIdent(v) => *v == *other,
 			FunctionName::Ident(v) => *v == *other,
@@ -129,7 +112,7 @@ impl PartialEq<str> for FunctionName {
 }
 
 impl PartialEq<&'_ str> for FunctionName {
-	fn eq(&self, other:&&str) -> bool {
+	fn eq(&self, other: &&str) -> bool {
 		match self {
 			FunctionName::DashedIdent(v) => *v == **other,
 			FunctionName::Ident(v) => *v == **other,
@@ -138,7 +121,7 @@ impl PartialEq<&'_ str> for FunctionName {
 }
 
 impl PartialEq<Atom> for FunctionName {
-	fn eq(&self, other:&Atom) -> bool {
+	fn eq(&self, other: &Atom) -> bool {
 		match self {
 			FunctionName::DashedIdent(v) => v.value == *other,
 			FunctionName::Ident(v) => v.value == *other,
@@ -159,16 +142,16 @@ impl FunctionName {
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct Function {
 	/// Span starting from the `lo` of identifier and to the end of `)`.
-	pub span:Span,
-	pub name:FunctionName,
-	pub value:Vec<ComponentValue>,
+	pub span: Span,
+	pub name: FunctionName,
+	pub value: Vec<ComponentValue>,
 }
 
 #[ast_node("ListOfComponentValues")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct ListOfComponentValues {
-	pub span:Span,
-	pub children:Vec<ComponentValue>,
+	pub span: Span,
+	pub children: Vec<ComponentValue>,
 }
 
 #[ast_node]
@@ -251,13 +234,11 @@ pub enum ComponentValue {
 
 impl From<StyleBlock> for ComponentValue {
 	#[inline]
-	fn from(block:StyleBlock) -> Self {
+	fn from(block: StyleBlock) -> Self {
 		match block {
 			StyleBlock::AtRule(at_rule) => ComponentValue::AtRule(at_rule),
 			StyleBlock::Declaration(declaration) => ComponentValue::Declaration(declaration),
-			StyleBlock::QualifiedRule(qualified_rule) => {
-				ComponentValue::QualifiedRule(qualified_rule)
-			},
+			StyleBlock::QualifiedRule(qualified_rule) => ComponentValue::QualifiedRule(qualified_rule),
 
 			StyleBlock::ListOfComponentValues(list_of_component_values) => {
 				ComponentValue::ListOfComponentValues(list_of_component_values)
@@ -268,11 +249,9 @@ impl From<StyleBlock> for ComponentValue {
 
 impl From<DeclarationOrAtRule> for ComponentValue {
 	#[inline]
-	fn from(rule:DeclarationOrAtRule) -> Self {
+	fn from(rule: DeclarationOrAtRule) -> Self {
 		match rule {
-			DeclarationOrAtRule::Declaration(declaration) => {
-				ComponentValue::Declaration(declaration)
-			},
+			DeclarationOrAtRule::Declaration(declaration) => ComponentValue::Declaration(declaration),
 
 			DeclarationOrAtRule::AtRule(at_rule) => ComponentValue::AtRule(at_rule),
 			DeclarationOrAtRule::ListOfComponentValues(list_of_component_values) => {
@@ -284,7 +263,7 @@ impl From<DeclarationOrAtRule> for ComponentValue {
 
 impl From<Rule> for ComponentValue {
 	#[inline]
-	fn from(rule:Rule) -> Self {
+	fn from(rule: Rule) -> Self {
 		match rule {
 			Rule::AtRule(at_rule) => ComponentValue::AtRule(at_rule),
 			Rule::QualifiedRule(qualified_rule) => ComponentValue::QualifiedRule(qualified_rule),
@@ -310,11 +289,11 @@ pub enum DeclarationOrAtRule {
 #[ast_node("Declaration")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct Declaration {
-	pub span:Span,
-	pub name:DeclarationName,
-	pub value:Vec<ComponentValue>,
+	pub span: Span,
+	pub name: DeclarationName,
+	pub value: Vec<ComponentValue>,
 	/// The span includes `!`
-	pub important:Option<ImportantFlag>,
+	pub important: Option<ImportantFlag>,
 }
 
 #[ast_node]
@@ -327,7 +306,7 @@ pub enum DeclarationName {
 }
 
 impl PartialEq<str> for DeclarationName {
-	fn eq(&self, other:&str) -> bool {
+	fn eq(&self, other: &str) -> bool {
 		match self {
 			DeclarationName::DashedIdent(v) => *v == *other,
 			DeclarationName::Ident(v) => *v == *other,
@@ -336,7 +315,7 @@ impl PartialEq<str> for DeclarationName {
 }
 
 impl PartialEq<Atom> for DeclarationName {
-	fn eq(&self, other:&Atom) -> bool {
+	fn eq(&self, other: &Atom) -> bool {
 		match self {
 			DeclarationName::DashedIdent(v) => v.value == *other,
 			DeclarationName::Ident(v) => v.value == *other,
@@ -347,6 +326,6 @@ impl PartialEq<Atom> for DeclarationName {
 #[ast_node("ImportantFlag")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct ImportantFlag {
-	pub span:Span,
-	pub value:Ident,
+	pub span: Span,
+	pub value: Ident,
 }

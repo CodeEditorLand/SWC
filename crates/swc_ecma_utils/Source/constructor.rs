@@ -6,7 +6,7 @@ use swc_ecma_visit::{VisitMut, VisitMutWith, noop_visit_mut_type};
 
 use crate::ExprFactory;
 
-pub fn inject_after_super(c:&mut Constructor, exprs:Vec<Box<Expr>>) {
+pub fn inject_after_super(c: &mut Constructor, exprs: Vec<Box<Expr>>) {
 	if exprs.is_empty() {
 		return;
 	}
@@ -26,32 +26,32 @@ pub fn inject_after_super(c:&mut Constructor, exprs:Vec<Box<Expr>>) {
 
 #[derive(Default)]
 struct Injector {
-	exprs:Vec<Box<Expr>>,
-	ignore_return_value:bool,
+	exprs: Vec<Box<Expr>>,
+	ignore_return_value: bool,
 
-	injected:bool,
+	injected: bool,
 }
 
 impl VisitMut for Injector {
 	noop_visit_mut_type!();
 
-	fn visit_mut_constructor(&mut self, _:&mut Constructor) {
+	fn visit_mut_constructor(&mut self, _: &mut Constructor) {
 		// skip
 	}
 
-	fn visit_mut_function(&mut self, _:&mut Function) {
+	fn visit_mut_function(&mut self, _: &mut Function) {
 		// skip
 	}
 
-	fn visit_mut_getter_prop(&mut self, _:&mut GetterProp) {
+	fn visit_mut_getter_prop(&mut self, _: &mut GetterProp) {
 		// skip
 	}
 
-	fn visit_mut_setter_prop(&mut self, _:&mut SetterProp) {
+	fn visit_mut_setter_prop(&mut self, _: &mut SetterProp) {
 		// skip
 	}
 
-	fn visit_mut_expr_stmt(&mut self, node:&mut ExprStmt) {
+	fn visit_mut_expr_stmt(&mut self, node: &mut ExprStmt) {
 		let ignore_return_value = mem::replace(&mut self.ignore_return_value, true);
 
 		node.visit_mut_children_with(self);
@@ -59,7 +59,7 @@ impl VisitMut for Injector {
 		self.ignore_return_value = ignore_return_value;
 	}
 
-	fn visit_mut_seq_expr(&mut self, node:&mut SeqExpr) {
+	fn visit_mut_seq_expr(&mut self, node: &mut SeqExpr) {
 		if let Some(mut tail) = node.exprs.pop() {
 			let ignore_return_value = mem::replace(&mut self.ignore_return_value, true);
 
@@ -73,7 +73,7 @@ impl VisitMut for Injector {
 		}
 	}
 
-	fn visit_mut_expr(&mut self, node:&mut Expr) {
+	fn visit_mut_expr(&mut self, node: &mut Expr) {
 		let ignore_return_value = self.ignore_return_value;
 
 		if !matches!(node, Expr::Paren(..) | Expr::Seq(..)) {
@@ -94,17 +94,14 @@ impl VisitMut for Injector {
 			let exprs = iter::once(Box::new(super_call)).chain(exprs);
 
 			*node = if ignore_return_value {
-				SeqExpr { span:DUMMY_SP, exprs:exprs.collect() }.into()
+				SeqExpr { span: DUMMY_SP, exprs: exprs.collect() }.into()
 			} else {
-				let array = ArrayLit {
-					span:DUMMY_SP,
-					elems:exprs.map(ExprOrSpread::from).map(Some).collect(),
-				};
+				let array = ArrayLit { span: DUMMY_SP, elems: exprs.map(ExprOrSpread::from).map(Some).collect() };
 
 				MemberExpr {
-					span:DUMMY_SP,
-					obj:array.into(),
-					prop:ComputedPropName { span:DUMMY_SP, expr:0.into() }.into(),
+					span: DUMMY_SP,
+					obj: array.into(),
+					prop: ComputedPropName { span: DUMMY_SP, expr: 0.into() }.into(),
 				}
 				.into()
 			}

@@ -3,49 +3,37 @@ use std::iter;
 use swc_common::{DUMMY_SP, Span, util::take::Take};
 use swc_ecma_ast::*;
 use swc_ecma_transforms_base::helper;
-use swc_ecma_utils::{
-	ExprFactory,
-	alias_ident_for,
-	is_rest_arguments,
-	prepend_stmt,
-	private_ident,
-	quote_ident,
-};
+use swc_ecma_utils::{ExprFactory, alias_ident_for, is_rest_arguments, prepend_stmt, private_ident, quote_ident};
 use swc_ecma_visit::{VisitMut, VisitMutWith, noop_visit_mut_type, visit_mut_pass};
 use swc_trace_macro::swc_trace;
 
 struct ObjectSuper {
-	extra_vars:Vec<Ident>,
+	extra_vars: Vec<Ident>,
 }
 
-pub fn object_super() -> impl Pass { visit_mut_pass(ObjectSuper { extra_vars:Vec::new() }) }
+pub fn object_super() -> impl Pass {
+	visit_mut_pass(ObjectSuper { extra_vars: Vec::new() })
+}
 
 #[swc_trace]
 impl VisitMut for ObjectSuper {
 	noop_visit_mut_type!(fail);
 
-	fn visit_mut_module_items(&mut self, n:&mut Vec<ModuleItem>) {
+	fn visit_mut_module_items(&mut self, n: &mut Vec<ModuleItem>) {
 		n.visit_mut_children_with(self);
 
 		if !self.extra_vars.is_empty() {
 			prepend_stmt(
 				n,
 				VarDecl {
-					span:DUMMY_SP,
-					kind:VarDeclKind::Var,
-					declare:false,
-					decls:self
+					span: DUMMY_SP,
+					kind: VarDeclKind::Var,
+					declare: false,
+					decls: self
 						.extra_vars
 						.take()
 						.into_iter()
-						.map(|v| {
-							VarDeclarator {
-								span:DUMMY_SP,
-								name:v.into(),
-								init:None,
-								definite:false,
-							}
-						})
+						.map(|v| VarDeclarator { span: DUMMY_SP, name: v.into(), init: None, definite: false })
 						.collect(),
 					..Default::default()
 				}
@@ -54,26 +42,19 @@ impl VisitMut for ObjectSuper {
 		}
 	}
 
-	fn visit_mut_stmts(&mut self, stmts:&mut Vec<Stmt>) {
+	fn visit_mut_stmts(&mut self, stmts: &mut Vec<Stmt>) {
 		stmts.visit_mut_children_with(self);
 
 		if !self.extra_vars.is_empty() {
 			prepend_stmt(
 				stmts,
 				VarDecl {
-					span:DUMMY_SP,
-					kind:VarDeclKind::Var,
-					decls:self
+					span: DUMMY_SP,
+					kind: VarDeclKind::Var,
+					decls: self
 						.extra_vars
 						.drain(..)
-						.map(|v| {
-							VarDeclarator {
-								span:DUMMY_SP,
-								name:v.into(),
-								init:None,
-								definite:false,
-							}
-						})
+						.map(|v| VarDeclarator { span: DUMMY_SP, name: v.into(), init: None, definite: false })
 						.collect(),
 					..Default::default()
 				}
@@ -82,11 +63,11 @@ impl VisitMut for ObjectSuper {
 		}
 	}
 
-	fn visit_mut_expr(&mut self, expr:&mut Expr) {
+	fn visit_mut_expr(&mut self, expr: &mut Expr) {
 		expr.visit_mut_children_with(self);
 
 		if let Expr::Object(ObjectLit { span: _, props }) = expr {
-			let mut replacer = SuperReplacer { obj:None, vars:Vec::new() };
+			let mut replacer = SuperReplacer { obj: None, vars: Vec::new() };
 
 			for prop_or_spread in props.iter_mut() {
 				if let PropOrSpread::Prop(ref mut prop) = prop_or_spread {
@@ -98,19 +79,17 @@ impl VisitMut for ObjectSuper {
 								prepend_stmt(
 									stmts,
 									VarDecl {
-										span:DUMMY_SP,
-										kind:VarDeclKind::Var,
-										declare:false,
-										decls:replacer
+										span: DUMMY_SP,
+										kind: VarDeclKind::Var,
+										declare: false,
+										decls: replacer
 											.vars
 											.drain(..)
-											.map(|v| {
-												VarDeclarator {
-													span:DUMMY_SP,
-													name:v.into(),
-													init:None,
-													definite:false,
-												}
+											.map(|v| VarDeclarator {
+												span: DUMMY_SP,
+												name: v.into(),
+												init: None,
+												definite: false,
 											})
 											.collect(),
 										..Default::default()
@@ -125,10 +104,10 @@ impl VisitMut for ObjectSuper {
 
 			if let Some(obj) = replacer.obj {
 				*expr = AssignExpr {
-					span:DUMMY_SP,
-					op:op!("="),
-					left:obj.clone().into(),
-					right:Box::new(expr.take()),
+					span: DUMMY_SP,
+					op: op!("="),
+					left: obj.clone().into(),
+					right: Box::new(expr.take()),
 				}
 				.into();
 
@@ -139,15 +118,15 @@ impl VisitMut for ObjectSuper {
 }
 
 struct SuperReplacer {
-	obj:Option<Ident>,
-	vars:Vec<Ident>,
+	obj: Option<Ident>,
+	vars: Vec<Ident>,
 }
 
 #[swc_trace]
 impl VisitMut for SuperReplacer {
 	noop_visit_mut_type!(fail);
 
-	fn visit_mut_object_lit(&mut self, obj:&mut ObjectLit) {
+	fn visit_mut_object_lit(&mut self, obj: &mut ObjectLit) {
 		for prop_or_spread in obj.props.iter_mut() {
 			if let PropOrSpread::Prop(prop) = prop_or_spread {
 				match &mut **prop {
@@ -168,7 +147,7 @@ impl VisitMut for SuperReplacer {
 		}
 	}
 
-	fn visit_mut_expr(&mut self, expr:&mut Expr) {
+	fn visit_mut_expr(&mut self, expr: &mut Expr) {
 		self.visit_mut_super_member_call(expr);
 
 		self.visit_mut_super_member_set(expr);
@@ -195,9 +174,9 @@ impl SuperReplacer {
 
 	fn get_proto(&mut self) -> ExprOrSpread {
 		CallExpr {
-			span:DUMMY_SP,
-			callee:helper!(get_prototype_of),
-			args:vec![self.get_obj_ref().as_arg()],
+			span: DUMMY_SP,
+			callee: helper!(get_prototype_of),
+			args: vec![self.get_obj_ref().as_arg()],
 
 			..Default::default()
 		}
@@ -205,11 +184,9 @@ impl SuperReplacer {
 	}
 
 	// .a -> "a"
-	fn normalize_computed_expr(&mut self, prop:&mut SuperProp) -> Box<Expr> {
+	fn normalize_computed_expr(&mut self, prop: &mut SuperProp) -> Box<Expr> {
 		match prop.take() {
-			SuperProp::Ident(IdentName { sym: value, span, .. }) => {
-				Lit::Str(Str { raw:None, value, span }).into()
-			},
+			SuperProp::Ident(IdentName { sym: value, span, .. }) => Lit::Str(Str { raw: None, value, span }).into(),
 
 			SuperProp::Computed(ComputedPropName { expr, .. }) => expr,
 		}
@@ -223,29 +200,25 @@ impl SuperReplacer {
 	/// ```js
 	/// _get(_get_prototype_of(Clazz.prototype), 'foo', this).call(this, a)
 	/// ```
-	fn visit_mut_super_member_call(&mut self, n:&mut Expr) {
+	fn visit_mut_super_member_call(&mut self, n: &mut Expr) {
 		if let Expr::Call(CallExpr { callee: Callee::Expr(callee_expr), args, .. }) = n {
-			if let Expr::SuperProp(SuperPropExpr {
-				obj: Super { span: super_token }, prop, ..
-			}) = &mut **callee_expr
-			{
+			if let Expr::SuperProp(SuperPropExpr { obj: Super { span: super_token }, prop, .. }) = &mut **callee_expr {
 				let prop = self.normalize_computed_expr(prop);
 
-				let callee =
-					SuperReplacer::super_to_get_call(self.get_proto(), *super_token, prop.as_arg());
+				let callee = SuperReplacer::super_to_get_call(self.get_proto(), *super_token, prop.as_arg());
 
-				let this = ThisExpr { span:DUMMY_SP }.as_arg();
+				let this = ThisExpr { span: DUMMY_SP }.as_arg();
 
 				if args.len() == 1 && is_rest_arguments(&args[0]) {
 					*n = CallExpr {
-						span:DUMMY_SP,
-						callee:MemberExpr {
-							span:DUMMY_SP,
-							obj:Box::new(callee),
-							prop:quote_ident!("apply").into(),
+						span: DUMMY_SP,
+						callee: MemberExpr {
+							span: DUMMY_SP,
+							obj: Box::new(callee),
+							prop: quote_ident!("apply").into(),
 						}
 						.as_callee(),
-						args:iter::once(this)
+						args: iter::once(this)
 							.chain(iter::once({
 								let mut arg = args.pop().unwrap();
 
@@ -262,14 +235,14 @@ impl SuperReplacer {
 				}
 
 				*n = CallExpr {
-					span:DUMMY_SP,
-					callee:MemberExpr {
-						span:DUMMY_SP,
-						obj:Box::new(callee),
-						prop:MemberProp::Ident(quote_ident!("call")),
+					span: DUMMY_SP,
+					callee: MemberExpr {
+						span: DUMMY_SP,
+						obj: Box::new(callee),
+						prop: MemberProp::Ident(quote_ident!("call")),
 					}
 					.as_callee(),
-					args:iter::once(this).chain(args.take()).collect(),
+					args: iter::once(this).chain(args.take()).collect(),
 					..Default::default()
 				}
 				.into();
@@ -284,15 +257,10 @@ impl SuperReplacer {
 	/// ```js
 	/// _set(_get_prototype_of(_obj), "foo", bar, this, true)
 	/// ```
-	fn visit_mut_super_member_set(&mut self, n:&mut Expr) {
+	fn visit_mut_super_member_set(&mut self, n: &mut Expr) {
 		match n {
 			Expr::Update(UpdateExpr { arg, op, prefix, .. }) => {
-				if let Expr::SuperProp(SuperPropExpr {
-					obj: Super { span: super_token },
-					prop,
-					..
-				}) = &mut **arg
-				{
+				if let Expr::SuperProp(SuperPropExpr { obj: Super { span: super_token }, prop, .. }) = &mut **arg {
 					let op = match op {
 						op!("++") => op!("+="),
 						op!("--") => op!("-="),
@@ -308,14 +276,13 @@ impl SuperReplacer {
 					..
 				})) = left
 				{
-					*n =
-						self.super_to_set_call(*super_token, false, prop, *op, right.take(), false);
+					*n = self.super_to_set_call(*super_token, false, prop, *op, right.take(), false);
 
 					return;
 				}
 
 				left.visit_mut_children_with(self);
-				*n = AssignExpr { span:*span, left:left.take(), op:*op, right:right.take() }.into();
+				*n = AssignExpr { span: *span, left: left.take(), op: *op, right: right.take() }.into();
 			},
 
 			_ => {},
@@ -330,39 +297,36 @@ impl SuperReplacer {
 	/// ```js
 	/// _get(_get_prototype_of(Clazz.prototype), 'foo', this)
 	/// ```
-	fn visit_mut_super_member_get(&mut self, n:&mut Expr) {
-		if let Expr::SuperProp(SuperPropExpr {
-			obj: Super { span: super_token, .. }, prop, ..
-		}) = n
-		{
+	fn visit_mut_super_member_get(&mut self, n: &mut Expr) {
+		if let Expr::SuperProp(SuperPropExpr { obj: Super { span: super_token, .. }, prop, .. }) = n {
 			let prop = self.normalize_computed_expr(prop);
 			*n = SuperReplacer::super_to_get_call(self.get_proto(), *super_token, prop.as_arg());
 		}
 	}
 
-	fn super_to_get_call(proto:ExprOrSpread, super_token:Span, prop:ExprOrSpread) -> Expr {
+	fn super_to_get_call(proto: ExprOrSpread, super_token: Span, prop: ExprOrSpread) -> Expr {
 		CallExpr {
-			span:super_token,
-			callee:helper!(get),
-			args:vec![proto, prop, ThisExpr { span:super_token }.as_arg()],
+			span: super_token,
+			callee: helper!(get),
+			args: vec![proto, prop, ThisExpr { span: super_token }.as_arg()],
 			..Default::default()
 		}
 		.into()
 	}
 
-	fn to_bin_expr(left:Box<Expr>, op:AssignOp, rhs:Box<Expr>) -> BinExpr {
-		BinExpr { span:DUMMY_SP, left, op:op.to_update().unwrap(), right:rhs }
+	fn to_bin_expr(left: Box<Expr>, op: AssignOp, rhs: Box<Expr>) -> BinExpr {
+		BinExpr { span: DUMMY_SP, left, op: op.to_update().unwrap(), right: rhs }
 	}
 
-	fn call_set_helper(&mut self, super_token:Span, prop:ExprOrSpread, rhs:ExprOrSpread) -> Expr {
+	fn call_set_helper(&mut self, super_token: Span, prop: ExprOrSpread, rhs: ExprOrSpread) -> Expr {
 		CallExpr {
-			span:super_token,
-			callee:helper!(set),
-			args:vec![
+			span: super_token,
+			callee: helper!(set),
+			args: vec![
 				self.get_proto(),
 				prop,
 				rhs,
-				ThisExpr { span:super_token }.as_arg(),
+				ThisExpr { span: super_token }.as_arg(),
 				// strict
 				true.as_arg(),
 			],
@@ -373,12 +337,12 @@ impl SuperReplacer {
 
 	fn super_to_set_call(
 		&mut self,
-		super_token:Span,
-		is_update:bool,
-		prop:&mut SuperProp,
-		op:AssignOp,
-		rhs:Box<Expr>,
-		prefix:bool,
+		super_token: Span,
+		is_update: bool,
+		prop: &mut SuperProp,
+		op: AssignOp,
+		rhs: Box<Expr>,
+		prefix: bool,
 	) -> Expr {
 		let computed = match prop {
 			SuperProp::Ident(_) => false,
@@ -398,10 +362,10 @@ impl SuperReplacer {
 
 						self.vars.push(ref_ident.clone());
 						*prop = AssignExpr {
-							span:DUMMY_SP,
-							left:ref_ident.clone().into(),
-							op:op!("="),
-							right:prop.take(),
+							span: DUMMY_SP,
+							left: ref_ident.clone().into(),
+							op: op!("="),
+							right: prop.take(),
 						}
 						.into();
 
@@ -417,7 +381,7 @@ impl SuperReplacer {
 							super_token,
 							prop.as_arg(),
 							SuperReplacer::to_bin_expr(
-								UnaryExpr { span:DUMMY_SP, op:op!(unary, "+"), arg:left }.into(),
+								UnaryExpr { span: DUMMY_SP, op: op!(unary, "+"), arg: left }.into(),
 								op,
 								rhs,
 							)
@@ -429,8 +393,8 @@ impl SuperReplacer {
 						self.vars.push(update_ident.clone());
 
 						SeqExpr {
-							span:DUMMY_SP,
-							exprs:vec![
+							span: DUMMY_SP,
+							exprs: vec![
 								Box::new(
 									self.call_set_helper(
 										super_token,
@@ -438,13 +402,13 @@ impl SuperReplacer {
 										SuperReplacer::to_bin_expr(
 											Box::new(
 												AssignExpr {
-													span:DUMMY_SP,
-													left:update_ident.clone().into(),
-													op:op!("="),
-													right:Box::new(Expr::Unary(UnaryExpr {
-														span:DUMMY_SP,
-														op:op!(unary, "+"),
-														arg:left,
+													span: DUMMY_SP,
+													left: update_ident.clone().into(),
+													op: op!("="),
+													right: Box::new(Expr::Unary(UnaryExpr {
+														span: DUMMY_SP,
+														op: op!(unary, "+"),
+														arg: left,
 													})),
 												}
 												.into(),
@@ -461,11 +425,7 @@ impl SuperReplacer {
 						.into()
 					}
 				} else {
-					self.call_set_helper(
-						super_token,
-						prop.as_arg(),
-						SuperReplacer::to_bin_expr(left, op, rhs).as_arg(),
-					)
+					self.call_set_helper(super_token, prop.as_arg(), SuperReplacer::to_bin_expr(left, op, rhs).as_arg())
 				}
 			},
 		}
@@ -562,7 +522,7 @@ mod tests {
 	);
 
 	test!(
-		Syntax::Es(EsSyntax { allow_super_outside_method:true, ..Default::default() }),
+		Syntax::Es(EsSyntax { allow_super_outside_method: true, ..Default::default() }),
 		|_| {
 			(
 				resolver(Mark::new(), Mark::new(), false),

@@ -11,9 +11,7 @@ use crate::{
 	error::Error,
 	lexer::Lexer,
 	parser::{
-		PResult,
-		Parser,
-		ParserConfig,
+		PResult, Parser, ParserConfig,
 		input::{Input, InputType},
 	},
 };
@@ -34,7 +32,9 @@ impl<T, P> Parse<Box<T>> for P
 where
 	Self: Parse<T>,
 {
-	fn parse(&mut self) -> PResult<Box<T>> { self.parse().map(Box::new) }
+	fn parse(&mut self) -> PResult<Box<T>> {
+		self.parse().map(Box::new)
+	}
 }
 
 /// Parse a given file as `T`.
@@ -42,13 +42,14 @@ where
 /// If there are syntax errors but if it was recoverable, it will be appended
 /// to `errors`.
 pub fn parse_file<'a, 'b, T>(
-	fm:&'a SourceFile,
-	comments:Option<&'b dyn Comments>,
-	config:ParserConfig,
-	errors:&mut Vec<Error>,
+	fm: &'a SourceFile,
+	comments: Option<&'b dyn Comments>,
+	config: ParserConfig,
+	errors: &mut Vec<Error>,
 ) -> PResult<T>
 where
-	Parser<Lexer<'b, StringInput<'a>>>: Parse<T>, {
+	Parser<Lexer<'b, StringInput<'a>>>: Parse<T>,
+{
 	parse_string_input(StringInput::from(fm), comments, config, errors)
 }
 
@@ -57,13 +58,14 @@ where
 /// If there are syntax errors but if it was recoverable, it will be appended
 /// to `errors`.
 pub fn parse_string_input<'a, 'b, T>(
-	input:StringInput<'a>,
-	comments:Option<&'b dyn Comments>,
-	config:ParserConfig,
-	errors:&mut Vec<Error>,
+	input: StringInput<'a>,
+	comments: Option<&'b dyn Comments>,
+	config: ParserConfig,
+	errors: &mut Vec<Error>,
 ) -> PResult<T>
 where
-	Parser<Lexer<'b, StringInput<'a>>>: Parse<T>, {
+	Parser<Lexer<'b, StringInput<'a>>>: Parse<T>,
+{
 	let lexer = Lexer::new(input, comments, config);
 
 	let mut parser = Parser::new(lexer, config);
@@ -79,13 +81,10 @@ where
 ///
 /// If there are syntax errors but if it was recoverable, it will be appended
 /// to `errors`.
-pub fn parse_input<'a, T>(
-	input:InputType<'a>,
-	config:ParserConfig,
-	errors:&mut Vec<Error>,
-) -> PResult<T>
+pub fn parse_input<'a, T>(input: InputType<'a>, config: ParserConfig, errors: &mut Vec<Error>) -> PResult<T>
 where
-	Parser<Input<'a>>: Parse<T>, {
+	Parser<Input<'a>>: Parse<T>,
+{
 	let lexer = Input::new(input);
 
 	let mut parser = Parser::new(lexer, config);

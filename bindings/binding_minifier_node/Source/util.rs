@@ -5,8 +5,7 @@ use std::panic::{AssertUnwindSafe, catch_unwind};
 use anyhow::{Error, anyhow};
 use napi::Env;
 use swc_core::common::{
-	GLOBALS,
-	SourceMap,
+	GLOBALS, SourceMap,
 	errors::Handler,
 	sync::{Lrc, OnceCell},
 };
@@ -14,24 +13,19 @@ use swc_error_reporters::handler::{HandlerOpts, try_with_handler};
 use tracing::instrument;
 use tracing_chrome::ChromeLayerBuilder;
 use tracing_subscriber::{
-	EnvFilter,
-	Layer,
-	filter,
-	prelude::__tracing_subscriber_SubscriberExt,
-	util::SubscriberInitExt,
+	EnvFilter, Layer, filter, prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt,
 };
 
-static TARGET_TRIPLE:&str = include_str!(concat!(env!("OUT_DIR"), "/triple.txt"));
-static CUSTOM_TRACE_SUBSCRIBER:OnceCell<bool> = OnceCell::new();
+static TARGET_TRIPLE: &str = include_str!(concat!(env!("OUT_DIR"), "/triple.txt"));
+static CUSTOM_TRACE_SUBSCRIBER: OnceCell<bool> = OnceCell::new();
 
 #[napi]
-pub fn get_target_triple() -> napi::Result<String> { Ok(TARGET_TRIPLE.to_string()) }
+pub fn get_target_triple() -> napi::Result<String> {
+	Ok(TARGET_TRIPLE.to_string())
+}
 
 #[napi]
-pub fn init_custom_trace_subscriber(
-	mut env:Env,
-	trace_out_file_path:Option<String>,
-) -> napi::Result<()> {
+pub fn init_custom_trace_subscriber(mut env: Env, trace_out_file_path: Option<String>) -> napi::Result<()> {
 	CUSTOM_TRACE_SUBSCRIBER.get_or_init(|| {
 		let mut layer = ChromeLayerBuilder::new().include_args(true);
 
@@ -62,9 +56,10 @@ pub fn init_custom_trace_subscriber(
 }
 
 #[instrument(level = "trace", skip_all)]
-pub fn try_with<F, Ret>(cm:Lrc<SourceMap>, skip_filename:bool, op:F) -> Result<Ret, Error>
+pub fn try_with<F, Ret>(cm: Lrc<SourceMap>, skip_filename: bool, op: F) -> Result<Ret, Error>
 where
-	F: FnOnce(&Handler) -> Result<Ret, Error>, {
+	F: FnOnce(&Handler) -> Result<Ret, Error>,
+{
 	GLOBALS.set(&Default::default(), || {
 		try_with_handler(cm, HandlerOpts { skip_filename, ..Default::default() }, |handler| {
 			//

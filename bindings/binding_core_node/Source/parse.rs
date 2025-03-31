@@ -5,8 +5,7 @@ use std::{
 
 use anyhow::Context as _;
 use napi::{
-	Env,
-	Task,
+	Env, Task,
 	bindgen_prelude::{AbortSignal, AsyncTask, Buffer},
 };
 use swc_core::{
@@ -24,16 +23,16 @@ use crate::{get_compiler, util::try_with};
 // ----- Parsing -----
 
 pub struct ParseTask {
-	pub c:Arc<Compiler>,
-	pub filename:FileName,
-	pub src:String,
-	pub options:String,
+	pub c: Arc<Compiler>,
+	pub filename: FileName,
+	pub src: String,
+	pub options: String,
 }
 
 pub struct ParseFileTask {
-	pub c:Arc<Compiler>,
-	pub path:PathBuf,
-	pub options:String,
+	pub c: Arc<Compiler>,
+	pub path: PathBuf,
+	pub options: String,
 }
 
 #[napi]
@@ -42,22 +41,16 @@ impl Task for ParseTask {
 	type Output = String;
 
 	fn compute(&mut self) -> napi::Result<Self::Output> {
-		let options:ParseOptions = deserialize_json(&self.options)?;
+		let options: ParseOptions = deserialize_json(&self.options)?;
 
 		let fm = self.c.cm.new_source_file(self.filename.clone().into(), self.src.clone());
 
-		let comments =
-			if options.comments { Some(self.c.comments() as &dyn Comments) } else { None };
+		let comments = if options.comments { Some(self.c.comments() as &dyn Comments) } else { None };
 
 		let program = try_with(self.c.cm.clone(), false, ErrorFormat::Normal, |handler| {
-			let mut p = self.c.parse_js(
-				fm,
-				handler,
-				options.target,
-				options.syntax,
-				options.is_module,
-				comments,
-			)?;
+			let mut p = self
+				.c
+				.parse_js(fm, handler, options.target, options.syntax, options.is_module, comments)?;
 
 			p.visit_mut_with(&mut resolver(Mark::new(), Mark::new(), options.syntax.typescript()));
 
@@ -70,7 +63,7 @@ impl Task for ParseTask {
 		Ok(ast_json)
 	}
 
-	fn resolve(&mut self, _env:Env, result:Self::Output) -> napi::Result<Self::JsValue> {
+	fn resolve(&mut self, _env: Env, result: Self::Output) -> napi::Result<Self::JsValue> {
 		Ok(result)
 	}
 }
@@ -83,7 +76,7 @@ impl Task for ParseFileTask {
 	fn compute(&mut self) -> napi::Result<Self::Output> {
 		let program = try_with(self.c.cm.clone(), false, ErrorFormat::Normal, |handler| {
 			self.c.run(|| {
-				let options:ParseOptions = deserialize_json(&self.options)?;
+				let options: ParseOptions = deserialize_json(&self.options)?;
 
 				let fm = self.c.cm.load_file(&self.path).context("failed to read module")?;
 
@@ -91,20 +84,11 @@ impl Task for ParseFileTask {
 
 				let comments = if options.comments { Some(&c as &dyn Comments) } else { None };
 
-				let mut p = self.c.parse_js(
-					fm,
-					handler,
-					options.target,
-					options.syntax,
-					options.is_module,
-					comments,
-				)?;
+				let mut p =
+					self.c
+						.parse_js(fm, handler, options.target, options.syntax, options.is_module, comments)?;
 
-				p.visit_mut_with(&mut resolver(
-					Mark::new(),
-					Mark::new(),
-					options.syntax.typescript(),
-				));
+				p.visit_mut_with(&mut resolver(Mark::new(), Mark::new(), options.syntax.typescript()));
 
 				Ok(p)
 			})
@@ -116,17 +100,17 @@ impl Task for ParseFileTask {
 		Ok(ast_json)
 	}
 
-	fn resolve(&mut self, _env:Env, result:Self::Output) -> napi::Result<Self::JsValue> {
+	fn resolve(&mut self, _env: Env, result: Self::Output) -> napi::Result<Self::JsValue> {
 		Ok(result)
 	}
 }
 
 #[napi]
 pub fn parse(
-	src:String,
-	options:Buffer,
-	filename:Option<String>,
-	signal:Option<AbortSignal>,
+	src: String,
+	options: Buffer,
+	filename: Option<String>,
+	signal: Option<AbortSignal>,
 ) -> AsyncTask<ParseTask> {
 	crate::util::init_default_trace_subscriber();
 
@@ -144,12 +128,12 @@ pub fn parse(
 }
 
 #[napi]
-pub fn parse_sync(src:String, opts:Buffer, filename:Option<String>) -> napi::Result<String> {
+pub fn parse_sync(src: String, opts: Buffer, filename: Option<String>) -> napi::Result<String> {
 	crate::util::init_default_trace_subscriber();
 
 	let c = get_compiler();
 
-	let options:ParseOptions = get_deserialized(&opts)?;
+	let options: ParseOptions = get_deserialized(&opts)?;
 
 	let filename = if let Some(value) = filename {
 		FileName::Real(value.into())
@@ -161,17 +145,9 @@ pub fn parse_sync(src:String, opts:Buffer, filename:Option<String>) -> napi::Res
 		c.run(|| {
 			let fm = c.cm.new_source_file(filename.into(), src);
 
-			let comments =
-				if options.comments { Some(c.comments() as &dyn Comments) } else { None };
+			let comments = if options.comments { Some(c.comments() as &dyn Comments) } else { None };
 
-			let mut p = c.parse_js(
-				fm,
-				handler,
-				options.target,
-				options.syntax,
-				options.is_module,
-				comments,
-			)?;
+			let mut p = c.parse_js(fm, handler, options.target, options.syntax, options.is_module, comments)?;
 
 			p.visit_mut_with(&mut resolver(Mark::new(), Mark::new(), options.syntax.typescript()));
 
@@ -184,28 +160,20 @@ pub fn parse_sync(src:String, opts:Buffer, filename:Option<String>) -> napi::Res
 }
 
 #[napi]
-pub fn parse_file_sync(path:String, opts:Buffer) -> napi::Result<String> {
+pub fn parse_file_sync(path: String, opts: Buffer) -> napi::Result<String> {
 	crate::util::init_default_trace_subscriber();
 
 	let c = get_compiler();
 
-	let options:ParseOptions = get_deserialized(&opts)?;
+	let options: ParseOptions = get_deserialized(&opts)?;
 
 	let program = {
 		try_with(c.cm.clone(), false, ErrorFormat::Normal, |handler| {
 			let fm = c.cm.load_file(Path::new(path.as_str())).expect("failed to read program file");
 
-			let comments =
-				if options.comments { Some(c.comments() as &dyn Comments) } else { None };
+			let comments = if options.comments { Some(c.comments() as &dyn Comments) } else { None };
 
-			let mut p = c.parse_js(
-				fm,
-				handler,
-				options.target,
-				options.syntax,
-				options.is_module,
-				comments,
-			)?;
+			let mut p = c.parse_js(fm, handler, options.target, options.syntax, options.is_module, comments)?;
 
 			p.visit_mut_with(&mut resolver(Mark::new(), Mark::new(), options.syntax.typescript()));
 
@@ -218,11 +186,7 @@ pub fn parse_file_sync(path:String, opts:Buffer) -> napi::Result<String> {
 }
 
 #[napi]
-pub fn parse_file(
-	path:String,
-	options:Buffer,
-	signal:Option<AbortSignal>,
-) -> AsyncTask<ParseFileTask> {
+pub fn parse_file(path: String, options: Buffer, signal: Option<AbortSignal>) -> AsyncTask<ParseFileTask> {
 	crate::util::init_default_trace_subscriber();
 
 	let c = get_compiler();

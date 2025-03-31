@@ -7,24 +7,11 @@ use swc_ecma_ast::Pass;
 use swc_ecma_compat_common::regexp::{self, regexp};
 
 pub use self::{
-	arrow::arrow,
-	block_scoped_fn::block_scoped_functions,
-	block_scoping::block_scoping,
-	classes::classes,
-	computed_props::computed_properties,
-	destructuring::destructuring,
-	duplicate_keys::duplicate_keys,
-	for_of::for_of,
-	function_name::function_name,
-	instanceof::instance_of,
-	new_target::new_target,
-	object_super::object_super,
-	parameters::parameters,
-	shorthand_property::shorthand,
-	spread::spread,
-	sticky_regex::sticky_regex,
-	template_literal::template_literal,
-	typeof_symbol::typeof_symbol,
+	arrow::arrow, block_scoped_fn::block_scoped_functions, block_scoping::block_scoping, classes::classes,
+	computed_props::computed_properties, destructuring::destructuring, duplicate_keys::duplicate_keys, for_of::for_of,
+	function_name::function_name, instanceof::instance_of, new_target::new_target, object_super::object_super,
+	parameters::parameters, shorthand_property::shorthand, spread::spread, sticky_regex::sticky_regex,
+	template_literal::template_literal, typeof_symbol::typeof_symbol,
 };
 
 mod arrow;
@@ -48,7 +35,7 @@ mod sticky_regex;
 pub mod template_literal;
 mod typeof_symbol;
 
-fn exprs(unresolved_mark:Mark) -> impl Pass {
+fn exprs(unresolved_mark: Mark) -> impl Pass {
 	(
 		arrow(unresolved_mark),
 		duplicate_keys(),
@@ -67,20 +54,21 @@ fn exprs(unresolved_mark:Mark) -> impl Pass {
 /// Used to generate `require` calls.
 /// See the documentation of [regenerator](self::regenerator::regenerator) for
 /// more details.
-pub fn es2015<C>(unresolved_mark:Mark, comments:Option<C>, c:Config) -> impl Pass
+pub fn es2015<C>(unresolved_mark: Mark, comments: Option<C>, c: Config) -> impl Pass
 where
-	C: Comments + Clone, {
+	C: Comments + Clone,
+{
 	(
 		(
 			regexp(regexp::Config {
-				dot_all_regex:false,
-				has_indices:false,
-				lookbehind_assertion:false,
-				named_capturing_groups_regex:false,
-				sticky_regex:true,
-				unicode_property_regex:false,
-				unicode_regex:true,
-				unicode_sets_regex:false,
+				dot_all_regex: false,
+				has_indices: false,
+				lookbehind_assertion: false,
+				named_capturing_groups_regex: false,
+				sticky_regex: true,
+				unicode_property_regex: false,
+				unicode_regex: true,
+				unicode_sets_regex: false,
 			}),
 			block_scoped_functions(),
 			template_literal(c.template_literal),
@@ -110,31 +98,31 @@ where
 #[serde(rename_all = "camelCase")]
 pub struct Config {
 	#[serde(default)]
-	pub classes:classes::Config,
+	pub classes: classes::Config,
 
 	#[serde(flatten)]
-	pub computed_props:computed_props::Config,
+	pub computed_props: computed_props::Config,
 
 	#[serde(flatten)]
-	pub for_of:for_of::Config,
+	pub for_of: for_of::Config,
 
 	#[serde(flatten)]
-	pub destructuring:destructuring::Config,
+	pub destructuring: destructuring::Config,
 
 	#[serde(flatten)]
-	pub spread:spread::Config,
+	pub spread: spread::Config,
 
 	#[serde(default)]
-	pub regenerator:regenerator::Config,
+	pub regenerator: regenerator::Config,
 
 	#[serde(default)]
-	pub template_literal:template_literal::Config,
+	pub template_literal: template_literal::Config,
 
 	#[serde(default)]
-	pub parameters:parameters::Config,
+	pub parameters: parameters::Config,
 
 	#[serde(default)]
-	pub typescript:bool,
+	pub typescript: bool,
 }
 
 #[cfg(test)]
@@ -320,10 +308,7 @@ return new B(20).print()"
 				Mark::fresh(Mark::root()),
 				Some(t.comments.clone()),
 				Config {
-					classes:classes::Config {
-						set_class_methods:true,
-						..classes::Config::default()
-					},
+					classes: classes::Config { set_class_methods: true, ..classes::Config::default() },
 					..Config::default()
 				},
 			)

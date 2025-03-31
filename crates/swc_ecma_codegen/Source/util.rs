@@ -30,11 +30,9 @@ impl EndsWithAlphaNum for VarDecl {
 	fn ends_with_alpha_num(&self) -> bool {
 		match self.decls.last() {
 			None => true,
-			Some(d) => {
-				match d.init.as_deref() {
-					Some(e) => e.ends_with_alpha_num(),
-					None => d.name.ends_with_alpha_num(),
-				}
+			Some(d) => match d.init.as_deref() {
+				Some(e) => e.ends_with_alpha_num(),
+				None => d.name.ends_with_alpha_num(),
 			},
 		}
 	}
@@ -44,11 +42,9 @@ impl EndsWithAlphaNum for UsingDecl {
 	fn ends_with_alpha_num(&self) -> bool {
 		match self.decls.last() {
 			None => true,
-			Some(d) => {
-				match d.init.as_deref() {
-					Some(e) => e.ends_with_alpha_num(),
-					None => d.name.ends_with_alpha_num(),
-				}
+			Some(d) => match d.init.as_deref() {
+				Some(e) => e.ends_with_alpha_num(),
+				None => d.name.ends_with_alpha_num(),
 			},
 		}
 	}
@@ -70,11 +66,9 @@ impl EndsWithAlphaNum for Expr {
 
 			Expr::Update(n) => n.prefix && n.arg.ends_with_alpha_num(),
 
-			Expr::OptChain(n) => {
-				match n.base.as_ref() {
-					OptChainBase::Member(base) => !base.prop.is_computed(),
-					OptChainBase::Call(_) => false,
-				}
+			Expr::OptChain(n) => match n.base.as_ref() {
+				OptChainBase::Member(base) => !base.prop.is_computed(),
+				OptChainBase::Call(_) => false,
 			},
 
 			Expr::Bin(n) => n.right.ends_with_alpha_num(),
@@ -124,27 +118,37 @@ alpha_num_const!(false, ArrayPat, ObjectPat, Invalid, ParenExpr);
 
 impl StartsWithAlphaNum for MemberExpr {
 	#[inline]
-	fn starts_with_alpha_num(&self) -> bool { self.obj.starts_with_alpha_num() }
+	fn starts_with_alpha_num(&self) -> bool {
+		self.obj.starts_with_alpha_num()
+	}
 }
 
 impl StartsWithAlphaNum for TsAsExpr {
 	#[inline]
-	fn starts_with_alpha_num(&self) -> bool { self.expr.starts_with_alpha_num() }
+	fn starts_with_alpha_num(&self) -> bool {
+		self.expr.starts_with_alpha_num()
+	}
 }
 
 impl StartsWithAlphaNum for TsSatisfiesExpr {
 	#[inline]
-	fn starts_with_alpha_num(&self) -> bool { self.expr.starts_with_alpha_num() }
+	fn starts_with_alpha_num(&self) -> bool {
+		self.expr.starts_with_alpha_num()
+	}
 }
 
 impl StartsWithAlphaNum for TsNonNullExpr {
 	#[inline]
-	fn starts_with_alpha_num(&self) -> bool { self.expr.starts_with_alpha_num() }
+	fn starts_with_alpha_num(&self) -> bool {
+		self.expr.starts_with_alpha_num()
+	}
 }
 
 impl StartsWithAlphaNum for TsInstantiation {
 	#[inline]
-	fn starts_with_alpha_num(&self) -> bool { self.expr.starts_with_alpha_num() }
+	fn starts_with_alpha_num(&self) -> bool {
+		self.expr.starts_with_alpha_num()
+	}
 }
 
 impl StartsWithAlphaNum for PropName {
@@ -179,9 +183,7 @@ impl StartsWithAlphaNum for Expr {
 			// Handle other literals.
 			Expr::Lit(_) => false,
 
-			Expr::Seq(SeqExpr { ref exprs, .. }) => {
-				exprs.first().map(|e| e.starts_with_alpha_num()).unwrap_or(false)
-			},
+			Expr::Seq(SeqExpr { ref exprs, .. }) => exprs.first().map(|e| e.starts_with_alpha_num()).unwrap_or(false),
 
 			//
 			Expr::Assign(AssignExpr { ref left, .. }) => left.starts_with_alpha_num(),

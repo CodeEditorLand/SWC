@@ -1,7 +1,5 @@
 use swc_common::{
-	BytePos,
-	DUMMY_SP,
-	Span,
+	BytePos, DUMMY_SP, Span,
 	comments::{Comment, Comments, SingleThreadedComments},
 };
 use swc_ecma_ast::{Module, Pass, Script};
@@ -18,18 +16,14 @@ use swc_ecma_visit::{VisitMut, VisitMutWith, noop_visit_mut_type, visit_mut_pass
 /// This transformer shifts orphaned comments to the next closest known span
 /// while making a best-effort to preserve the "general orientation" of
 /// comments.
-pub fn dropped_comments_preserver(comments:Option<SingleThreadedComments>) -> impl Pass {
-	visit_mut_pass(DroppedCommentsPreserver {
-		comments,
-		is_first_span:true,
-		known_spans:Vec::new(),
-	})
+pub fn dropped_comments_preserver(comments: Option<SingleThreadedComments>) -> impl Pass {
+	visit_mut_pass(DroppedCommentsPreserver { comments, is_first_span: true, known_spans: Vec::new() })
 }
 
 struct DroppedCommentsPreserver {
-	comments:Option<SingleThreadedComments>,
-	is_first_span:bool,
-	known_spans:Vec<Span>,
+	comments: Option<SingleThreadedComments>,
+	is_first_span: bool,
+	known_spans: Vec<Span>,
 }
 
 type CommentEntries = Vec<(BytePos, Vec<Comment>)>;
@@ -37,7 +31,7 @@ type CommentEntries = Vec<(BytePos, Vec<Comment>)>;
 impl VisitMut for DroppedCommentsPreserver {
 	noop_visit_mut_type!(fail);
 
-	fn visit_mut_module(&mut self, module:&mut Module) {
+	fn visit_mut_module(&mut self, module: &mut Module) {
 		module.visit_mut_children_with(self);
 
 		self.known_spans.sort_by(|span_a, span_b| span_a.lo.cmp(&span_b.lo));
@@ -45,7 +39,7 @@ impl VisitMut for DroppedCommentsPreserver {
 		self.shift_comments_to_known_spans();
 	}
 
-	fn visit_mut_script(&mut self, script:&mut Script) {
+	fn visit_mut_script(&mut self, script: &mut Script) {
 		script.visit_mut_children_with(self);
 
 		self.known_spans.sort_by(|span_a, span_b| span_a.lo.cmp(&span_b.lo));
@@ -53,7 +47,7 @@ impl VisitMut for DroppedCommentsPreserver {
 		self.shift_comments_to_known_spans();
 	}
 
-	fn visit_mut_span(&mut self, span:&mut Span) {
+	fn visit_mut_span(&mut self, span: &mut Span) {
 		if span.is_dummy() || self.is_first_span {
 			self.is_first_span = false;
 
@@ -81,11 +75,10 @@ impl DroppedCommentsPreserver {
 	///
 	/// This way, we only need to take the comments once, and then add them back
 	/// once.
-	fn collect_existing_comments(&self, comments:&SingleThreadedComments) -> CommentEntries {
+	fn collect_existing_comments(&self, comments: &SingleThreadedComments) -> CommentEntries {
 		let (mut leading_comments, mut trailing_comments) = comments.borrow_all_mut();
 
-		let mut existing_comments:CommentEntries =
-			leading_comments.drain().chain(trailing_comments.drain()).collect();
+		let mut existing_comments: CommentEntries = leading_comments.drain().chain(trailing_comments.drain()).collect();
 
 		existing_comments.sort_by(|(bp_a, _), (bp_b, _)| bp_a.cmp(bp_b));
 
@@ -99,7 +92,7 @@ impl DroppedCommentsPreserver {
 	///
 	/// This maintains the highest fidelity between existing comment positions
 	/// of pre and post compiled code.
-	fn shift_leading_comments(&self, comments:&SingleThreadedComments) -> CommentEntries {
+	fn shift_leading_comments(&self, comments: &SingleThreadedComments) -> CommentEntries {
 		let mut existing_comments = self.collect_existing_comments(comments);
 
 		existing_comments.sort_by(|(bp_a, _), (bp_b, _)| bp_a.cmp(bp_b));
@@ -122,9 +115,8 @@ impl DroppedCommentsPreserver {
 	/// Therefore, by shifting them to trail the highest known hi position, we
 	/// ensure that any remaining trailing comments are emitted in a
 	/// similar location
-	fn shift_trailing_comments(&self, remaining_comment_entries:CommentEntries) {
-		let last_trailing =
-			self.known_spans.iter().max_by_key(|span| span.hi).cloned().unwrap_or(DUMMY_SP);
+	fn shift_trailing_comments(&self, remaining_comment_entries: CommentEntries) {
+		let last_trailing = self.known_spans.iter().max_by_key(|span| span.hi).cloned().unwrap_or(DUMMY_SP);
 
 		self.comments.add_trailing_comments(
 			last_trailing.hi,

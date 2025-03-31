@@ -25,29 +25,35 @@ use swc_trace_macro::swc_trace;
 ///
 /// x = Math.pow(x, 3);
 /// ```
-pub fn exponentiation() -> impl Pass { visit_mut_pass(Exponentiation::default()) }
+pub fn exponentiation() -> impl Pass {
+	visit_mut_pass(Exponentiation::default())
+}
 
 #[derive(Default)]
 struct Exponentiation {
-	vars:Vec<VarDeclarator>,
+	vars: Vec<VarDeclarator>,
 }
 
 impl Parallel for Exponentiation {
-	fn create(&self) -> Self { Self::default() }
+	fn create(&self) -> Self {
+		Self::default()
+	}
 
-	fn merge(&mut self, other:Self) { self.vars.extend(other.vars); }
+	fn merge(&mut self, other: Self) {
+		self.vars.extend(other.vars);
+	}
 }
 
 #[swc_trace]
 impl ParExplode for Exponentiation {
-	fn after_one_stmt(&mut self, stmts:&mut Vec<Stmt>) {
+	fn after_one_stmt(&mut self, stmts: &mut Vec<Stmt>) {
 		if !self.vars.is_empty() {
 			stmts.push(
 				VarDecl {
-					span:DUMMY_SP,
-					kind:VarDeclKind::Var,
-					decls:self.vars.take(),
-					declare:false,
+					span: DUMMY_SP,
+					kind: VarDeclKind::Var,
+					decls: self.vars.take(),
+					declare: false,
 					..Default::default()
 				}
 				.into(),
@@ -55,14 +61,14 @@ impl ParExplode for Exponentiation {
 		}
 	}
 
-	fn after_one_module_item(&mut self, stmts:&mut Vec<ModuleItem>) {
+	fn after_one_module_item(&mut self, stmts: &mut Vec<ModuleItem>) {
 		if !self.vars.is_empty() {
 			stmts.push(
 				VarDecl {
-					span:DUMMY_SP,
-					kind:VarDeclKind::Var,
-					decls:self.vars.take(),
-					declare:false,
+					span: DUMMY_SP,
+					kind: VarDeclKind::Var,
+					decls: self.vars.take(),
+					declare: false,
 					..Default::default()
 				}
 				.into(),
@@ -76,12 +82,12 @@ impl ParExplode for Exponentiation {
 impl VisitMut for Exponentiation {
 	noop_visit_mut_type!(fail);
 
-	fn visit_mut_expr(&mut self, e:&mut Expr) {
+	fn visit_mut_expr(&mut self, e: &mut Expr) {
 		e.visit_mut_children_with(self);
 
 		match e {
 			Expr::Assign(AssignExpr { span, left, op: op @ op!("**="), right }) => {
-				let lhs:Ident = match left {
+				let lhs: Ident = match left {
 					_ if left.as_ident().is_some() => left.as_ident().unwrap().clone().into(),
 
 					// unimplemented
@@ -89,23 +95,17 @@ impl VisitMut for Exponentiation {
 						let ref_ident = private_ident!(e.span(), "ref");
 
 						self.vars.push(VarDeclarator {
-							span:DUMMY_SP,
-							name:ref_ident.clone().into(),
-							init:Some(e.clone().into()),
-							definite:false,
+							span: DUMMY_SP,
+							name: ref_ident.clone().into(),
+							init: Some(e.clone().into()),
+							definite: false,
 						});
 
 						ref_ident
 					},
 
 					left => {
-						*e = AssignExpr {
-							span:*span,
-							left:left.take(),
-							op:op!("="),
-							right:right.take(),
-						}
-						.into();
+						*e = AssignExpr { span: *span, left: left.take(), op: op!("="), right: right.take() }.into();
 
 						return;
 					},
@@ -125,13 +125,13 @@ impl VisitMut for Exponentiation {
 }
 
 #[tracing::instrument(level = "info", skip_all)]
-fn mk_call(span:Span, left:Box<Expr>, right:Box<Expr>) -> Expr {
+fn mk_call(span: Span, left: Box<Expr>, right: Box<Expr>) -> Expr {
 	// Math.pow()
 	CallExpr {
 		span,
-		callee:member_expr!(Default::default(), span, Math.pow).as_callee(),
+		callee: member_expr!(Default::default(), span, Math.pow).as_callee(),
 
-		args:vec![left.as_arg(), right.as_arg()],
+		args: vec![left.as_arg(), right.as_arg()],
 		..Default::default()
 	}
 	.into()

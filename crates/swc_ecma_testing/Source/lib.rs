@@ -18,13 +18,13 @@ pub struct JsExecOptions {
 	///
 	/// You can change the cache directory name by setting the
 	/// `SWC_ECMA_TESTING_CACHE_DIR`
-	pub cache:bool,
+	pub cache: bool,
 
 	/// If true, `--input-type=module` will be added.
-	pub module:bool,
+	pub module: bool,
 
 	/// The arguments passed to the node.js process.
-	pub args:Vec<String>,
+	pub args: Vec<String>,
 }
 
 fn cargo_cache_root() -> PathBuf {
@@ -34,7 +34,7 @@ fn cargo_cache_root() -> PathBuf {
 }
 
 /// Executes `js_code` and capture thw output.
-pub fn exec_node_js(js_code:&str, opts:JsExecOptions) -> Result<String> {
+pub fn exec_node_js(js_code: &str, opts: JsExecOptions) -> Result<String> {
 	if opts.cache {
 		let hash = calc_hash(&format!("{:?}:{}", opts.args, js_code));
 
@@ -46,7 +46,7 @@ pub fn exec_node_js(js_code:&str, opts:JsExecOptions) -> Result<String> {
 			return Ok(s);
 		}
 
-		let output = exec_node_js(js_code, JsExecOptions { cache:false, ..opts })?;
+		let output = exec_node_js(js_code, JsExecOptions { cache: false, ..opts })?;
 
 		fs::create_dir_all(&cache_dir).context("failed to create cache directory")?;
 
@@ -84,7 +84,7 @@ pub fn exec_node_js(js_code:&str, opts:JsExecOptions) -> Result<String> {
 	String::from_utf8(output.stdout).context("output is not utf8")
 }
 
-fn calc_hash(s:&str) -> String {
+fn calc_hash(s: &str) -> String {
 	let mut hasher = Sha256::default();
 
 	hasher.update(s.as_bytes());

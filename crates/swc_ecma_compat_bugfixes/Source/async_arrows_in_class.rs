@@ -12,14 +12,14 @@ use swc_trace_macro::swc_trace;
 /// instance via `this` within those methods would also throw. This is fixed by
 /// converting arrow functions in class methods into equivalent function
 /// expressions. See https://bugs.webkit.org/show_bug.cgi?id=166879
-pub fn async_arrows_in_class(unresolved_mark:Mark) -> impl Pass {
+pub fn async_arrows_in_class(unresolved_mark: Mark) -> impl Pass {
 	fold_pass(AsyncArrowsInClass { unresolved_mark, ..Default::default() })
 }
 #[derive(Default, Clone)]
 struct AsyncArrowsInClass {
-	in_class_method:bool,
-	unresolved_mark:Mark,
-	vars:Vec<VarDeclarator>,
+	in_class_method: bool,
+	unresolved_mark: Mark,
+	vars: Vec<VarDeclarator>,
 }
 
 /// TODO: VisitMut
@@ -27,7 +27,7 @@ struct AsyncArrowsInClass {
 impl Fold for AsyncArrowsInClass {
 	standard_only_fold!();
 
-	fn fold_class_method(&mut self, n:ClassMethod) -> ClassMethod {
+	fn fold_class_method(&mut self, n: ClassMethod) -> ClassMethod {
 		self.in_class_method = true;
 
 		let res = n.fold_children_with(self);
@@ -37,7 +37,7 @@ impl Fold for AsyncArrowsInClass {
 		res
 	}
 
-	fn fold_constructor(&mut self, n:Constructor) -> Constructor {
+	fn fold_constructor(&mut self, n: Constructor) -> Constructor {
 		self.in_class_method = true;
 
 		let res = n.fold_children_with(self);
@@ -47,7 +47,7 @@ impl Fold for AsyncArrowsInClass {
 		res
 	}
 
-	fn fold_expr(&mut self, n:Expr) -> Expr {
+	fn fold_expr(&mut self, n: Expr) -> Expr {
 		let mut n = n.fold_children_with(self);
 
 		if !self.in_class_method {
@@ -73,17 +73,17 @@ impl Fold for AsyncArrowsInClass {
 		}
 	}
 
-	fn fold_module_items(&mut self, stmts:Vec<ModuleItem>) -> Vec<ModuleItem> {
+	fn fold_module_items(&mut self, stmts: Vec<ModuleItem>) -> Vec<ModuleItem> {
 		let mut stmts = stmts.fold_children_with(self);
 
 		if !self.vars.is_empty() {
 			prepend_stmt(
 				&mut stmts,
 				VarDecl {
-					span:DUMMY_SP,
-					kind:VarDeclKind::Var,
-					declare:false,
-					decls:self.vars.take(),
+					span: DUMMY_SP,
+					kind: VarDeclKind::Var,
+					declare: false,
+					decls: self.vars.take(),
 					..Default::default()
 				}
 				.into(),
@@ -93,17 +93,17 @@ impl Fold for AsyncArrowsInClass {
 		stmts
 	}
 
-	fn fold_stmts(&mut self, stmts:Vec<Stmt>) -> Vec<Stmt> {
+	fn fold_stmts(&mut self, stmts: Vec<Stmt>) -> Vec<Stmt> {
 		let mut stmts = stmts.fold_children_with(self);
 
 		if !self.vars.is_empty() {
 			prepend_stmt(
 				&mut stmts,
 				VarDecl {
-					span:DUMMY_SP,
-					kind:VarDeclKind::Var,
-					declare:false,
-					decls:self.vars.take(),
+					span: DUMMY_SP,
+					kind: VarDeclKind::Var,
+					declare: false,
+					decls: self.vars.take(),
 					..Default::default()
 				}
 				.into(),

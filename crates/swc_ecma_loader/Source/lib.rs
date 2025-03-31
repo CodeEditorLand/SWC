@@ -8,7 +8,7 @@ pub mod resolvers;
 /// List of built in packages for latest stable node with LTS (node@16).
 ///
 /// Run `node -p "require('module').builtinModules"`
-pub const NODE_BUILTINS:&[&str] = &[
+pub const NODE_BUILTINS: &[&str] = &[
 	"_http_agent",
 	"_http_client",
 	"_http_common",

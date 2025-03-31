@@ -15,11 +15,11 @@ use crate::util::{
 /// options.
 #[derive(Debug, Args)]
 pub struct CompareOptsCommand {
-	pub path:PathBuf,
+	pub path: PathBuf,
 }
 
 impl CompareOptsCommand {
-	pub fn run(self, cm:Arc<SourceMap>) -> Result<()> {
+	pub fn run(self, cm: Arc<SourceMap>) -> Result<()> {
 		let files = all_js_files(&self.path)?;
 
 		let mut default_sum = 0;
@@ -29,8 +29,8 @@ impl CompareOptsCommand {
 		for file in files {
 			let default_record = get_minified(cm.clone(), &file, true, true)?;
 
-			let default_code = print_js(cm.clone(), &default_record.module, true)
-				.context("failed to convert ast to code")?;
+			let default_code =
+				print_js(cm.clone(), &default_record.module, true).context("failed to convert ast to code")?;
 
 			eprintln!("default: {} bytes", default_code.as_bytes().len());
 
@@ -39,20 +39,11 @@ impl CompareOptsCommand {
 			let new_record = get_minified_with_opts(
 				cm.clone(),
 				&file,
-				Some(CompressOptions {
-					keep_classnames:true,
-					keep_fnames:true,
-					..Default::default()
-				}),
-				Some(MangleOptions {
-					keep_class_names:true,
-					keep_fn_names:true,
-					..Default::default()
-				}),
+				Some(CompressOptions { keep_classnames: true, keep_fnames: true, ..Default::default() }),
+				Some(MangleOptions { keep_class_names: true, keep_fn_names: true, ..Default::default() }),
 			)?;
 
-			let new_code = print_js(cm.clone(), &new_record.module, true)
-				.context("failed to convert ast to code")?;
+			let new_code = print_js(cm.clone(), &new_record.module, true).context("failed to convert ast to code")?;
 
 			eprintln!("new: {} bytes", new_code.as_bytes().len());
 

@@ -7,16 +7,17 @@ use swc_ecma_visit::{Visit, VisitWith, noop_visit_type};
 
 /// Assert in debug mode. This is noop in release build.
 #[cfg_attr(not(debug_assertions), inline(always))]
-pub fn debug_assert_valid<N>(node:&N)
+pub fn debug_assert_valid<N>(node: &N)
 where
-	N: VisitWith<AssertValid>, {
+	N: VisitWith<AssertValid>,
+{
 	#[cfg(debug_assertions)]
 	node.visit_with(&mut AssertValid);
 }
 
 #[cfg(debug_assertions)]
 struct Ctx<'a> {
-	v:&'a dyn Debug,
+	v: &'a dyn Debug,
 }
 
 #[cfg(debug_assertions)]
@@ -32,8 +33,8 @@ impl Visit for AssertValid {
 	noop_visit_type!(fail);
 
 	#[cfg(debug_assertions)]
-	fn visit_expr(&mut self, n:&Expr) {
-		let ctx = Ctx { v:n };
+	fn visit_expr(&mut self, n: &Expr) {
+		let ctx = Ctx { v: n };
 
 		n.visit_children_with(self);
 
@@ -41,21 +42,23 @@ impl Visit for AssertValid {
 	}
 
 	#[cfg(debug_assertions)]
-	fn visit_invalid(&mut self, _:&Invalid) {
+	fn visit_invalid(&mut self, _: &Invalid) {
 		panic!("Invalid node found");
 	}
 
 	#[cfg(debug_assertions)]
-	fn visit_number(&mut self, n:&Number) {
+	fn visit_number(&mut self, n: &Number) {
 		assert!(!n.value.is_nan(), "NaN should be an identifier");
 	}
 
 	#[cfg(debug_assertions)]
-	fn visit_setter_prop(&mut self, p:&SetterProp) { p.body.visit_with(self); }
+	fn visit_setter_prop(&mut self, p: &SetterProp) {
+		p.body.visit_with(self);
+	}
 
 	#[cfg(debug_assertions)]
-	fn visit_stmt(&mut self, n:&Stmt) {
-		let ctx = Ctx { v:n };
+	fn visit_stmt(&mut self, n: &Stmt) {
+		let ctx = Ctx { v: n };
 
 		n.visit_children_with(self);
 
@@ -63,14 +66,14 @@ impl Visit for AssertValid {
 	}
 
 	#[cfg(debug_assertions)]
-	fn visit_tpl(&mut self, l:&Tpl) {
+	fn visit_tpl(&mut self, l: &Tpl) {
 		l.visit_children_with(self);
 
 		assert_eq!(l.exprs.len() + 1, l.quasis.len());
 	}
 
 	#[cfg(debug_assertions)]
-	fn visit_var_declarators(&mut self, v:&[VarDeclarator]) {
+	fn visit_var_declarators(&mut self, v: &[VarDeclarator]) {
 		v.visit_children_with(self);
 
 		if v.is_empty() {
@@ -79,7 +82,7 @@ impl Visit for AssertValid {
 	}
 
 	#[cfg(debug_assertions)]
-	fn visit_seq_expr(&mut self, v:&SeqExpr) {
+	fn visit_seq_expr(&mut self, v: &SeqExpr) {
 		v.visit_children_with(self);
 
 		// TODO(kdy1): Make parser does not create invalid sequential

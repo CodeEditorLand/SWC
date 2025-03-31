@@ -5,7 +5,9 @@ use swc_ecma_visit::{VisitMut, VisitMutWith, noop_visit_mut_type};
 
 use crate::type_to_none;
 
-pub fn strip_type() -> impl VisitMut { StripType::default() }
+pub fn strip_type() -> impl VisitMut {
+	StripType::default()
+}
 
 /// This Module will strip all types/generics/interface/declares
 /// and type import/export
@@ -23,13 +25,13 @@ impl VisitMut for StripType {
 
 	type_to_none!(visit_mut_opt_ts_type_param_instantiation, Box<TsTypeParamInstantiation>);
 
-	fn visit_mut_array_pat(&mut self, n:&mut ArrayPat) {
+	fn visit_mut_array_pat(&mut self, n: &mut ArrayPat) {
 		n.visit_mut_children_with(self);
 
 		n.optional = false;
 	}
 
-	fn visit_mut_auto_accessor(&mut self, n:&mut AutoAccessor) {
+	fn visit_mut_auto_accessor(&mut self, n: &mut AutoAccessor) {
 		n.type_ann = None;
 
 		n.accessibility = None;
@@ -43,7 +45,7 @@ impl VisitMut for StripType {
 		n.visit_mut_children_with(self);
 	}
 
-	fn visit_mut_class(&mut self, n:&mut Class) {
+	fn visit_mut_class(&mut self, n: &mut Class) {
 		n.is_abstract = false;
 
 		n.implements.clear();
@@ -51,30 +53,24 @@ impl VisitMut for StripType {
 		n.visit_mut_children_with(self);
 	}
 
-	fn visit_mut_class_members(&mut self, n:&mut Vec<ClassMember>) {
-		n.retain(|member| {
-			match member {
-				ClassMember::TsIndexSignature(..) => false,
-				ClassMember::Constructor(Constructor { body: None, .. }) => false,
+	fn visit_mut_class_members(&mut self, n: &mut Vec<ClassMember>) {
+		n.retain(|member| match member {
+			ClassMember::TsIndexSignature(..) => false,
+			ClassMember::Constructor(Constructor { body: None, .. }) => false,
 
-				ClassMember::Method(ClassMethod { is_abstract, function, .. })
-				| ClassMember::PrivateMethod(PrivateMethod { is_abstract, function, .. }) => {
-					!is_abstract && function.body.is_some()
-				},
+			ClassMember::Method(ClassMethod { is_abstract, function, .. })
+			| ClassMember::PrivateMethod(PrivateMethod { is_abstract, function, .. }) => !is_abstract && function.body.is_some(),
 
-				ClassMember::ClassProp(
-					ClassProp { declare: true, .. } | ClassProp { is_abstract: true, .. },
-				)
-				| ClassMember::AutoAccessor(AutoAccessor { is_abstract: true, .. }) => false,
+			ClassMember::ClassProp(ClassProp { declare: true, .. } | ClassProp { is_abstract: true, .. })
+			| ClassMember::AutoAccessor(AutoAccessor { is_abstract: true, .. }) => false,
 
-				_ => true,
-			}
+			_ => true,
 		});
 
 		n.visit_mut_children_with(self);
 	}
 
-	fn visit_mut_class_method(&mut self, n:&mut ClassMethod) {
+	fn visit_mut_class_method(&mut self, n: &mut ClassMethod) {
 		n.accessibility = None;
 
 		n.is_override = false;
@@ -86,7 +82,7 @@ impl VisitMut for StripType {
 		n.visit_mut_children_with(self);
 	}
 
-	fn visit_mut_class_prop(&mut self, prop:&mut ClassProp) {
+	fn visit_mut_class_prop(&mut self, prop: &mut ClassProp) {
 		prop.declare = false;
 
 		prop.readonly = false;
@@ -104,7 +100,7 @@ impl VisitMut for StripType {
 		prop.visit_mut_children_with(self);
 	}
 
-	fn visit_mut_private_method(&mut self, n:&mut PrivateMethod) {
+	fn visit_mut_private_method(&mut self, n: &mut PrivateMethod) {
 		n.accessibility = None;
 
 		n.is_abstract = false;
@@ -116,22 +112,20 @@ impl VisitMut for StripType {
 		n.visit_mut_children_with(self);
 	}
 
-	fn visit_mut_constructor(&mut self, n:&mut Constructor) {
+	fn visit_mut_constructor(&mut self, n: &mut Constructor) {
 		n.accessibility = None;
 
 		n.visit_mut_children_with(self);
 	}
 
-	fn visit_mut_export_specifiers(&mut self, n:&mut Vec<ExportSpecifier>) {
-		n.retain(|s| {
-			match s {
-				ExportSpecifier::Named(ExportNamedSpecifier { is_type_only, .. }) => !is_type_only,
-				_ => true,
-			}
+	fn visit_mut_export_specifiers(&mut self, n: &mut Vec<ExportSpecifier>) {
+		n.retain(|s| match s {
+			ExportSpecifier::Named(ExportNamedSpecifier { is_type_only, .. }) => !is_type_only,
+			_ => true,
 		})
 	}
 
-	fn visit_mut_expr(&mut self, n:&mut Expr) {
+	fn visit_mut_expr(&mut self, n: &mut Expr) {
 		// https://github.com/tc39/proposal-type-annotations#type-assertions
 		// https://github.com/tc39/proposal-type-annotations#non-nullable-assertions
 		while let Expr::TsAs(TsAsExpr { expr, .. })
@@ -148,26 +142,28 @@ impl VisitMut for StripType {
 	}
 
 	// https://github.com/tc39/proposal-type-annotations#parameter-optionality
-	fn visit_mut_ident(&mut self, n:&mut Ident) { n.optional = false; }
+	fn visit_mut_ident(&mut self, n: &mut Ident) {
+		n.optional = false;
+	}
 
-	fn visit_mut_import_specifiers(&mut self, n:&mut Vec<ImportSpecifier>) {
+	fn visit_mut_import_specifiers(&mut self, n: &mut Vec<ImportSpecifier>) {
 		n.retain(|s| !matches!(s, ImportSpecifier::Named(named) if named.is_type_only));
 	}
 
-	fn visit_mut_module_items(&mut self, n:&mut Vec<ModuleItem>) {
+	fn visit_mut_module_items(&mut self, n: &mut Vec<ModuleItem>) {
 		n.retain(should_retain_module_item);
 
 		n.visit_mut_children_with(self);
 	}
 
-	fn visit_mut_object_pat(&mut self, pat:&mut ObjectPat) {
+	fn visit_mut_object_pat(&mut self, pat: &mut ObjectPat) {
 		pat.visit_mut_children_with(self);
 
 		pat.optional = false;
 	}
 
 	// https://github.com/tc39/proposal-type-annotations#this-parameters
-	fn visit_mut_params(&mut self, n:&mut Vec<Param>) {
+	fn visit_mut_params(&mut self, n: &mut Vec<Param>) {
 		if n.first()
 			.filter(|param| {
 				matches!(
@@ -186,7 +182,7 @@ impl VisitMut for StripType {
 		n.visit_mut_children_with(self);
 	}
 
-	fn visit_mut_private_prop(&mut self, prop:&mut PrivateProp) {
+	fn visit_mut_private_prop(&mut self, prop: &mut PrivateProp) {
 		prop.readonly = false;
 
 		prop.is_override = false;
@@ -200,13 +196,13 @@ impl VisitMut for StripType {
 		prop.visit_mut_children_with(self);
 	}
 
-	fn visit_mut_setter_prop(&mut self, n:&mut SetterProp) {
+	fn visit_mut_setter_prop(&mut self, n: &mut SetterProp) {
 		n.this_param = None;
 
 		n.visit_mut_children_with(self);
 	}
 
-	fn visit_mut_simple_assign_target(&mut self, n:&mut SimpleAssignTarget) {
+	fn visit_mut_simple_assign_target(&mut self, n: &mut SimpleAssignTarget) {
 		// https://github.com/tc39/proposal-type-annotations#type-assertions
 		// https://github.com/tc39/proposal-type-annotations#non-nullable-assertions
 		while let SimpleAssignTarget::TsAs(TsAsExpr { expr, .. })
@@ -221,13 +217,13 @@ impl VisitMut for StripType {
 		n.visit_mut_children_with(self);
 	}
 
-	fn visit_mut_stmts(&mut self, n:&mut Vec<Stmt>) {
+	fn visit_mut_stmts(&mut self, n: &mut Vec<Stmt>) {
 		n.visit_mut_children_with(self);
 
 		n.retain(|s| !matches!(s, Stmt::Empty(e) if e.span.is_dummy()));
 	}
 
-	fn visit_mut_stmt(&mut self, n:&mut Stmt) {
+	fn visit_mut_stmt(&mut self, n: &mut Stmt) {
 		if should_retain_stmt(n) {
 			n.visit_mut_children_with(self);
 		} else if !n.is_empty() {
@@ -235,11 +231,11 @@ impl VisitMut for StripType {
 		}
 	}
 
-	fn visit_mut_ts_import_equals_decl(&mut self, _:&mut TsImportEqualsDecl) {
+	fn visit_mut_ts_import_equals_decl(&mut self, _: &mut TsImportEqualsDecl) {
 		// n.id.visit_mut_with(self);
 	}
 
-	fn visit_mut_ts_param_prop(&mut self, n:&mut TsParamProp) {
+	fn visit_mut_ts_param_prop(&mut self, n: &mut TsParamProp) {
 		// skip accessibility
 		n.decorators.visit_mut_with(self);
 
@@ -247,24 +243,22 @@ impl VisitMut for StripType {
 	}
 }
 
-fn should_retain_module_item(module_item:&ModuleItem) -> bool {
+fn should_retain_module_item(module_item: &ModuleItem) -> bool {
 	match module_item {
-		ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(export_decl)) => {
-			should_retain_decl(&export_decl.decl)
-		},
+		ModuleItem::ModuleDecl(ModuleDecl::ExportDecl(export_decl)) => should_retain_decl(&export_decl.decl),
 
 		ModuleItem::Stmt(stmt) => should_retain_stmt(stmt),
 		_ => module_item.is_concrete(),
 	}
 }
-fn should_retain_stmt(stmt:&Stmt) -> bool {
+fn should_retain_stmt(stmt: &Stmt) -> bool {
 	match stmt {
 		Stmt::Decl(decl) => should_retain_decl(decl),
 		_ => stmt.is_concrete(),
 	}
 }
 
-fn should_retain_decl(decl:&Decl) -> bool {
+fn should_retain_decl(decl: &Decl) -> bool {
 	if decl.is_declare() {
 		return false;
 	}
@@ -285,9 +279,7 @@ impl IsConcrete for TsModuleDecl {
 impl IsConcrete for TsNamespaceBody {
 	fn is_concrete(&self) -> bool {
 		match self {
-			Self::TsModuleBlock(ts_module_block) => {
-				ts_module_block.body.iter().any(|item| item.is_concrete())
-			},
+			Self::TsModuleBlock(ts_module_block) => ts_module_block.body.iter().any(|item| item.is_concrete()),
 
 			Self::TsNamespaceDecl(ts_namespace_decl) => ts_namespace_decl.body.is_concrete(),
 		}

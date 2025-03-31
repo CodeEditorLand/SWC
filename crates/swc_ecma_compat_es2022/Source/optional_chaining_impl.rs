@@ -6,40 +6,42 @@ use swc_ecma_utils::{ExprFactory, StmtLike, alias_ident_for, prepend_stmt, quote
 use swc_ecma_visit::{VisitMut, VisitMutWith, noop_visit_mut_type};
 
 /// Not a public API and may break any time. Don't use it directly.
-pub fn optional_chaining_impl(c:Config, unresolved_mark:Mark) -> OptionalChaining {
+pub fn optional_chaining_impl(c: Config, unresolved_mark: Mark) -> OptionalChaining {
 	OptionalChaining {
 		c,
-		unresolved_ctxt:SyntaxContext::empty().apply_mark(unresolved_mark),
+		unresolved_ctxt: SyntaxContext::empty().apply_mark(unresolved_mark),
 		..Default::default()
 	}
 }
 
 #[derive(Default)]
 pub struct OptionalChaining {
-	vars:Vec<VarDeclarator>,
-	unresolved_ctxt:SyntaxContext,
-	c:Config,
+	vars: Vec<VarDeclarator>,
+	unresolved_ctxt: SyntaxContext,
+	c: Config,
 }
 
 impl OptionalChaining {
-	pub fn take_vars(&mut self) -> Vec<VarDeclarator> { mem::take(&mut self.vars) }
+	pub fn take_vars(&mut self) -> Vec<VarDeclarator> {
+		mem::take(&mut self.vars)
+	}
 }
 
 /// Not a public API and may break any time. Don't use it directly.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct Config {
-	pub no_document_all:bool,
-	pub pure_getter:bool,
+	pub no_document_all: bool,
+	pub pure_getter: bool,
 }
 
 impl VisitMut for OptionalChaining {
 	noop_visit_mut_type!(fail);
 
-	fn visit_mut_block_stmt_or_expr(&mut self, expr:&mut BlockStmtOrExpr) {
+	fn visit_mut_block_stmt_or_expr(&mut self, expr: &mut BlockStmtOrExpr) {
 		if let BlockStmtOrExpr::Expr(e) = expr {
 			let mut stmt = BlockStmt {
-				span:DUMMY_SP,
-				stmts:vec![Stmt::Return(ReturnStmt { span:DUMMY_SP, arg:Some(e.take()) })],
+				span: DUMMY_SP,
+				stmts: vec![Stmt::Return(ReturnStmt { span: DUMMY_SP, arg: Some(e.take()) })],
 				..Default::default()
 			};
 
@@ -49,9 +51,7 @@ impl VisitMut for OptionalChaining {
 			// injected an VarDecl statement and we need to transform into a
 			// block. If not, then we can keep the expression.
 			match &mut stmt.stmts[..] {
-				[Stmt::Return(ReturnStmt { arg: Some(e), .. })] => {
-					*expr = BlockStmtOrExpr::Expr(e.take())
-				},
+				[Stmt::Return(ReturnStmt { arg: Some(e), .. })] => *expr = BlockStmtOrExpr::Expr(e.take()),
 
 				_ => *expr = BlockStmtOrExpr::BlockStmt(stmt),
 			}
@@ -60,7 +60,7 @@ impl VisitMut for OptionalChaining {
 		}
 	}
 
-	fn visit_mut_expr(&mut self, e:&mut Expr) {
+	fn visit_mut_expr(&mut self, e: &mut Expr) {
 		match e {
 			// foo?.bar -> foo == null ? void 0 : foo.bar
 			Expr::OptChain(v) => {
@@ -84,7 +84,7 @@ impl VisitMut for OptionalChaining {
 		}
 	}
 
-	fn visit_mut_pat(&mut self, n:&mut Pat) {
+	fn visit_mut_pat(&mut self, n: &mut Pat) {
 		// The default initializer of an assignment pattern must not leak the memo
 		// variable into the enclosing scope.
 		// function(a, b = a?.b) {} -> function(a, b = (() => var _a; …)()) {}
@@ -104,29 +104,29 @@ impl VisitMut for OptionalChaining {
 		if !self.vars.is_empty() {
 			let stmts = vec![
 				Stmt::Decl(Decl::Var(Box::new(VarDecl {
-					kind:VarDeclKind::Var,
-					decls:mem::take(&mut self.vars),
+					kind: VarDeclKind::Var,
+					decls: mem::take(&mut self.vars),
 					..Default::default()
 				}))),
-				Stmt::Return(ReturnStmt { span:DUMMY_SP, arg:Some(a.right.take()) }),
+				Stmt::Return(ReturnStmt { span: DUMMY_SP, arg: Some(a.right.take()) }),
 			];
 
 			a.right = CallExpr {
-				span:DUMMY_SP,
-				callee:ArrowExpr {
-					span:DUMMY_SP,
-					params:Vec::new(),
-					body:Box::new(BlockStmtOrExpr::BlockStmt(BlockStmt {
-						span:DUMMY_SP,
+				span: DUMMY_SP,
+				callee: ArrowExpr {
+					span: DUMMY_SP,
+					params: Vec::new(),
+					body: Box::new(BlockStmtOrExpr::BlockStmt(BlockStmt {
+						span: DUMMY_SP,
 						stmts,
 						..Default::default()
 					})),
-					is_async:false,
-					is_generator:false,
+					is_async: false,
+					is_generator: false,
 					..Default::default()
 				}
 				.as_callee(),
-				args:Vec::new(),
+				args: Vec::new(),
 				..Default::default()
 			}
 			.into();
@@ -137,9 +137,13 @@ impl VisitMut for OptionalChaining {
 		a.left.visit_mut_with(self);
 	}
 
-	fn visit_mut_module_items(&mut self, n:&mut Vec<ModuleItem>) { self.visit_mut_stmt_like(n); }
+	fn visit_mut_module_items(&mut self, n: &mut Vec<ModuleItem>) {
+		self.visit_mut_stmt_like(n);
+	}
 
-	fn visit_mut_stmts(&mut self, n:&mut Vec<Stmt>) { self.visit_mut_stmt_like(n); }
+	fn visit_mut_stmts(&mut self, n: &mut Vec<Stmt>) {
+		self.visit_mut_stmt_like(n);
+	}
 }
 
 #[derive(Debug, Clone)]
@@ -171,11 +175,7 @@ impl OptionalChaining {
 	/// constructed node in the construct step.
 	/// The top member/call will be first, and the deepest obj/callee will be
 	/// last.
-	fn gather(
-		&mut self,
-		v:OptChainExpr,
-		mut chain:Vec<Gathering>,
-	) -> (Expr, usize, Vec<Gathering>) {
+	fn gather(&mut self, v: OptChainExpr, mut chain: Vec<Gathering>) -> (Expr, usize, Vec<Gathering>) {
 		let mut current = v;
 
 		let mut count = 0;
@@ -231,7 +231,7 @@ impl OptionalChaining {
 
 	/// Constructs a rightward nested conditional expression out of our
 	/// flattened chain.
-	fn construct(&mut self, data:(Expr, usize, Vec<Gathering>), is_delete:bool) -> Expr {
+	fn construct(&mut self, data: (Expr, usize, Vec<Gathering>), is_delete: bool) -> Expr {
 		let (mut current, count, chain) = data;
 
 		// Stores partially constructed CondExprs for us to assemble later on.
@@ -285,10 +285,10 @@ impl OptionalChaining {
 								match &this {
 									Memo::Cache(i) => {
 										m.obj = AssignExpr {
-											span:DUMMY_SP,
-											op:op!("="),
-											left:i.clone().into(),
-											right:m.obj.take(),
+											span: DUMMY_SP,
+											op: op!("="),
+											left: i.clone().into(),
+											right: m.obj.take(),
 										}
 										.into();
 
@@ -305,17 +305,17 @@ impl OptionalChaining {
 						Expr::SuperProp(s) => {
 							call = true;
 
-							c.args.insert(0, ThisExpr { span:s.obj.span }.as_arg());
+							c.args.insert(0, ThisExpr { span: s.obj.span }.as_arg());
 						},
 
 						_ => {},
 					}
 
 					committed_cond.push(CondExpr {
-						span:DUMMY_SP,
-						test:init_and_eq_null_or_undefined(&memo, current, self.c.no_document_all),
-						cons:if is_delete { true.into() } else { Expr::undefined(DUMMY_SP) },
-						alt:Take::dummy(),
+						span: DUMMY_SP,
+						test: init_and_eq_null_or_undefined(&memo, current, self.c.no_document_all),
+						cons: if is_delete { true.into() } else { Expr::undefined(DUMMY_SP) },
+						alt: Take::dummy(),
 					});
 
 					c.callee = if call {
@@ -331,10 +331,10 @@ impl OptionalChaining {
 
 				Gathering::OptMember(mut m, memo) => {
 					committed_cond.push(CondExpr {
-						span:DUMMY_SP,
-						test:init_and_eq_null_or_undefined(&memo, current, self.c.no_document_all),
-						cons:if is_delete { true.into() } else { Expr::undefined(DUMMY_SP) },
-						alt:Take::dummy(),
+						span: DUMMY_SP,
+						test: init_and_eq_null_or_undefined(&memo, current, self.c.no_document_all),
+						cons: if is_delete { true.into() } else { Expr::undefined(DUMMY_SP) },
+						alt: Take::dummy(),
 					});
 
 					ctx = Some(memo.clone());
@@ -348,7 +348,7 @@ impl OptionalChaining {
 
 		// At this point, `current` is the right-most expression `_a_b.c` in `a?.b?.c`
 		if is_delete {
-			current = UnaryExpr { span:DUMMY_SP, op:op!("delete"), arg:Box::new(current) }.into();
+			current = UnaryExpr { span: DUMMY_SP, op: op!("delete"), arg: Box::new(current) }.into();
 		}
 
 		// We now need to reverse iterate the conditionals to construct out tree.
@@ -361,8 +361,8 @@ impl OptionalChaining {
 		current
 	}
 
-	fn should_memo(&self, expr:&Expr, is_call:bool) -> bool {
-		fn is_simple_member(e:&Expr) -> bool {
+	fn should_memo(&self, expr: &Expr, is_call: bool) -> bool {
+		fn is_simple_member(e: &Expr) -> bool {
 			match e {
 				Expr::This(..) => true,
 				Expr::Ident(_) => true,
@@ -384,16 +384,12 @@ impl OptionalChaining {
 		}
 	}
 
-	fn memoize(&mut self, expr:&Expr, is_call:bool) -> Memo {
+	fn memoize(&mut self, expr: &Expr, is_call: bool) -> Memo {
 		if self.should_memo(expr, is_call) {
 			let memo = alias_ident_for(expr, "_this");
 
-			self.vars.push(VarDeclarator {
-				span:DUMMY_SP,
-				name:memo.clone().into(),
-				init:None,
-				definite:false,
-			});
+			self.vars
+				.push(VarDeclarator { span: DUMMY_SP, name: memo.clone().into(), init: None, definite: false });
 
 			Memo::Cache(memo)
 		} else {
@@ -401,10 +397,11 @@ impl OptionalChaining {
 		}
 	}
 
-	fn visit_mut_stmt_like<T>(&mut self, stmts:&mut Vec<T>)
+	fn visit_mut_stmt_like<T>(&mut self, stmts: &mut Vec<T>)
 	where
 		T: Send + Sync + StmtLike + VisitMutWith<Self>,
-		Vec<T>: VisitMutWith<Self>, {
+		Vec<T>: VisitMutWith<Self>,
+	{
 		let uninit = self.vars.take();
 
 		for stmt in stmts.iter_mut() {
@@ -416,10 +413,10 @@ impl OptionalChaining {
 				stmts,
 				T::from(
 					VarDecl {
-						span:DUMMY_SP,
-						declare:false,
-						kind:VarDeclKind::Var,
-						decls:mem::take(&mut self.vars),
+						span: DUMMY_SP,
+						declare: false,
+						kind: VarDeclKind::Var,
+						decls: mem::take(&mut self.vars),
 						..Default::default()
 					}
 					.into(),
@@ -431,30 +428,29 @@ impl OptionalChaining {
 	}
 }
 
-fn init_and_eq_null_or_undefined(i:&Memo, init:Expr, no_document_all:bool) -> Box<Expr> {
+fn init_and_eq_null_or_undefined(i: &Memo, init: Expr, no_document_all: bool) -> Box<Expr> {
 	let lhs = match i {
 		Memo::Cache(i) => {
-			AssignExpr { span:DUMMY_SP, op:op!("="), left:i.clone().into(), right:Box::new(init) }
-				.into()
+			AssignExpr { span: DUMMY_SP, op: op!("="), left: i.clone().into(), right: Box::new(init) }.into()
 		},
 		Memo::Raw(e) => e.to_owned(),
 	};
 
 	if no_document_all {
 		return BinExpr {
-			span:DUMMY_SP,
-			left:lhs,
-			op:op!("=="),
-			right:Box::new(Lit::Null(Null { span:DUMMY_SP }).into()),
+			span: DUMMY_SP,
+			left: lhs,
+			op: op!("=="),
+			right: Box::new(Lit::Null(Null { span: DUMMY_SP }).into()),
 		}
 		.into();
 	}
 
 	let null_cmp = BinExpr {
-		span:DUMMY_SP,
-		left:lhs,
-		op:op!("==="),
-		right:Box::new(Lit::Null(Null { span:DUMMY_SP }).into()),
+		span: DUMMY_SP,
+		left: lhs,
+		op: op!("==="),
+		right: Box::new(Lit::Null(Null { span: DUMMY_SP }).into()),
 	}
 	.into();
 
@@ -463,9 +459,13 @@ fn init_and_eq_null_or_undefined(i:&Memo, init:Expr, no_document_all:bool) -> Bo
 		Memo::Raw(e) => e.to_owned(),
 	};
 
-	let void_cmp =
-		BinExpr { span:DUMMY_SP, left:left_expr, op:op!("==="), right:Expr::undefined(DUMMY_SP) }
-			.into();
+	let void_cmp = BinExpr {
+		span: DUMMY_SP,
+		left: left_expr,
+		op: op!("==="),
+		right: Expr::undefined(DUMMY_SP),
+	}
+	.into();
 
-	BinExpr { span:DUMMY_SP, left:null_cmp, op:op!("||"), right:void_cmp }.into()
+	BinExpr { span: DUMMY_SP, left: null_cmp, op: op!("||"), right: void_cmp }.into()
 }

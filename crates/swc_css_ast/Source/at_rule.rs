@@ -4,32 +4,17 @@ use swc_atoms::Atom;
 use swc_common::{EqIgnoreSpan, Span, ast_node, util::take::Take};
 
 use crate::{
-	CustomIdent,
-	CustomPropertyName,
-	DashedIdent,
-	Declaration,
-	Dimension,
-	FamilyName,
-	ForgivingSelectorList,
-	Function,
-	Ident,
-	ListOfComponentValues,
-	Number,
-	Percentage,
-	Ratio,
-	SelectorList,
-	SimpleBlock,
-	Str,
-	Url,
+	CustomIdent, CustomPropertyName, DashedIdent, Declaration, Dimension, FamilyName, ForgivingSelectorList, Function,
+	Ident, ListOfComponentValues, Number, Percentage, Ratio, SelectorList, SimpleBlock, Str, Url,
 };
 
 #[ast_node("AtRule")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct AtRule {
-	pub span:Span,
-	pub name:AtRuleName,
-	pub prelude:Option<Box<AtRulePrelude>>,
-	pub block:Option<SimpleBlock>,
+	pub span: Span,
+	pub name: AtRuleName,
+	pub prelude: Option<Box<AtRulePrelude>>,
+	pub block: Option<SimpleBlock>,
 }
 
 #[ast_node]
@@ -43,7 +28,7 @@ pub enum AtRuleName {
 }
 
 impl PartialEq<str> for AtRuleName {
-	fn eq(&self, other:&str) -> bool {
+	fn eq(&self, other: &str) -> bool {
 		match self {
 			AtRuleName::DashedIdent(v) => *v == *other,
 			AtRuleName::Ident(v) => *v == *other,
@@ -52,7 +37,7 @@ impl PartialEq<str> for AtRuleName {
 }
 
 impl PartialEq<Atom> for AtRuleName {
-	fn eq(&self, other:&Atom) -> bool {
+	fn eq(&self, other: &Atom) -> bool {
 		match self {
 			AtRuleName::DashedIdent(v) => v.value == *other,
 			AtRuleName::Ident(v) => v.value == *other,
@@ -106,11 +91,11 @@ pub enum AtRulePrelude {
 #[ast_node("ScopeRange")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct ScopeRange {
-	pub span:Span,
+	pub span: Span,
 	/// https://drafts.csswg.org/css-cascade-6/#typedef-scope-start
-	pub scope_start:Option<ForgivingSelectorList>,
+	pub scope_start: Option<ForgivingSelectorList>,
 	/// https://drafts.csswg.org/css-cascade-6/#typedef-scope-end
-	pub scope_end:Option<ForgivingSelectorList>,
+	pub scope_end: Option<ForgivingSelectorList>,
 }
 
 #[ast_node]
@@ -125,15 +110,15 @@ pub enum ColorProfileName {
 #[ast_node("DocumentPrelude")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct DocumentPrelude {
-	pub span:Span,
-	pub matching_functions:Vec<DocumentPreludeMatchingFunction>,
+	pub span: Span,
+	pub matching_functions: Vec<DocumentPreludeMatchingFunction>,
 }
 
 #[ast_node("FontFeatureValuesPrelude")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct FontFeatureValuesPrelude {
-	pub span:Span,
-	pub font_family:Vec<FamilyName>,
+	pub span: Span,
+	pub font_family: Vec<FamilyName>,
 }
 
 #[ast_node]
@@ -163,25 +148,25 @@ pub enum KeyframesName {
 #[ast_node("KeyframesPseudo")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct KeyframesPseudoPrefix {
-	pub span:Span,
-	pub pseudo:Ident,
-	pub name:KeyframesName,
+	pub span: Span,
+	pub pseudo: Ident,
+	pub name: KeyframesName,
 }
 
 #[ast_node("KeyframesPseudo")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct KeyframesPseudoFunction {
-	pub span:Span,
-	pub pseudo:Ident,
-	pub name:KeyframesName,
+	pub span: Span,
+	pub pseudo: Ident,
+	pub name: KeyframesName,
 }
 
 #[ast_node("KeyframeBlock")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct KeyframeBlock {
-	pub span:Span,
-	pub prelude:Vec<KeyframeSelector>,
-	pub block:SimpleBlock,
+	pub span: Span,
+	pub prelude: Vec<KeyframeSelector>,
+	pub block: SimpleBlock,
 }
 
 #[ast_node]
@@ -196,10 +181,10 @@ pub enum KeyframeSelector {
 #[ast_node("ImportPrelude")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct ImportPrelude {
-	pub span:Span,
-	pub href:Box<ImportHref>,
-	pub layer_name:Option<Box<ImportLayerName>>,
-	pub import_conditions:Option<Box<ImportConditions>>,
+	pub span: Span,
+	pub href: Box<ImportHref>,
+	pub layer_name: Option<Box<ImportLayerName>>,
+	pub import_conditions: Option<Box<ImportConditions>>,
 }
 
 #[ast_node]
@@ -223,17 +208,17 @@ pub enum ImportLayerName {
 #[ast_node("ImportCondition")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct ImportConditions {
-	pub span:Span,
-	pub supports:Option<Box<Function>>,
-	pub media:Option<Box<MediaQueryList>>,
+	pub span: Span,
+	pub supports: Option<Box<Function>>,
+	pub media: Option<Box<MediaQueryList>>,
 }
 
 #[ast_node("NamespacePrelude")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct NamespacePrelude {
-	pub span:Span,
-	pub prefix:Option<Ident>,
-	pub uri:Box<NamespacePreludeUri>,
+	pub span: Span,
+	pub prefix: Option<Ident>,
+	pub uri: Box<NamespacePreludeUri>,
 }
 
 #[ast_node]
@@ -248,35 +233,35 @@ pub enum NamespacePreludeUri {
 #[ast_node("MediaQueryList")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct MediaQueryList {
-	pub span:Span,
-	pub queries:Vec<MediaQuery>,
+	pub span: Span,
+	pub queries: Vec<MediaQuery>,
 }
 
 #[ast_node("MediaQuery")]
 #[derive(Eq, Hash)]
 pub struct MediaQuery {
-	pub span:Span,
-	pub modifier:Option<Ident>,
-	pub media_type:Option<MediaType>,
-	pub keyword:Option<Ident>,
-	pub condition:Option<Box<MediaConditionType>>,
+	pub span: Span,
+	pub modifier: Option<Ident>,
+	pub media_type: Option<MediaType>,
+	pub keyword: Option<Ident>,
+	pub condition: Option<Box<MediaConditionType>>,
 }
 
 impl Take for MediaQuery {
 	#[inline]
 	fn dummy() -> Self {
 		Self {
-			span:Take::dummy(),
-			modifier:Take::dummy(),
-			media_type:Take::dummy(),
-			keyword:Take::dummy(),
-			condition:Take::dummy(),
+			span: Take::dummy(),
+			modifier: Take::dummy(),
+			media_type: Take::dummy(),
+			keyword: Take::dummy(),
+			condition: Take::dummy(),
 		}
 	}
 }
 
 impl EqIgnoreSpan for MediaQuery {
-	fn eq_ignore_span(&self, other:&Self) -> bool {
+	fn eq_ignore_span(&self, other: &Self) -> bool {
 		self.modifier.eq_ignore_span(&other.modifier)
 			&& self.media_type.eq_ignore_span(&other.media_type)
 			&& self.condition.eq_ignore_span(&other.condition)
@@ -303,15 +288,15 @@ pub enum MediaConditionType {
 #[ast_node("MediaCondition")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct MediaCondition {
-	pub span:Span,
-	pub conditions:Vec<MediaConditionAllType>,
+	pub span: Span,
+	pub conditions: Vec<MediaConditionAllType>,
 }
 
 #[ast_node("MediaConditionWithoutOr")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct MediaConditionWithoutOr {
-	pub span:Span,
-	pub conditions:Vec<MediaConditionWithoutOrType>,
+	pub span: Span,
+	pub conditions: Vec<MediaConditionWithoutOrType>,
 }
 
 #[ast_node]
@@ -346,13 +331,13 @@ pub enum MediaConditionWithoutOrType {
 #[ast_node("MediaNot")]
 #[derive(Eq, Hash)]
 pub struct MediaNot {
-	pub span:Span,
-	pub keyword:Option<Ident>,
-	pub condition:MediaInParens,
+	pub span: Span,
+	pub keyword: Option<Ident>,
+	pub condition: MediaInParens,
 }
 
 impl EqIgnoreSpan for MediaNot {
-	fn eq_ignore_span(&self, other:&Self) -> bool {
+	fn eq_ignore_span(&self, other: &Self) -> bool {
 		self.condition.eq_ignore_span(&other.condition)
 	}
 }
@@ -360,13 +345,13 @@ impl EqIgnoreSpan for MediaNot {
 #[ast_node("MediaAnd")]
 #[derive(Eq, Hash)]
 pub struct MediaAnd {
-	pub span:Span,
-	pub keyword:Option<Ident>,
-	pub condition:MediaInParens,
+	pub span: Span,
+	pub keyword: Option<Ident>,
+	pub condition: MediaInParens,
 }
 
 impl EqIgnoreSpan for MediaAnd {
-	fn eq_ignore_span(&self, other:&Self) -> bool {
+	fn eq_ignore_span(&self, other: &Self) -> bool {
 		self.condition.eq_ignore_span(&other.condition)
 	}
 }
@@ -374,13 +359,13 @@ impl EqIgnoreSpan for MediaAnd {
 #[ast_node("MediaOr")]
 #[derive(Eq, Hash)]
 pub struct MediaOr {
-	pub span:Span,
-	pub keyword:Option<Ident>,
-	pub condition:MediaInParens,
+	pub span: Span,
+	pub keyword: Option<Ident>,
+	pub condition: MediaInParens,
 }
 
 impl EqIgnoreSpan for MediaOr {
-	fn eq_ignore_span(&self, other:&Self) -> bool {
+	fn eq_ignore_span(&self, other: &Self) -> bool {
 		self.condition.eq_ignore_span(&other.condition)
 	}
 }
@@ -446,16 +431,16 @@ pub enum MediaFeatureValue {
 #[ast_node("MediaFeaturePlain")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct MediaFeaturePlain {
-	pub span:Span,
-	pub name:MediaFeatureName,
-	pub value:Box<MediaFeatureValue>,
+	pub span: Span,
+	pub name: MediaFeatureName,
+	pub value: Box<MediaFeatureValue>,
 }
 
 #[ast_node("MediaFeatureBoolean")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct MediaFeatureBoolean {
-	pub span:Span,
-	pub name:MediaFeatureName,
+	pub span: Span,
+	pub name: MediaFeatureName,
 }
 
 #[derive(StringEnum, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Hash, Is, EqIgnoreSpan)]
@@ -487,30 +472,30 @@ pub enum MediaFeatureRangeComparison {
 #[ast_node("MediaFeatureRange")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct MediaFeatureRange {
-	pub span:Span,
-	pub left:Box<MediaFeatureValue>,
-	pub comparison:MediaFeatureRangeComparison,
-	pub right:Box<MediaFeatureValue>,
+	pub span: Span,
+	pub left: Box<MediaFeatureValue>,
+	pub comparison: MediaFeatureRangeComparison,
+	pub right: Box<MediaFeatureValue>,
 }
 
 #[ast_node("MediaFeatureRangeInterval")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct MediaFeatureRangeInterval {
-	pub span:Span,
-	pub left:Box<MediaFeatureValue>,
+	pub span: Span,
+	pub left: Box<MediaFeatureValue>,
 	#[cfg_attr(feature = "serde-impl", serde(rename = "leftComparison"))]
-	pub left_comparison:MediaFeatureRangeComparison,
-	pub name:MediaFeatureName,
+	pub left_comparison: MediaFeatureRangeComparison,
+	pub name: MediaFeatureName,
 	#[cfg_attr(feature = "serde-impl", serde(rename = "rightComparison"))]
-	pub right_comparison:MediaFeatureRangeComparison,
-	pub right:Box<MediaFeatureValue>,
+	pub right_comparison: MediaFeatureRangeComparison,
+	pub right: Box<MediaFeatureValue>,
 }
 
 #[ast_node("SupportsCondition")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct SupportsCondition {
-	pub span:Span,
-	pub conditions:Vec<SupportsConditionType>,
+	pub span: Span,
+	pub conditions: Vec<SupportsConditionType>,
 }
 
 #[ast_node]
@@ -532,13 +517,13 @@ pub enum SupportsConditionType {
 #[ast_node("SupportsNot")]
 #[derive(Eq, Hash)]
 pub struct SupportsNot {
-	pub span:Span,
-	pub keyword:Option<Ident>,
-	pub condition:Box<SupportsInParens>,
+	pub span: Span,
+	pub keyword: Option<Ident>,
+	pub condition: Box<SupportsInParens>,
 }
 
 impl EqIgnoreSpan for SupportsNot {
-	fn eq_ignore_span(&self, other:&Self) -> bool {
+	fn eq_ignore_span(&self, other: &Self) -> bool {
 		self.condition.eq_ignore_span(&other.condition)
 	}
 }
@@ -546,13 +531,13 @@ impl EqIgnoreSpan for SupportsNot {
 #[ast_node("SupportsAnd")]
 #[derive(Eq, Hash)]
 pub struct SupportsAnd {
-	pub span:Span,
-	pub keyword:Option<Ident>,
-	pub condition:Box<SupportsInParens>,
+	pub span: Span,
+	pub keyword: Option<Ident>,
+	pub condition: Box<SupportsInParens>,
 }
 
 impl EqIgnoreSpan for SupportsAnd {
-	fn eq_ignore_span(&self, other:&Self) -> bool {
+	fn eq_ignore_span(&self, other: &Self) -> bool {
 		self.condition.eq_ignore_span(&other.condition)
 	}
 }
@@ -560,13 +545,13 @@ impl EqIgnoreSpan for SupportsAnd {
 #[ast_node("SupportsOr")]
 #[derive(Eq, Hash)]
 pub struct SupportsOr {
-	pub span:Span,
-	pub keyword:Option<Ident>,
-	pub condition:Box<SupportsInParens>,
+	pub span: Span,
+	pub keyword: Option<Ident>,
+	pub condition: Box<SupportsInParens>,
 }
 
 impl EqIgnoreSpan for SupportsOr {
-	fn eq_ignore_span(&self, other:&Self) -> bool {
+	fn eq_ignore_span(&self, other: &Self) -> bool {
 		self.condition.eq_ignore_span(&other.condition)
 	}
 }
@@ -605,30 +590,30 @@ pub enum GeneralEnclosed {
 #[ast_node("PageSelectorList")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct PageSelectorList {
-	pub span:Span,
-	pub selectors:Vec<PageSelector>,
+	pub span: Span,
+	pub selectors: Vec<PageSelector>,
 }
 
 #[ast_node("PageSelector")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct PageSelector {
-	pub span:Span,
-	pub page_type:Option<PageSelectorType>,
-	pub pseudos:Option<Vec<PageSelectorPseudo>>,
+	pub span: Span,
+	pub page_type: Option<PageSelectorType>,
+	pub pseudos: Option<Vec<PageSelectorPseudo>>,
 }
 
 #[ast_node("PageSelectorType")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct PageSelectorType {
-	pub span:Span,
-	pub value:Ident,
+	pub span: Span,
+	pub value: Ident,
 }
 
 #[ast_node("PageSelectorPseudo")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct PageSelectorPseudo {
-	pub span:Span,
-	pub value:Ident,
+	pub span: Span,
+	pub value: Ident,
 }
 
 #[ast_node]
@@ -643,23 +628,23 @@ pub enum LayerPrelude {
 #[ast_node("LayerName")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct LayerName {
-	pub span:Span,
-	pub name:Vec<Ident>,
+	pub span: Span,
+	pub name: Vec<Ident>,
 }
 
 #[ast_node("LayerNameList")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct LayerNameList {
-	pub span:Span,
-	pub name_list:Vec<LayerName>,
+	pub span: Span,
+	pub name_list: Vec<LayerName>,
 }
 
 #[ast_node("ContainerCondition")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct ContainerCondition {
-	pub span:Span,
-	pub name:Option<ContainerName>,
-	pub query:ContainerQuery,
+	pub span: Span,
+	pub name: Option<ContainerName>,
+	pub query: ContainerQuery,
 }
 
 #[ast_node]
@@ -672,8 +657,8 @@ pub enum ContainerName {
 #[ast_node("ContainerQuery")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct ContainerQuery {
-	pub span:Span,
-	pub queries:Vec<ContainerQueryType>,
+	pub span: Span,
+	pub queries: Vec<ContainerQueryType>,
 }
 
 #[ast_node]
@@ -695,37 +680,43 @@ pub enum ContainerQueryType {
 #[ast_node("ContainerQueryNot")]
 #[derive(Eq, Hash)]
 pub struct ContainerQueryNot {
-	pub span:Span,
-	pub keyword:Option<Ident>,
-	pub query:QueryInParens,
+	pub span: Span,
+	pub keyword: Option<Ident>,
+	pub query: QueryInParens,
 }
 
 impl EqIgnoreSpan for ContainerQueryNot {
-	fn eq_ignore_span(&self, other:&Self) -> bool { self.query.eq_ignore_span(&other.query) }
+	fn eq_ignore_span(&self, other: &Self) -> bool {
+		self.query.eq_ignore_span(&other.query)
+	}
 }
 
 #[ast_node("ContainerQueryAnd")]
 #[derive(Eq, Hash)]
 pub struct ContainerQueryAnd {
-	pub span:Span,
-	pub keyword:Option<Ident>,
-	pub query:QueryInParens,
+	pub span: Span,
+	pub keyword: Option<Ident>,
+	pub query: QueryInParens,
 }
 
 impl EqIgnoreSpan for ContainerQueryAnd {
-	fn eq_ignore_span(&self, other:&Self) -> bool { self.query.eq_ignore_span(&other.query) }
+	fn eq_ignore_span(&self, other: &Self) -> bool {
+		self.query.eq_ignore_span(&other.query)
+	}
 }
 
 #[ast_node("ContainerQueryOr")]
 #[derive(Eq, Hash)]
 pub struct ContainerQueryOr {
-	pub span:Span,
-	pub keyword:Option<Ident>,
-	pub query:QueryInParens,
+	pub span: Span,
+	pub keyword: Option<Ident>,
+	pub query: QueryInParens,
 }
 
 impl EqIgnoreSpan for ContainerQueryOr {
-	fn eq_ignore_span(&self, other:&Self) -> bool { self.query.eq_ignore_span(&other.query) }
+	fn eq_ignore_span(&self, other: &Self) -> bool {
+		self.query.eq_ignore_span(&other.query)
+	}
 }
 
 #[ast_node]
@@ -764,16 +755,16 @@ pub enum SizeFeature {
 #[ast_node("SizeFeaturePlain")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct SizeFeaturePlain {
-	pub span:Span,
-	pub name:SizeFeatureName,
-	pub value:Box<SizeFeatureValue>,
+	pub span: Span,
+	pub name: SizeFeatureName,
+	pub value: Box<SizeFeatureValue>,
 }
 
 #[ast_node("SizeFeatureBoolean")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct SizeFeatureBoolean {
-	pub span:Span,
-	pub name:SizeFeatureName,
+	pub span: Span,
+	pub name: SizeFeatureName,
 }
 
 #[derive(StringEnum, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Hash, Is, EqIgnoreSpan)]
@@ -805,23 +796,23 @@ pub enum SizeFeatureRangeComparison {
 #[ast_node("SizeFeatureRange")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct SizeFeatureRange {
-	pub span:Span,
-	pub left:Box<SizeFeatureValue>,
-	pub comparison:SizeFeatureRangeComparison,
-	pub right:Box<SizeFeatureValue>,
+	pub span: Span,
+	pub left: Box<SizeFeatureValue>,
+	pub comparison: SizeFeatureRangeComparison,
+	pub right: Box<SizeFeatureValue>,
 }
 
 #[ast_node("SizeFeatureRangeInterval")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct SizeFeatureRangeInterval {
-	pub span:Span,
-	pub left:Box<SizeFeatureValue>,
+	pub span: Span,
+	pub left: Box<SizeFeatureValue>,
 	#[cfg_attr(feature = "serde-impl", serde(rename = "leftComparison"))]
-	pub left_comparison:SizeFeatureRangeComparison,
-	pub name:SizeFeatureName,
+	pub left_comparison: SizeFeatureRangeComparison,
+	pub name: SizeFeatureName,
 	#[cfg_attr(feature = "serde-impl", serde(rename = "rightComparison"))]
-	pub right_comparison:SizeFeatureRangeComparison,
-	pub right:Box<SizeFeatureValue>,
+	pub right_comparison: SizeFeatureRangeComparison,
+	pub right: Box<SizeFeatureValue>,
 }
 
 #[ast_node]
@@ -853,32 +844,38 @@ pub enum SizeFeatureName {
 #[ast_node("ExtensionName")]
 #[derive(Eq, Hash)]
 pub struct ExtensionName {
-	pub span:Span,
-	pub value:Atom,
-	pub raw:Option<Atom>,
+	pub span: Span,
+	pub value: Atom,
+	pub raw: Option<Atom>,
 }
 
 impl EqIgnoreSpan for ExtensionName {
 	#[inline]
-	fn eq_ignore_span(&self, other:&Self) -> bool { self.value == other.value }
+	fn eq_ignore_span(&self, other: &Self) -> bool {
+		self.value == other.value
+	}
 }
 
 impl Take for ExtensionName {
 	#[inline]
-	fn dummy() -> Self { Self { span:Take::dummy(), value:Default::default(), raw:Take::dummy() } }
+	fn dummy() -> Self {
+		Self { span: Take::dummy(), value: Default::default(), raw: Take::dummy() }
+	}
 }
 
 #[ast_node("CustomMedia")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct CustomMediaQuery {
-	pub span:Span,
-	pub name:ExtensionName,
-	pub media:CustomMediaQueryMediaType,
+	pub span: Span,
+	pub name: ExtensionName,
+	pub media: CustomMediaQueryMediaType,
 }
 
 impl Take for CustomMediaQuery {
 	#[inline]
-	fn dummy() -> Self { Self { span:Take::dummy(), name:Take::dummy(), media:Take::dummy() } }
+	fn dummy() -> Self {
+		Self { span: Take::dummy(), name: Take::dummy(), media: Take::dummy() }
+	}
 }
 
 #[ast_node]
@@ -892,5 +889,7 @@ pub enum CustomMediaQueryMediaType {
 
 impl Take for CustomMediaQueryMediaType {
 	#[inline]
-	fn dummy() -> Self { Self::Ident(Take::dummy()) }
+	fn dummy() -> Self {
+		Self::Ident(Take::dummy())
+	}
 }

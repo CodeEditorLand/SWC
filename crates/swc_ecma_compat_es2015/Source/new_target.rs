@@ -4,20 +4,15 @@ use swc_common::{DUMMY_SP, pass::CompilerPass};
 use swc_ecma_ast::*;
 use swc_ecma_transforms_base::perf::{Check, should_work};
 use swc_ecma_utils::{ExprFactory, private_ident, quote_ident};
-use swc_ecma_visit::{
-	Visit,
-	VisitMut,
-	VisitMutWith,
-	noop_visit_mut_type,
-	noop_visit_type,
-	visit_mut_pass,
-};
+use swc_ecma_visit::{Visit, VisitMut, VisitMutWith, noop_visit_mut_type, noop_visit_type, visit_mut_pass};
 use swc_trace_macro::swc_trace;
 
-pub fn new_target() -> impl Pass { visit_mut_pass(NewTarget { ctx:Ctx::Constructor }) }
+pub fn new_target() -> impl Pass {
+	visit_mut_pass(NewTarget { ctx: Ctx::Constructor })
+}
 
 struct NewTarget {
-	ctx:Ctx,
+	ctx: Ctx,
 }
 
 enum Ctx {
@@ -27,7 +22,7 @@ enum Ctx {
 }
 
 impl NewTarget {
-	fn visit_mut_method<T:VisitMutWith<Self>>(&mut self, c:&mut T) {
+	fn visit_mut_method<T: VisitMutWith<Self>>(&mut self, c: &mut T) {
 		let old = mem::replace(&mut self.ctx, Ctx::Method);
 
 		c.visit_mut_with(self);
@@ -40,13 +35,13 @@ impl NewTarget {
 impl VisitMut for NewTarget {
 	noop_visit_mut_type!(fail);
 
-	fn visit_mut_class_method(&mut self, c:&mut ClassMethod) {
+	fn visit_mut_class_method(&mut self, c: &mut ClassMethod) {
 		c.key.visit_mut_with(self);
 
 		self.visit_mut_method(&mut c.function)
 	}
 
-	fn visit_mut_constructor(&mut self, c:&mut Constructor) {
+	fn visit_mut_constructor(&mut self, c: &mut Constructor) {
 		let old = mem::replace(&mut self.ctx, Ctx::Constructor);
 
 		c.visit_mut_children_with(self);
@@ -54,30 +49,29 @@ impl VisitMut for NewTarget {
 		self.ctx = old;
 	}
 
-	fn visit_mut_expr(&mut self, e:&mut Expr) {
+	fn visit_mut_expr(&mut self, e: &mut Expr) {
 		e.visit_mut_children_with(self);
 
 		if let Expr::MetaProp(MetaPropExpr { kind: MetaPropKind::NewTarget, span }) = e {
-			let this_ctor =
-				|span| ThisExpr { span }.make_member(quote_ident!("constructor")).into();
+			let this_ctor = |span| ThisExpr { span }.make_member(quote_ident!("constructor")).into();
 
 			match &self.ctx {
 				Ctx::Constructor => *e = this_ctor(*span),
 				Ctx::Method => *e = *Expr::undefined(DUMMY_SP),
 				Ctx::Function(i) => {
 					*e = CondExpr {
-						span:*span,
+						span: *span,
 						// this instanceof Foo
-						test:BinExpr {
-							span:DUMMY_SP,
-							op:op!("instanceof"),
-							left:Box::new(Expr::This(ThisExpr { span:DUMMY_SP })),
-							right:Box::new(Expr::Ident(i.clone())),
+						test: BinExpr {
+							span: DUMMY_SP,
+							op: op!("instanceof"),
+							left: Box::new(Expr::This(ThisExpr { span: DUMMY_SP })),
+							right: Box::new(Expr::Ident(i.clone())),
 						}
 						.into(),
-						cons:Box::new(this_ctor(DUMMY_SP)),
+						cons: Box::new(this_ctor(DUMMY_SP)),
 						// void 0
-						alt:Expr::undefined(DUMMY_SP),
+						alt: Expr::undefined(DUMMY_SP),
 					}
 					.into()
 				},
@@ -85,7 +79,7 @@ impl VisitMut for NewTarget {
 		}
 	}
 
-	fn visit_mut_fn_decl(&mut self, f:&mut FnDecl) {
+	fn visit_mut_fn_decl(&mut self, f: &mut FnDecl) {
 		// Ensure that `f` contains `new.target`.
 		if !should_work::<ShouldWork, _>(&*f) {
 			return;
@@ -98,7 +92,7 @@ impl VisitMut for NewTarget {
 		self.ctx = old;
 	}
 
-	fn visit_mut_fn_expr(&mut self, f:&mut FnExpr) {
+	fn visit_mut_fn_expr(&mut self, f: &mut FnExpr) {
 		// Ensure that `f` contains `new.target`.
 		if !should_work::<ShouldWork, _>(&*f) {
 			return;
@@ -113,19 +107,19 @@ impl VisitMut for NewTarget {
 		self.ctx = old;
 	}
 
-	fn visit_mut_method_prop(&mut self, m:&mut MethodProp) {
+	fn visit_mut_method_prop(&mut self, m: &mut MethodProp) {
 		m.key.visit_mut_with(self);
 
 		self.visit_mut_method(&mut m.function)
 	}
 
-	fn visit_mut_getter_prop(&mut self, m:&mut GetterProp) {
+	fn visit_mut_getter_prop(&mut self, m: &mut GetterProp) {
 		m.key.visit_mut_with(self);
 
 		self.visit_mut_method(&mut m.body)
 	}
 
-	fn visit_mut_setter_prop(&mut self, m:&mut SetterProp) {
+	fn visit_mut_setter_prop(&mut self, m: &mut SetterProp) {
 		m.key.visit_mut_with(self);
 
 		self.visit_mut_method(&mut m.body)
@@ -133,18 +127,20 @@ impl VisitMut for NewTarget {
 }
 
 impl CompilerPass for NewTarget {
-	fn name(&self) -> Cow<'static, str> { Cow::Borrowed("new-target") }
+	fn name(&self) -> Cow<'static, str> {
+		Cow::Borrowed("new-target")
+	}
 }
 
 #[derive(Default)]
 struct ShouldWork {
-	found:bool,
+	found: bool,
 }
 
 impl Visit for ShouldWork {
 	noop_visit_type!(fail);
 
-	fn visit_meta_prop_expr(&mut self, n:&MetaPropExpr) {
+	fn visit_meta_prop_expr(&mut self, n: &MetaPropExpr) {
 		if let MetaPropExpr { kind: MetaPropKind::NewTarget, .. } = n {
 			self.found = true;
 		}
@@ -152,5 +148,7 @@ impl Visit for ShouldWork {
 }
 
 impl Check for ShouldWork {
-	fn should_handle(&self) -> bool { self.found }
+	fn should_handle(&self) -> bool {
+		self.found
+	}
 }

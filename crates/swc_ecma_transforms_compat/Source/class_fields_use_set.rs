@@ -3,15 +3,8 @@ use std::mem;
 use swc_common::{DUMMY_SP, Span, Spanned, util::take::Take};
 use swc_ecma_ast::*;
 use swc_ecma_utils::{
-	ExprFactory,
-	ModuleItemLike,
-	StmtLike,
-	constructor::inject_after_super,
-	default_constructor_with_span,
-	is_literal,
-	is_simple_pure_expr,
-	private_ident,
-	prop_name_to_member_prop,
+	ExprFactory, ModuleItemLike, StmtLike, constructor::inject_after_super, default_constructor_with_span, is_literal,
+	is_simple_pure_expr, private_ident, prop_name_to_member_prop,
 };
 use swc_ecma_visit::{VisitMut, VisitMutWith, noop_visit_mut_type, visit_mut_pass};
 
@@ -90,47 +83,48 @@ use swc_ecma_visit::{VisitMut, VisitMutWith, noop_visit_mut_type, visit_mut_pass
 ///     }
 /// }
 /// ```
-pub fn class_fields_use_set(pure_getters:bool) -> impl Pass {
+pub fn class_fields_use_set(pure_getters: bool) -> impl Pass {
 	visit_mut_pass(ClassFieldsUseSet { pure_getters })
 }
 
 #[derive(Debug)]
 struct ClassFieldsUseSet {
-	pure_getters:bool,
+	pure_getters: bool,
 }
 
 impl VisitMut for ClassFieldsUseSet {
 	noop_visit_mut_type!(fail);
 
-	fn visit_mut_module_items(&mut self, n:&mut Vec<ModuleItem>) { self.visit_mut_stmts_like(n); }
+	fn visit_mut_module_items(&mut self, n: &mut Vec<ModuleItem>) {
+		self.visit_mut_stmts_like(n);
+	}
 
-	fn visit_mut_stmts(&mut self, n:&mut Vec<Stmt>) { self.visit_mut_stmts_like(n); }
+	fn visit_mut_stmts(&mut self, n: &mut Vec<Stmt>) {
+		self.visit_mut_stmts_like(n);
+	}
 
-	fn visit_mut_class(&mut self, n:&mut Class) {
+	fn visit_mut_class(&mut self, n: &mut Class) {
 		// visit inner classes first
 		n.visit_mut_children_with(self);
 
-		let mut fields_handler:FieldsHandler =
-			FieldsHandler { super_call_span:n.super_class.as_ref().map(|_| n.span) };
+		let mut fields_handler: FieldsHandler =
+			FieldsHandler { super_call_span: n.super_class.as_ref().map(|_| n.span) };
 
 		n.body.visit_mut_with(&mut fields_handler);
 	}
 }
 
 impl ClassFieldsUseSet {
-	fn visit_mut_stmts_like<T>(&mut self, n:&mut Vec<T>)
+	fn visit_mut_stmts_like<T>(&mut self, n: &mut Vec<T>)
 	where
-		T: StmtLike
-			+ ModuleItemLike
-			+ VisitMutWith<Self>
-			+ VisitMutWith<ComputedFieldsHandler>
-			+ From<Stmt>, {
+		T: StmtLike + ModuleItemLike + VisitMutWith<Self> + VisitMutWith<ComputedFieldsHandler> + From<Stmt>,
+	{
 		let mut stmts = Vec::with_capacity(n.len());
 
 		let mut computed_fields_handler = ComputedFieldsHandler {
-			var_decls:Default::default(),
-			static_init_blocks:Default::default(),
-			pure_getters:self.pure_getters,
+			var_decls: Default::default(),
+			static_init_blocks: Default::default(),
+			pure_getters: self.pure_getters,
 		};
 
 		for mut stmt in n.drain(..) {
@@ -141,10 +135,10 @@ impl ClassFieldsUseSet {
 			if !var_decls.is_empty() {
 				stmts.push(T::from(
 					VarDecl {
-						span:DUMMY_SP,
-						kind:VarDeclKind::Let,
-						declare:false,
-						decls:var_decls,
+						span: DUMMY_SP,
+						kind: VarDeclKind::Let,
+						declare: false,
+						decls: var_decls,
 						..Default::default()
 					}
 					.into(),
@@ -161,47 +155,45 @@ impl ClassFieldsUseSet {
 
 #[derive(Debug)]
 struct FieldsHandler {
-	super_call_span:Option<Span>,
+	super_call_span: Option<Span>,
 }
 
 impl VisitMut for FieldsHandler {
 	noop_visit_mut_type!(fail);
 
-	fn visit_mut_class(&mut self, _:&mut Class) {
+	fn visit_mut_class(&mut self, _: &mut Class) {
 		// skip inner classes
 		// In fact, FieldsHandler does not visit children recursively.
 		// We call FieldsHandler with the class.body as the only entry point.
 		// The FieldsHandler actually operates in a iterative way.
 	}
 
-	fn visit_mut_class_members(&mut self, n:&mut Vec<ClassMember>) {
+	fn visit_mut_class_members(&mut self, n: &mut Vec<ClassMember>) {
 		let mut constructor_inits = Vec::new();
 
 		for member in n.iter_mut() {
 			match member {
-				ClassMember::ClassProp(ClassProp {
-					ref span, ref is_static, key, value, ..
-				}) => {
+				ClassMember::ClassProp(ClassProp { ref span, ref is_static, key, value, .. }) => {
 					if let Some(value) = value.take() {
-						let init_expr:Expr = AssignExpr {
-							span:*span,
-							op:op!("="),
-							left:MemberExpr {
-								span:DUMMY_SP,
-								obj:ThisExpr::dummy().into(),
-								prop:prop_name_to_member_prop(key.take()),
+						let init_expr: Expr = AssignExpr {
+							span: *span,
+							op: op!("="),
+							left: MemberExpr {
+								span: DUMMY_SP,
+								obj: ThisExpr::dummy().into(),
+								prop: prop_name_to_member_prop(key.take()),
 							}
 							.into(),
-							right:value,
+							right: value,
 						}
 						.into();
 
 						if *is_static {
 							*member = StaticBlock {
-								span:DUMMY_SP,
-								body:BlockStmt {
-									span:DUMMY_SP,
-									stmts:vec![init_expr.into_stmt()],
+								span: DUMMY_SP,
+								body: BlockStmt {
+									span: DUMMY_SP,
+									stmts: vec![init_expr.into_stmt()],
 									..Default::default()
 								},
 							}
@@ -216,24 +208,18 @@ impl VisitMut for FieldsHandler {
 					member.take();
 				},
 
-				ClassMember::PrivateProp(PrivateProp {
-					ref span,
-					is_static: false,
-					key,
-					value,
-					..
-				}) => {
+				ClassMember::PrivateProp(PrivateProp { ref span, is_static: false, key, value, .. }) => {
 					if let Some(value) = value.take() {
-						let init_expr:Expr = AssignExpr {
-							span:*span,
-							op:op!("="),
-							left:MemberExpr {
-								span:DUMMY_SP,
-								obj:ThisExpr::dummy().into(),
-								prop:MemberProp::PrivateName(key.clone()),
+						let init_expr: Expr = AssignExpr {
+							span: *span,
+							op: op!("="),
+							left: MemberExpr {
+								span: DUMMY_SP,
+								obj: ThisExpr::dummy().into(),
+								prop: MemberProp::PrivateName(key.clone()),
 							}
 							.into(),
-							right:value,
+							right: value,
 						}
 						.into();
 
@@ -252,10 +238,7 @@ impl VisitMut for FieldsHandler {
 		if let Some(c) = n.iter_mut().find_map(|m| m.as_mut_constructor()) {
 			inject_after_super(c, constructor_inits.take());
 		} else {
-			let mut c = default_constructor_with_span(
-				self.super_call_span.is_some(),
-				self.super_call_span.span(),
-			);
+			let mut c = default_constructor_with_span(self.super_call_span.is_some(), self.super_call_span.span());
 
 			inject_after_super(&mut c, constructor_inits.take());
 
@@ -266,15 +249,15 @@ impl VisitMut for FieldsHandler {
 
 #[derive(Debug)]
 struct ComputedFieldsHandler {
-	var_decls:Vec<VarDeclarator>,
-	static_init_blocks:Vec<Stmt>,
-	pure_getters:bool,
+	var_decls: Vec<VarDeclarator>,
+	static_init_blocks: Vec<Stmt>,
+	pure_getters: bool,
 }
 
 impl VisitMut for ComputedFieldsHandler {
 	noop_visit_mut_type!(fail);
 
-	fn visit_mut_class_prop(&mut self, n:&mut ClassProp) {
+	fn visit_mut_class_prop(&mut self, n: &mut ClassProp) {
 		match &mut n.key {
 			PropName::Computed(ComputedPropName { expr, .. })
 				if !is_literal(expr) && !is_simple_pure_expr(expr, self.pure_getters) =>
@@ -286,10 +269,10 @@ impl VisitMut for ComputedFieldsHandler {
 				mem::swap(expr, &mut computed_expr);
 
 				self.var_decls.push(VarDeclarator {
-					span:DUMMY_SP,
-					name:ref_key.clone().into(),
-					init:None,
-					definite:false,
+					span: DUMMY_SP,
+					name: ref_key.clone().into(),
+					init: None,
+					definite: false,
 				});
 
 				self.static_init_blocks.push({
@@ -303,25 +286,21 @@ impl VisitMut for ComputedFieldsHandler {
 		}
 	}
 
-	fn visit_mut_class_member(&mut self, n:&mut ClassMember) {
+	fn visit_mut_class_member(&mut self, n: &mut ClassMember) {
 		if n.is_class_prop() {
 			n.visit_mut_children_with(self);
 		}
 	}
 
-	fn visit_mut_class_members(&mut self, n:&mut Vec<ClassMember>) {
+	fn visit_mut_class_members(&mut self, n: &mut Vec<ClassMember>) {
 		n.visit_mut_children_with(self);
 
 		if !self.static_init_blocks.is_empty() {
 			n.insert(
 				0,
 				StaticBlock {
-					span:DUMMY_SP,
-					body:BlockStmt {
-						span:DUMMY_SP,
-						stmts:self.static_init_blocks.take(),
-						..Default::default()
-					},
+					span: DUMMY_SP,
+					body: BlockStmt { span: DUMMY_SP, stmts: self.static_init_blocks.take(), ..Default::default() },
 				}
 				.into(),
 			);

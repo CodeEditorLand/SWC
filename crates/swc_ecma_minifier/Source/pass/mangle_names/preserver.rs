@@ -7,14 +7,15 @@ use swc_ecma_visit::{Visit, VisitWith, noop_visit_type};
 use crate::option::MangleOptions;
 
 /// Returns `(preserved, unresolved)`
-pub(crate) fn idents_to_preserve<N>(options:&MangleOptions, marks:Marks, n:&N) -> FxHashSet<Id>
+pub(crate) fn idents_to_preserve<N>(options: &MangleOptions, marks: Marks, n: &N) -> FxHashSet<Id>
 where
-	N: for<'a> VisitWith<Preserver<'a>>, {
+	N: for<'a> VisitWith<Preserver<'a>>,
+{
 	let mut v = Preserver {
 		options,
-		preserved:Default::default(),
-		should_preserve:false,
-		in_top_level:false,
+		preserved: Default::default(),
+		should_preserve: false,
+		in_top_level: false,
 	};
 
 	n.visit_with(&mut v);
@@ -23,29 +24,30 @@ where
 
 	// Force rename synthesized names
 	// See https://github.com/swc-project/swc/issues/9468
-	v.preserved.retain(|id| {
-		options.reserved.contains(&id.0) || id.1.outer().is_descendant_of(top_level_mark)
-	});
+	v.preserved
+		.retain(|id| options.reserved.contains(&id.0) || id.1.outer().is_descendant_of(top_level_mark));
 
 	v.preserved
 }
 pub(crate) struct Preserver<'a> {
-	options:&'a MangleOptions,
+	options: &'a MangleOptions,
 
-	preserved:FxHashSet<Id>,
+	preserved: FxHashSet<Id>,
 
-	should_preserve:bool,
-	in_top_level:bool,
+	should_preserve: bool,
+	in_top_level: bool,
 }
 
 impl Preserver<'_> {
-	fn is_reserved(&self, ident:&Ident) -> bool { self.options.reserved.contains(&ident.sym) }
+	fn is_reserved(&self, ident: &Ident) -> bool {
+		self.options.reserved.contains(&ident.sym)
+	}
 }
 
 impl Visit for Preserver<'_> {
 	noop_visit_type!();
 
-	fn visit_block_stmt(&mut self, n:&BlockStmt) {
+	fn visit_block_stmt(&mut self, n: &BlockStmt) {
 		let old_top_level = self.in_top_level;
 
 		for n in n.stmts.iter() {
@@ -57,7 +59,7 @@ impl Visit for Preserver<'_> {
 		self.in_top_level = old_top_level;
 	}
 
-	fn visit_catch_clause(&mut self, n:&CatchClause) {
+	fn visit_catch_clause(&mut self, n: &CatchClause) {
 		let old = self.should_preserve;
 
 		if self.options.ie8 && !self.options.top_level.unwrap_or_default() {
@@ -71,7 +73,7 @@ impl Visit for Preserver<'_> {
 		n.body.visit_with(self);
 	}
 
-	fn visit_class_decl(&mut self, n:&ClassDecl) {
+	fn visit_class_decl(&mut self, n: &ClassDecl) {
 		n.visit_children_with(self);
 
 		if (self.in_top_level && !self.options.top_level.unwrap_or_default())
@@ -82,7 +84,7 @@ impl Visit for Preserver<'_> {
 		}
 	}
 
-	fn visit_class_expr(&mut self, n:&ClassExpr) {
+	fn visit_class_expr(&mut self, n: &ClassExpr) {
 		n.visit_children_with(self);
 
 		if self.options.keep_class_names {
@@ -92,7 +94,7 @@ impl Visit for Preserver<'_> {
 		}
 	}
 
-	fn visit_export_decl(&mut self, n:&ExportDecl) {
+	fn visit_export_decl(&mut self, n: &ExportDecl) {
 		n.visit_children_with(self);
 
 		match &n.decl {
@@ -105,7 +107,7 @@ impl Visit for Preserver<'_> {
 			},
 
 			Decl::Var(v) => {
-				let ids:Vec<Id> = find_pat_ids(&v.decls);
+				let ids: Vec<Id> = find_pat_ids(&v.decls);
 
 				self.preserved.extend(ids);
 			},
@@ -114,7 +116,7 @@ impl Visit for Preserver<'_> {
 		}
 	}
 
-	fn visit_expr(&mut self, n:&Expr) {
+	fn visit_expr(&mut self, n: &Expr) {
 		n.visit_children_with(self);
 
 		if let Expr::Ident(i) = n {
@@ -124,7 +126,7 @@ impl Visit for Preserver<'_> {
 		}
 	}
 
-	fn visit_fn_decl(&mut self, n:&FnDecl) {
+	fn visit_fn_decl(&mut self, n: &FnDecl) {
 		n.visit_children_with(self);
 
 		if (self.in_top_level && !self.options.top_level.unwrap_or_default())
@@ -135,7 +137,7 @@ impl Visit for Preserver<'_> {
 		}
 	}
 
-	fn visit_fn_expr(&mut self, n:&FnExpr) {
+	fn visit_fn_expr(&mut self, n: &FnExpr) {
 		n.visit_children_with(self);
 
 		if self.options.keep_fn_names {
@@ -145,9 +147,9 @@ impl Visit for Preserver<'_> {
 		}
 	}
 
-	fn visit_ident(&mut self, _:&Ident) {}
+	fn visit_ident(&mut self, _: &Ident) {}
 
-	fn visit_module_items(&mut self, n:&[ModuleItem]) {
+	fn visit_module_items(&mut self, n: &[ModuleItem]) {
 		for n in n {
 			self.in_top_level = true;
 
@@ -155,7 +157,7 @@ impl Visit for Preserver<'_> {
 		}
 	}
 
-	fn visit_pat(&mut self, n:&Pat) {
+	fn visit_pat(&mut self, n: &Pat) {
 		n.visit_children_with(self);
 
 		if let Pat::Ident(i) = n {
@@ -165,7 +167,7 @@ impl Visit for Preserver<'_> {
 		}
 	}
 
-	fn visit_script(&mut self, n:&Script) {
+	fn visit_script(&mut self, n: &Script) {
 		for n in n.body.iter() {
 			self.in_top_level = true;
 
@@ -173,7 +175,7 @@ impl Visit for Preserver<'_> {
 		}
 	}
 
-	fn visit_var_declarator(&mut self, n:&VarDeclarator) {
+	fn visit_var_declarator(&mut self, n: &VarDeclarator) {
 		n.visit_children_with(self);
 
 		if self.in_top_level && !self.options.top_level.unwrap_or_default() {

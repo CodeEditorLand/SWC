@@ -5,22 +5,22 @@ use syn::{parse::Parse, *};
 
 struct MyField {
 	/// Name of the field.
-	pub ident:Option<Ident>,
+	pub ident: Option<Ident>,
 	/// Type of the field.
-	pub ty:Type,
+	pub ty: Type,
 
 	/// `#[span(lo)]`
-	pub lo:bool,
+	pub lo: bool,
 	/// `#[span(hi)]`
-	pub hi:bool,
+	pub hi: bool,
 }
 
 struct InputFieldAttr {
-	kinds:Punctuated<Ident, Token![,]>,
+	kinds: Punctuated<Ident, Token![,]>,
 }
 
 impl Parse for InputFieldAttr {
-	fn parse(input:parse::ParseStream) -> Result<Self> {
+	fn parse(input: parse::ParseStream) -> Result<Self> {
 		let kinds = input.call(Punctuated::parse_terminated)?;
 
 		Ok(Self { kinds })
@@ -28,7 +28,7 @@ impl Parse for InputFieldAttr {
 }
 
 impl MyField {
-	fn from_field(f:&Field) -> Self {
+	fn from_field(f: &Field) -> Self {
 		let mut lo = false;
 
 		let mut hi = false;
@@ -42,8 +42,8 @@ impl MyField {
 				Meta::Path(..) => {},
 
 				Meta::List(list) => {
-					let input = parse2::<InputFieldAttr>(list.tokens.clone())
-						.expect("failed to parse as `InputFieldAttr`");
+					let input =
+						parse2::<InputFieldAttr>(list.tokens.clone()).expect("failed to parse as `InputFieldAttr`");
 
 					for kind in input.kinds {
 						if kind == "lo" {
@@ -60,11 +60,11 @@ impl MyField {
 			}
 		}
 
-		Self { ident:f.ident.clone(), ty:f.ty.clone(), lo, hi }
+		Self { ident: f.ident.clone(), ty: f.ty.clone(), lo, hi }
 	}
 }
 
-pub fn derive(input:DeriveInput) -> ItemImpl {
+pub fn derive(input: DeriveInput) -> ItemImpl {
 	let arms = Binder::new_from(&input)
 		.variants()
 		.into_iter()
@@ -75,26 +75,26 @@ pub fn derive(input:DeriveInput) -> ItemImpl {
 
 			Arm {
 				body,
-				attrs:v.attrs().iter().filter(|attr| is_attr_name(attr, "cfg")).cloned().collect(),
+				attrs: v.attrs().iter().filter(|attr| is_attr_name(attr, "cfg")).cloned().collect(),
 				pat,
-				guard:None,
-				fat_arrow_token:Default::default(),
-				comma:Some(Token ! [ , ](def_site())),
+				guard: None,
+				fat_arrow_token: Default::default(),
+				comma: Some(Token ! [ , ](def_site())),
 			}
 		})
 		.collect();
 
 	let body = Expr::Match(ExprMatch {
-		attrs:Default::default(),
-		match_token:Default::default(),
-		brace_token:Default::default(),
-		expr:Box::new(parse_quote!(self)),
+		attrs: Default::default(),
+		match_token: Default::default(),
+		brace_token: Default::default(),
+		expr: Box::new(parse_quote!(self)),
 		arms,
 	});
 
 	let ty = &input.ident;
 
-	let item:ItemImpl = parse_quote! {
+	let item: ItemImpl = parse_quote! {
 		#[automatically_derived]
 		impl swc_common::Spanned for #ty {
 			#[inline]
@@ -107,9 +107,9 @@ pub fn derive(input:DeriveInput) -> ItemImpl {
 	item.with_generics(input.generics)
 }
 
-fn make_body_for_variant(v:&VariantBinder<'_>, bindings:Vec<BindedField<'_>>) -> Box<Expr> {
+fn make_body_for_variant(v: &VariantBinder<'_>, bindings: Vec<BindedField<'_>>) -> Box<Expr> {
 	/// `swc_common::Spanned::span(#field)`
-	fn simple_field(field:&dyn ToTokens) -> Box<Expr> {
+	fn simple_field(field: &dyn ToTokens) -> Box<Expr> {
 		Box::new(parse_quote_spanned! (def_site() => {
 			swc_common::Spanned::span(#field)
 		}))
@@ -152,7 +152,7 @@ fn make_body_for_variant(v:&VariantBinder<'_>, bindings:Vec<BindedField<'_>>) ->
 		return simple_field(span_field);
 	}
 
-	let fields:Vec<_> = bindings.iter().map(|b| (b, MyField::from_field(b.field()))).collect();
+	let fields: Vec<_> = bindings.iter().map(|b| (b, MyField::from_field(b.field()))).collect();
 
 	// TODO: Only one field should be `#[span(lo)]`.
 	let lo = fields.iter().find(|&(_, f)| f.lo);
@@ -171,7 +171,7 @@ fn make_body_for_variant(v:&VariantBinder<'_>, bindings:Vec<BindedField<'_>>) ->
 }
 
 /// Search for `#[span]`
-fn has_empty_span_attr(attrs:&[Attribute]) -> bool {
+fn has_empty_span_attr(attrs: &[Attribute]) -> bool {
 	attrs.iter().any(|attr| {
 		if !is_attr_name(attr, "span") {
 			return false;

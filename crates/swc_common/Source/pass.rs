@@ -15,7 +15,9 @@ impl<V> CompilerPass for Repeat<V>
 where
 	V: CompilerPass + Repeated,
 {
-	fn name(&self) -> Cow<'static, str> { Cow::Owned(format!("repeat({})", self.pass.name())) }
+	fn name(&self) -> Cow<'static, str> {
+		Cow::Owned(format!("repeat({})", self.pass.name()))
+	}
 }
 
 macro_rules! impl_compiler_pass_for_tuple {
@@ -48,29 +50,8 @@ impl_compiler_pass_for_tuple!([0, A], [1, B], [2, C], [3, D], [4, E]);
 impl_compiler_pass_for_tuple!([0, A], [1, B], [2, C], [3, D], [4, E], [5, F]);
 impl_compiler_pass_for_tuple!([0, A], [1, B], [2, C], [3, D], [4, E], [5, F], [6, G]);
 impl_compiler_pass_for_tuple!([0, A], [1, B], [2, C], [3, D], [4, E], [5, F], [6, G], [7, H]);
-impl_compiler_pass_for_tuple!(
-	[0, A],
-	[1, B],
-	[2, C],
-	[3, D],
-	[4, E],
-	[5, F],
-	[6, G],
-	[7, H],
-	[8, I]
-);
-impl_compiler_pass_for_tuple!(
-	[0, A],
-	[1, B],
-	[2, C],
-	[3, D],
-	[4, E],
-	[5, F],
-	[6, G],
-	[7, H],
-	[8, I],
-	[9, J]
-);
+impl_compiler_pass_for_tuple!([0, A], [1, B], [2, C], [3, D], [4, E], [5, F], [6, G], [7, H], [8, I]);
+impl_compiler_pass_for_tuple!([0, A], [1, B], [2, C], [3, D], [4, E], [5, F], [6, G], [7, H], [8, I], [9, J]);
 impl_compiler_pass_for_tuple!(
 	[0, A],
 	[1, B],

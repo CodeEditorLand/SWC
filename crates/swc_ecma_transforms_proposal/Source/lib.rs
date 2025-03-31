@@ -4,11 +4,9 @@
 use serde::{Deserialize, Serialize};
 
 pub use self::{
-	decorators::decorators,
-	export_default_from::export_default_from,
-	import_assertions::import_assertions,
-    decorators::decorators, export_default_from::export_default_from,
-    import_attributes::import_attributes,
+	decorators::decorators, decorators::decorators, export_default_from::export_default_from,
+	export_default_from::export_default_from, import_assertions::import_assertions,
+	import_attributes::import_attributes,
 };
 
 #[derive(Debug, Default, Clone, Copy, Serialize, Deserialize)]

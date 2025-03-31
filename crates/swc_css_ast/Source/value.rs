@@ -13,87 +13,101 @@ use crate::Function;
 #[ast_node("Ident")]
 #[derive(Eq, PartialOrd, Ord, Hash)]
 pub struct Ident {
-	pub span:Span,
+	pub span: Span,
 
-	pub value:Atom,
-	pub raw:Option<Atom>,
+	pub value: Atom,
+	pub raw: Option<Atom>,
 }
 
 impl EqIgnoreSpan for Ident {
 	#[inline]
-	fn eq_ignore_span(&self, other:&Self) -> bool { self.value == other.value }
+	fn eq_ignore_span(&self, other: &Self) -> bool {
+		self.value == other.value
+	}
 }
 
 impl PartialEq<str> for Ident {
 	#[inline]
-	fn eq(&self, other:&str) -> bool { &*self.value == other }
+	fn eq(&self, other: &str) -> bool {
+		&*self.value == other
+	}
 }
 
 impl Take for Ident {
 	#[inline]
 	fn dummy() -> Self {
-		Self { span:Default::default(), value:Default::default(), raw:Default::default() }
+		Self { span: Default::default(), value: Default::default(), raw: Default::default() }
 	}
 }
 
 #[ast_node("CustomIdent")]
 #[derive(Eq, Hash)]
 pub struct CustomIdent {
-	pub span:Span,
+	pub span: Span,
 
-	pub value:Atom,
-	pub raw:Option<Atom>,
+	pub value: Atom,
+	pub raw: Option<Atom>,
 }
 
 impl EqIgnoreSpan for CustomIdent {
 	#[inline]
-	fn eq_ignore_span(&self, other:&Self) -> bool { self.value == other.value }
+	fn eq_ignore_span(&self, other: &Self) -> bool {
+		self.value == other.value
+	}
 }
 
 #[ast_node("DashedIdent")]
 #[derive(Eq, Hash)]
 pub struct DashedIdent {
-	pub span:Span,
+	pub span: Span,
 
-	pub value:Atom,
-	pub raw:Option<Atom>,
+	pub value: Atom,
+	pub raw: Option<Atom>,
 }
 
 impl EqIgnoreSpan for DashedIdent {
 	#[inline]
-	fn eq_ignore_span(&self, other:&Self) -> bool { self.value == other.value }
+	fn eq_ignore_span(&self, other: &Self) -> bool {
+		self.value == other.value
+	}
 }
 
 impl PartialEq<str> for DashedIdent {
 	#[inline]
-	fn eq(&self, other:&str) -> bool { &*self.value == other }
+	fn eq(&self, other: &str) -> bool {
+		&*self.value == other
+	}
 }
 
 #[ast_node("CustomPropertyName")]
 #[derive(Eq, Hash)]
 pub struct CustomPropertyName {
-	pub span:Span,
+	pub span: Span,
 
-	pub value:Atom,
-	pub raw:Option<Atom>,
+	pub value: Atom,
+	pub raw: Option<Atom>,
 }
 
 impl EqIgnoreSpan for CustomPropertyName {
-	fn eq_ignore_span(&self, other:&Self) -> bool { self.value == other.value }
+	fn eq_ignore_span(&self, other: &Self) -> bool {
+		self.value == other.value
+	}
 }
 
 /// Quoted string.
 #[ast_node("String")]
 #[derive(Eq, Hash)]
 pub struct Str {
-	pub span:Span,
+	pub span: Span,
 
-	pub value:Atom,
-	pub raw:Option<Atom>,
+	pub value: Atom,
+	pub raw: Option<Atom>,
 }
 
 impl EqIgnoreSpan for Str {
-	fn eq_ignore_span(&self, other:&Self) -> bool { self.value == other.value }
+	fn eq_ignore_span(&self, other: &Self) -> bool {
+		self.value == other.value
+	}
 }
 
 #[derive(StringEnum, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Hash, Is, EqIgnoreSpan)]
@@ -117,8 +131,8 @@ pub enum DelimiterValue {
 #[ast_node("Delimiter")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct Delimiter {
-	pub span:Span,
-	pub value:DelimiterValue,
+	pub span: Span,
+	pub value: DelimiterValue,
 }
 
 // TODO small AST improve for `CurrentColorOrSystemColor` and
@@ -150,11 +164,11 @@ pub enum AbsoluteColorBase {
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct HexColor {
 	/// Includes `#`
-	pub span:Span,
+	pub span: Span,
 	/// Does **not** include `#`
-	pub value:Atom,
+	pub value: Atom,
 	/// Does **not** include `#`
-	pub raw:Option<Atom>,
+	pub raw: Option<Atom>,
 }
 
 #[ast_node]
@@ -214,64 +228,64 @@ pub enum Dimension {
 #[ast_node("Length")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct Length {
-	pub span:Span,
-	pub value:Number,
-	pub unit:Ident,
+	pub span: Span,
+	pub value: Number,
+	pub unit: Ident,
 }
 
 #[ast_node("Angle")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct Angle {
-	pub span:Span,
-	pub value:Number,
-	pub unit:Ident,
+	pub span: Span,
+	pub value: Number,
+	pub unit: Ident,
 }
 
 #[ast_node("Time")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct Time {
-	pub span:Span,
-	pub value:Number,
-	pub unit:Ident,
+	pub span: Span,
+	pub value: Number,
+	pub unit: Ident,
 }
 
 #[ast_node("Frequency")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct Frequency {
-	pub span:Span,
-	pub value:Number,
-	pub unit:Ident,
+	pub span: Span,
+	pub value: Number,
+	pub unit: Ident,
 }
 
 #[ast_node("Resolution")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct Resolution {
-	pub span:Span,
-	pub value:Number,
-	pub unit:Ident,
+	pub span: Span,
+	pub value: Number,
+	pub unit: Ident,
 }
 
 #[ast_node("Flex")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct Flex {
-	pub span:Span,
-	pub value:Number,
-	pub unit:Ident,
+	pub span: Span,
+	pub value: Number,
+	pub unit: Ident,
 }
 
 #[ast_node("UnknownDimension")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct UnknownDimension {
-	pub span:Span,
-	pub value:Number,
-	pub unit:Ident,
+	pub span: Span,
+	pub value: Number,
+	pub unit: Ident,
 }
 
 #[ast_node("Percentage")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct Percentage {
-	pub span:Span,
-	pub value:Number,
+	pub span: Span,
+	pub value: Number,
 }
 
 #[ast_node]
@@ -313,20 +327,22 @@ pub enum TimePercentage {
 #[ast_node("Integer")]
 #[derive(Eq, Hash)]
 pub struct Integer {
-	pub span:Span,
-	pub value:i64,
-	pub raw:Option<Atom>,
+	pub span: Span,
+	pub value: i64,
+	pub raw: Option<Atom>,
 }
 
 impl EqIgnoreSpan for Integer {
-	fn eq_ignore_span(&self, other:&Self) -> bool { self.value == other.value }
+	fn eq_ignore_span(&self, other: &Self) -> bool {
+		self.value == other.value
+	}
 }
 
 #[ast_node("Number")]
 pub struct Number {
-	pub span:Span,
-	pub value:f64,
-	pub raw:Option<Atom>,
+	pub span: Span,
+	pub value: f64,
+	pub raw: Option<Atom>,
 }
 
 impl Eq for Number {}
@@ -334,13 +350,13 @@ impl Eq for Number {}
 #[allow(clippy::derived_hash_with_manual_eq)]
 #[allow(clippy::transmute_float_to_int)]
 impl Hash for Number {
-	fn hash<H:Hasher>(&self, state:&mut H) {
-		fn integer_decode(val:f64) -> (u64, i16, i8) {
-			let bits:u64 = unsafe { mem::transmute(val) };
+	fn hash<H: Hasher>(&self, state: &mut H) {
+		fn integer_decode(val: f64) -> (u64, i16, i8) {
+			let bits: u64 = unsafe { mem::transmute(val) };
 
-			let sign:i8 = if bits >> 63 == 0 { 1 } else { -1 };
+			let sign: i8 = if bits >> 63 == 0 { 1 } else { -1 };
 
-			let mut exponent:i16 = ((bits >> 52) & 0x7FF) as i16;
+			let mut exponent: i16 = ((bits >> 52) & 0x7FF) as i16;
 
 			let mantissa = if exponent == 0 {
 				(bits & 0xFFFFFFFFFFFFF) << 1
@@ -359,15 +375,17 @@ impl Hash for Number {
 }
 
 impl EqIgnoreSpan for Number {
-	fn eq_ignore_span(&self, other:&Self) -> bool { self.value == other.value }
+	fn eq_ignore_span(&self, other: &Self) -> bool {
+		self.value == other.value
+	}
 }
 
 #[ast_node("Ratio")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct Ratio {
-	pub span:Span,
-	pub left:Number,
-	pub right:Option<Number>,
+	pub span: Span,
+	pub left: Number,
+	pub right: Option<Number>,
 }
 
 #[derive(StringEnum, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Hash, Is, EqIgnoreSpan)]
@@ -393,10 +411,10 @@ pub enum BinOp {
 #[ast_node("Url")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct Url {
-	pub span:Span,
-	pub name:Ident,
-	pub value:Option<Box<UrlValue>>,
-	pub modifiers:Option<Vec<UrlModifier>>,
+	pub span: Span,
+	pub name: Ident,
+	pub value: Option<Box<UrlValue>>,
+	pub modifiers: Option<Vec<UrlModifier>>,
 }
 
 #[ast_node]
@@ -411,10 +429,10 @@ pub enum UrlValue {
 #[ast_node("UrlValueRaw")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct UrlValueRaw {
-	pub span:Span,
+	pub span: Span,
 
-	pub value:Atom,
-	pub raw:Option<Atom>,
+	pub value: Atom,
+	pub raw: Option<Atom>,
 }
 
 #[ast_node]
@@ -429,17 +447,17 @@ pub enum UrlModifier {
 #[ast_node("UnicodeRange")]
 #[derive(Eq, Hash)]
 pub struct UnicodeRange {
-	pub span:Span,
+	pub span: Span,
 
-	pub start:Atom,
+	pub start: Atom,
 
-	pub end:Option<Atom>,
-	pub raw:Option<Atom>,
+	pub end: Option<Atom>,
+	pub raw: Option<Atom>,
 }
 
 impl EqIgnoreSpan for UnicodeRange {
 	#[inline]
-	fn eq_ignore_span(&self, other:&Self) -> bool {
+	fn eq_ignore_span(&self, other: &Self) -> bool {
 		self.start == other.start && self.end == other.end
 	}
 }
@@ -447,8 +465,8 @@ impl EqIgnoreSpan for UnicodeRange {
 #[ast_node("CalcSum")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct CalcSum {
-	pub span:Span,
-	pub expressions:Vec<CalcProductOrOperator>,
+	pub span: Span,
+	pub expressions: Vec<CalcProductOrOperator>,
 }
 
 #[ast_node]
@@ -463,15 +481,15 @@ pub enum CalcProductOrOperator {
 #[ast_node("CalcProduct")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct CalcProduct {
-	pub span:Span,
-	pub expressions:Vec<CalcValueOrOperator>,
+	pub span: Span,
+	pub expressions: Vec<CalcValueOrOperator>,
 }
 
 #[ast_node("CalcOperator")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct CalcOperator {
-	pub span:Span,
-	pub value:CalcOperatorType,
+	pub span: Span,
+	pub value: CalcOperatorType,
 }
 
 #[derive(StringEnum, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Hash, Is, EqIgnoreSpan)]
@@ -532,6 +550,6 @@ pub enum FamilyName {
 #[ast_node("SequenceOfCustomIdents")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct SequenceOfCustomIdents {
-	pub span:Span,
-	pub value:Vec<CustomIdent>,
+	pub span: Span,
+	pub value: Vec<CustomIdent>,
 }

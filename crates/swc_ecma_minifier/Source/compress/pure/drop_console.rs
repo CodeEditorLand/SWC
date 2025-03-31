@@ -4,7 +4,7 @@ use swc_ecma_ast::*;
 use super::Pure;
 
 impl Pure<'_> {
-	pub(super) fn drop_console(&mut self, e:&mut Expr) {
+	pub(super) fn drop_console(&mut self, e: &mut Expr) {
 		if !self.options.drop_console {
 			return;
 		}
@@ -35,17 +35,13 @@ impl Pure<'_> {
 					break;
 				},
 
-				Expr::Member(MemberExpr {
-					obj: loop_co_obj, prop: MemberProp::Ident(_), ..
-				}) => {
+				Expr::Member(MemberExpr { obj: loop_co_obj, prop: MemberProp::Ident(_), .. }) => {
 					loop_co = loop_co_obj;
 				},
 
-				Expr::OptChain(opt_chain) => {
-					match opt_chain.base.as_member() {
-						Some(member) => loop_co = &member.obj,
-						None => return,
-					}
+				Expr::OptChain(opt_chain) => match opt_chain.base.as_member() {
+					Some(member) => loop_co = &member.obj,
+					None => return,
 				},
 				_ => return,
 			}

@@ -16,14 +16,11 @@ fn main() {
 				swc::HandlerOpts {
 					// Auto is default, but for it's an example.
 					// You can use the env var named `NO_COLOR` to control this.
-					color:ColorConfig::Auto,
-					skip_filename:false,
+					color: ColorConfig::Auto,
+					skip_filename: false,
 				},
 				|handler| {
-					let fm = cm.new_source_file(
-						FileName::Custom("foo.js".into()).into(),
-						"this ?= foo".into(),
-					);
+					let fm = cm.new_source_file(FileName::Custom("foo.js".into()).into(), "this ?= foo".into());
 
 					c.process_js_file(fm, handler, &Default::default())
 						.context("failed to process file")
@@ -45,14 +42,11 @@ fn main() {
 				swc::HandlerOpts {
 					// Auto is default, but for it's an example.
 					// You can use the env var named `NO_COLOR` to control this.
-					color:ColorConfig::Auto,
-					skip_filename:false,
+					color: ColorConfig::Auto,
+					skip_filename: false,
 				},
 				|handler| {
-					let fm = cm.new_source_file(
-						FileName::Custom("foo.js".into()).into(),
-						"this ?= foo".into(),
-					);
+					let fm = cm.new_source_file(FileName::Custom("foo.js".into()).into(), "this ?= foo".into());
 
 					c.process_js_file(fm, handler, &Default::default())
 						.context("failed to process file")
@@ -74,14 +68,11 @@ fn main() {
 				swc::HandlerOpts {
 					// Auto is default, but for it's an example.
 					// You can use the env var named `NO_COLOR` to control this.
-					color:ColorConfig::Auto,
-					skip_filename:false,
+					color: ColorConfig::Auto,
+					skip_filename: false,
 				},
 				|handler| {
-					let fm = cm.new_source_file(
-						FileName::Custom("foo.js".into()).into(),
-						"this ?= foo".into(),
-					);
+					let fm = cm.new_source_file(FileName::Custom("foo.js".into()).into(), "this ?= foo".into());
 
 					c.process_js_file(fm, handler, &Default::default())
 						.context("failed to process file")

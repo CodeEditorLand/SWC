@@ -1,6 +1,5 @@
 use swc_common::{
-	FileName,
-	SourceMap,
+	FileName, SourceMap,
 	comments::SingleThreadedComments,
 	errors::{HANDLER, Handler},
 	sync::Lrc,
@@ -14,19 +13,20 @@ use swc_ecma_visit::{Fold, FoldWith};
 use crate::{fixer::fixer, helpers::HELPERS, hygiene::hygiene_with_config};
 
 pub struct Tester<'a> {
-	pub cm:Lrc<SourceMap>,
-	pub handler:&'a Handler,
-	pub comments:Lrc<SingleThreadedComments>,
+	pub cm: Lrc<SourceMap>,
+	pub handler: &'a Handler,
+	pub comments: Lrc<SingleThreadedComments>,
 }
 
 impl Tester<'_> {
-	pub fn run<F>(op:F)
+	pub fn run<F>(op: F)
 	where
-		F: FnOnce(&mut Tester<'_>) -> Result<(), ()>, {
+		F: FnOnce(&mut Tester<'_>) -> Result<(), ()>,
+	{
 		let out = ::testing::run_test(false, |cm, handler| {
 			HANDLER.set(handler, || {
 				HELPERS.set(&Default::default(), || {
-					op(&mut Tester { cm, handler, comments:Default::default() })
+					op(&mut Tester { cm, handler, comments: Default::default() })
 				})
 			})
 		});
@@ -38,15 +38,10 @@ impl Tester<'_> {
 		}
 	}
 
-	pub fn with_parser<F, T>(
-		&mut self,
-		file_name:&str,
-		syntax:Syntax,
-		src:&str,
-		op:F,
-	) -> Result<T, ()>
+	pub fn with_parser<F, T>(&mut self, file_name: &str, syntax: Syntax, src: &str, op: F) -> Result<T, ()>
 	where
-		F: FnOnce(&mut Parser<Lexer>) -> Result<T, Error>, {
+		F: FnOnce(&mut Parser<Lexer>) -> Result<T, Error>,
+	{
 		let fm = self.cm.new_source_file(FileName::Real(file_name.into()).into(), src.into());
 
 		let mut p = Parser::new(syntax, StringInput::from(&*fm), Some(&self.comments));
@@ -60,11 +55,11 @@ impl Tester<'_> {
 		res
 	}
 
-	pub fn parse_module(&mut self, file_name:&str, src:&str) -> Result<Module, ()> {
+	pub fn parse_module(&mut self, file_name: &str, src: &str) -> Result<Module, ()> {
 		self.with_parser(file_name, Syntax::default(), src, |p| p.parse_module())
 	}
 
-	pub fn parse_stmts(&mut self, file_name:&str, src:&str) -> Result<Vec<Stmt>, ()> {
+	pub fn parse_stmts(&mut self, file_name: &str, src: &str) -> Result<Vec<Stmt>, ()> {
 		let stmts = self.with_parser(file_name, Syntax::default(), src, |p| {
 			p.parse_script().map(|script| script.body)
 		})?;
@@ -72,7 +67,7 @@ impl Tester<'_> {
 		Ok(stmts)
 	}
 
-	pub fn parse_stmt(&mut self, file_name:&str, src:&str) -> Result<Stmt, ()> {
+	pub fn parse_stmt(&mut self, file_name: &str, src: &str) -> Result<Stmt, ()> {
 		let mut stmts = self.parse_stmts(file_name, src)?;
 
 		assert!(stmts.len() == 1);
@@ -80,13 +75,7 @@ impl Tester<'_> {
 		Ok(stmts.pop().unwrap())
 	}
 
-	pub fn apply_transform<T:Pass>(
-		&mut self,
-		tr:T,
-		name:&str,
-		syntax:Syntax,
-		src:&str,
-	) -> Result<Program, ()> {
+	pub fn apply_transform<T: Pass>(&mut self, tr: T, name: &str, syntax: Syntax, src: &str) -> Result<Program, ()> {
 		let fm = self.cm.new_source_file(FileName::Real(name.into()).into(), src.into());
 
 		let module = {
@@ -106,19 +95,19 @@ impl Tester<'_> {
 		Ok(module)
 	}
 
-	pub fn print(&mut self, program:&Program) -> String {
+	pub fn print(&mut self, program: &Program) -> String {
 		let mut buf = Vec::new();
 		{
 			let mut emitter = Emitter {
-				cfg:Default::default(),
-				cm:self.cm.clone(),
-				wr:Box::new(swc_ecma_codegen::text_writer::JsWriter::new(
+				cfg: Default::default(),
+				cm: self.cm.clone(),
+				wr: Box::new(swc_ecma_codegen::text_writer::JsWriter::new(
 					self.cm.clone(),
 					"\n",
 					&mut buf,
 					None,
 				)),
-				comments:None,
+				comments: None,
 			};
 
 			// println!("Emitting: {:?}", module);
@@ -134,21 +123,22 @@ impl Tester<'_> {
 
 pub(crate) struct HygieneVisualizer;
 impl Fold for HygieneVisualizer {
-	fn fold_ident(&mut self, ident:Ident) -> Ident {
-		Ident { sym:format!("{}{:?}", ident.sym, ident.ctxt).into(), ..ident }
+	fn fold_ident(&mut self, ident: Ident) -> Ident {
+		Ident { sym: format!("{}{:?}", ident.sym, ident.ctxt).into(), ..ident }
 	}
 }
 
 pub(crate) fn test_transform<F, P>(
-	syntax:Syntax,
-	tr:F,
-	input:&str,
-	expected:&str,
-	ok_if_code_eq:bool,
-	hygiene_config:impl FnOnce() -> crate::hygiene::Config,
+	syntax: Syntax,
+	tr: F,
+	input: &str,
+	expected: &str,
+	ok_if_code_eq: bool,
+	hygiene_config: impl FnOnce() -> crate::hygiene::Config,
 ) where
 	F: FnOnce(&mut Tester) -> P,
-	P: Pass, {
+	P: Pass,
+{
 	crate::tests::Tester::run(|tester| {
 		let expected = tester.apply_transform(DropSpan, "output.js", syntax, expected)?;
 

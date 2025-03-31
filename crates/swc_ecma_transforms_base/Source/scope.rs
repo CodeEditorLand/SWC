@@ -25,7 +25,7 @@ pub enum DeclKind {
 }
 
 impl From<VarDeclKind> for DeclKind {
-	fn from(kind:VarDeclKind) -> Self {
+	fn from(kind: VarDeclKind) -> Self {
 		match kind {
 			VarDeclKind::Const | VarDeclKind::Let => Self::Lexical,
 			VarDeclKind::Var => Self::Var,

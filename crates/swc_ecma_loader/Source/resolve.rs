@@ -10,12 +10,12 @@ use swc_common::{
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Resolution {
-	pub filename:FileName,
-	pub slug:Option<Atom>,
+	pub filename: FileName,
+	pub slug: Option<Atom>,
 }
 
 pub trait Resolve: Send + Sync {
-	fn resolve(&self, base:&FileName, module_specifier:&str) -> Result<Resolution, Error>;
+	fn resolve(&self, base: &FileName, module_specifier: &str) -> Result<Resolution, Error>;
 }
 
 macro_rules! impl_ref {
@@ -24,7 +24,7 @@ macro_rules! impl_ref {
 		where
 			R: ?Sized + Resolve,
 		{
-			fn resolve(&self, base:&FileName, src:&str) -> Result<Resolution, Error> {
+			fn resolve(&self, base: &FileName, src: &str) -> Result<Resolution, Error> {
 				(**self).resolve(base, src)
 			}
 		}

@@ -5,34 +5,30 @@ use syn::{FnArg, Ident, ImplItem, ImplItemFn, ItemImpl, Pat, Path, parse_quote};
 
 use crate::common::Mode;
 
-pub fn expand(attr:TokenStream, item:ItemImpl) -> ItemImpl {
+pub fn expand(attr: TokenStream, item: ItemImpl) -> ItemImpl {
 	let expander = Expander {
-		handler:syn::parse2(attr).expect("Usage should be like #[fast_path(ArrowVisitor)]"),
-		mode:detect_mode(&item),
+		handler: syn::parse2(attr).expect("Usage should be like #[fast_path(ArrowVisitor)]"),
+		mode: detect_mode(&item),
 	};
 
 	let items = expander.inject_default_methods(item.items);
 
 	ItemImpl {
-		items:items
+		items: items
 			.into_iter()
-			.map(|item| {
-				match item {
-					ImplItem::Fn(m) => ImplItem::Fn(expander.patch_method(m)),
-					_ => item,
-				}
+			.map(|item| match item {
+				ImplItem::Fn(m) => ImplItem::Fn(expander.patch_method(m)),
+				_ => item,
 			})
 			.collect(),
 		..item
 	}
 }
 
-fn detect_mode(i:&ItemImpl) -> Mode {
-	if i.items.iter().any(|item| {
-		match item {
-			ImplItem::Fn(m) => m.sig.ident.to_string().starts_with("fold"),
-			_ => false,
-		}
+fn detect_mode(i: &ItemImpl) -> Mode {
+	if i.items.iter().any(|item| match item {
+		ImplItem::Fn(m) => m.sig.ident.to_string().starts_with("fold"),
+		_ => false,
 	}) {
 		return Mode::Fold;
 	}
@@ -41,12 +37,12 @@ fn detect_mode(i:&ItemImpl) -> Mode {
 }
 
 struct Expander {
-	mode:Mode,
-	handler:Path,
+	mode: Mode,
+	handler: Path,
 }
 
 impl Expander {
-	fn inject_default_methods(&self, mut items:Vec<ImplItem>) -> Vec<ImplItem> {
+	fn inject_default_methods(&self, mut items: Vec<ImplItem>) -> Vec<ImplItem> {
 		let list = &[
 			("stmt", quote!(swc_ecma_ast::Stmt)),
 			("stmts", quote!(Vec<swc_ecma_ast::Stmt>)),
@@ -60,11 +56,9 @@ impl Expander {
 		];
 
 		for (name, ty) in list {
-			let has = items.iter().any(|item| {
-				match item {
-					ImplItem::Fn(i) => i.sig.ident.to_string().ends_with(name),
-					_ => false,
-				}
+			let has = items.iter().any(|item| match item {
+				ImplItem::Fn(i) => i.sig.ident.to_string().ends_with(name),
+				_ => false,
 			});
 
 			if has {
@@ -97,7 +91,7 @@ impl Expander {
 	}
 
 	/// Add fast path to a method
-	fn patch_method(&self, mut m:ImplItemFn) -> ImplItemFn {
+	fn patch_method(&self, mut m: ImplItemFn) -> ImplItemFn {
 		let ty_arg = m
 			.sig
 			.inputs
@@ -120,9 +114,7 @@ impl Expander {
 		let arg = match &*ty_arg.pat {
 			Pat::Ident(i) => &i.ident,
 			_ => {
-				unimplemented!(
-					"Fast-path injection for Fold / VisitMut where pattern is not an ident"
-				)
+				unimplemented!("Fast-path injection for Fold / VisitMut where pattern is not an ident")
 			},
 		};
 

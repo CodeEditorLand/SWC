@@ -14,7 +14,7 @@ fn mk() -> swc::Compiler {
 	swc::Compiler::new(cm)
 }
 
-fn bench_minify(b:&mut Bencher, filename:&str) {
+fn bench_minify(b: &mut Bencher, filename: &str) {
 	let c = mk();
 
 	b.iter(|| {
@@ -37,13 +37,13 @@ fn bench_minify(b:&mut Bencher, filename:&str) {
 					fm,
 					handler,
 					&JsMinifyOptions {
-						compress:BoolOrDataConfig::from_bool(true),
-						mangle:BoolOrDataConfig::from_bool(true),
-						toplevel:Some(true),
-						source_map:BoolOrDataConfig::from_bool(true),
-						output_path:Default::default(),
-						inline_sources_content:true,
-						emit_source_map_columns:true,
+						compress: BoolOrDataConfig::from_bool(true),
+						mangle: BoolOrDataConfig::from_bool(true),
+						toplevel: Some(true),
+						source_map: BoolOrDataConfig::from_bool(true),
+						output_path: Default::default(),
+						inline_sources_content: true,
+						emit_source_map_columns: true,
 						..Default::default()
 					},
 					Default::default(),
@@ -58,12 +58,12 @@ fn bench_minify(b:&mut Bencher, filename:&str) {
 	})
 }
 
-fn files_group(c:&mut Criterion) {
+fn files_group(c: &mut Criterion) {
 	let mut group = c.benchmark_group("es/full/minify/libraries");
 
 	group.sample_size(10);
 
-	let mut bench_file = |name:&str| {
+	let mut bench_file = |name: &str| {
 		group.bench_function(format!("es/full/minify/libraries/{name}"), |b| {
 			bench_minify(b, &format!("{}.js", name));
 		});
@@ -99,7 +99,7 @@ fn files_group(c:&mut Criterion) {
 	swc::Compiler::new(cm)
 }
 
-fn bench_minify(b:&mut Bencher, filename:&str) {
+fn bench_minify(b: &mut Bencher, filename: &str) {
 	let c = mk();
 
 	b.iter(|| {
@@ -122,13 +122,13 @@ fn bench_minify(b:&mut Bencher, filename:&str) {
 					fm,
 					handler,
 					&JsMinifyOptions {
-						compress:BoolOrDataConfig::from_bool(true),
-						mangle:BoolOrDataConfig::from_bool(true),
-						toplevel:Some(true),
-						source_map:BoolOrDataConfig::from_bool(true),
-						output_path:Default::default(),
-						inline_sources_content:true,
-						emit_source_map_columns:true,
+						compress: BoolOrDataConfig::from_bool(true),
+						mangle: BoolOrDataConfig::from_bool(true),
+						toplevel: Some(true),
+						source_map: BoolOrDataConfig::from_bool(true),
+						output_path: Default::default(),
+						inline_sources_content: true,
+						emit_source_map_columns: true,
 						..Default::default()
 					},
 					Default::default(),
@@ -143,12 +143,12 @@ fn bench_minify(b:&mut Bencher, filename:&str) {
 	})
 }
 
-fn files_group(c:&mut Criterion) {
+fn files_group(c: &mut Criterion) {
 	let mut group = c.benchmark_group("es/full/minify/libraries");
 
 	group.sample_size(10);
 
-	let mut bench_file = |name:&str| {
+	let mut bench_file = |name: &str| {
 		group.bench_function(format!("es/full/minify/libraries/{name}"), |b| {
 			bench_minify(b, &format!("{}.js", name));
 		});
@@ -184,7 +184,7 @@ fn files_group(c:&mut Criterion) {
 	swc::Compiler::new(cm)
 }
 
-fn bench_minify(b:&mut Bencher, filename:&str) {
+fn bench_minify(b: &mut Bencher, filename: &str) {
 	let c = mk();
 
 	b.iter(|| {
@@ -207,13 +207,13 @@ fn bench_minify(b:&mut Bencher, filename:&str) {
 					fm,
 					handler,
 					&JsMinifyOptions {
-						compress:BoolOrDataConfig::from_bool(true),
-						mangle:BoolOrDataConfig::from_bool(true),
-						toplevel:Some(true),
-						source_map:BoolOrDataConfig::from_bool(true),
-						output_path:Default::default(),
-						inline_sources_content:true,
-						emit_source_map_columns:true,
+						compress: BoolOrDataConfig::from_bool(true),
+						mangle: BoolOrDataConfig::from_bool(true),
+						toplevel: Some(true),
+						source_map: BoolOrDataConfig::from_bool(true),
+						output_path: Default::default(),
+						inline_sources_content: true,
+						emit_source_map_columns: true,
 						..Default::default()
 					},
 					Default::default(),
@@ -228,12 +228,12 @@ fn bench_minify(b:&mut Bencher, filename:&str) {
 	})
 }
 
-fn files_group(c:&mut Criterion) {
+fn files_group(c: &mut Criterion) {
 	let mut group = c.benchmark_group("es/full/minify/libraries");
 
 	group.sample_size(10);
 
-	let mut bench_file = |name:&str| {
+	let mut bench_file = |name: &str| {
 		group.bench_function(format!("es/full/minify/libraries/{name}"), |b| {
 			bench_minify(b, &format!("{}.js", name));
 		});

@@ -17,16 +17,16 @@ macro_rules! private_ident {
 #[macro_export]
 macro_rules! quote_ident {
 	($s:expr) => {{
-		let sym:$crate::swc_atoms::Atom = $s.into();
+		let sym: $crate::swc_atoms::Atom = $s.into();
 
-		let id:$crate::swc_ecma_ast::IdentName = sym.into();
+		let id: $crate::swc_ecma_ast::IdentName = sym.into();
 
 		id
 	}};
 	($ctxt:expr, $s:expr) => {{
-		let sym:$crate::swc_atoms::Atom = $s.into();
+		let sym: $crate::swc_atoms::Atom = $s.into();
 
-		let id:$crate::swc_ecma_ast::Ident =
+		let id: $crate::swc_ecma_ast::Ident =
 			$crate::swc_ecma_ast::Ident::new(sym, $crate::swc_common::DUMMY_SP, $ctxt);
 
 		id
@@ -40,7 +40,7 @@ macro_rules! quote_str {
 	($s:expr) => {
 		quote_str!($crate::swc_common::DUMMY_SP, $s)
 	};
-	($span:expr, $s:expr) => {{ $crate::swc_ecma_ast::Str { span:$span, raw:None, value:$s.into() } }};
+	($span:expr, $s:expr) => {{ $crate::swc_ecma_ast::Str { span: $span, raw: None, value: $s.into() } }};
 }
 
 #[macro_export]
@@ -114,23 +114,19 @@ mod tests {
 
 	#[test]
 	fn quote_member_expr() {
-		let expr:Box<Expr> = drop_span(member_expr!(
-			Default::default(),
-			Default::default(),
-			Function.prototype.bind
-		))
-		.into();
+		let expr: Box<Expr> =
+			drop_span(member_expr!(Default::default(), Default::default(), Function.prototype.bind)).into();
 
 		assert_eq!(
 			expr,
 			Box::new(Expr::Member(MemberExpr {
 				span,
-				obj:Box::new(Expr::Member(MemberExpr {
+				obj: Box::new(Expr::Member(MemberExpr {
 					span,
-					obj:member_expr!(Default::default(), Default::default(), Function),
-					prop:MemberProp::Ident("prototype".into()),
+					obj: member_expr!(Default::default(), Default::default(), Function),
+					prop: MemberProp::Ident("prototype".into()),
 				})),
-				prop:MemberProp::Ident("bind".into()),
+				prop: MemberProp::Ident("bind".into()),
 			}))
 		);
 	}

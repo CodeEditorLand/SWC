@@ -22,23 +22,27 @@ use swc_trace_macro::swc_trace;
 /// }
 /// var Foo = (class Foo {});
 /// ```
-pub fn function_name() -> impl Pass { visit_mut_pass(FnName) }
+pub fn function_name() -> impl Pass {
+	visit_mut_pass(FnName)
+}
 
 #[derive(Clone, Copy)]
 struct FnName;
 
 impl Parallel for FnName {
-	fn create(&self) -> Self { *self }
+	fn create(&self) -> Self {
+		*self
+	}
 
-	fn merge(&mut self, _:Self) {}
+	fn merge(&mut self, _: Self) {}
 }
 
 struct Rename {
-	name:Option<Ident>,
+	name: Option<Ident>,
 }
 
 /// This function makes a new private identifier if required.
-fn prepare(i:Ident) -> Ident {
+fn prepare(i: Ident) -> Ident {
 	if i.is_reserved() || i.is_reserved_in_strict_mode(true) || i.is_reserved_in_strict_bind() {
 		return private_ident!(i.span, format!("_{}", i.sym));
 	}
@@ -50,7 +54,7 @@ fn prepare(i:Ident) -> Ident {
 impl VisitMut for FnName {
 	noop_visit_mut_type!(fail);
 
-	fn visit_mut_assign_expr(&mut self, expr:&mut AssignExpr) {
+	fn visit_mut_assign_expr(&mut self, expr: &mut AssignExpr) {
 		expr.visit_mut_children_with(self);
 
 		if expr.op != op!("=") {
@@ -58,30 +62,30 @@ impl VisitMut for FnName {
 		}
 
 		if let Some(ident) = expr.left.as_ident_mut() {
-			let mut folder = Rename { name:Some(Ident::from(&*ident)) };
+			let mut folder = Rename { name: Some(Ident::from(&*ident)) };
 
 			expr.right.visit_mut_with(&mut folder);
 		}
 	}
 
-	fn visit_mut_key_value_prop(&mut self, p:&mut KeyValueProp) {
+	fn visit_mut_key_value_prop(&mut self, p: &mut KeyValueProp) {
 		p.visit_mut_children_with(self);
 
 		if let Expr::Fn(expr @ FnExpr { ident: None, .. }) = &mut *p.value {
 			//
 			p.value = if let PropName::Ident(ref i) = p.key {
-				FnExpr { ident:Some(prepare(i.clone().into())), ..expr.take() }.into()
+				FnExpr { ident: Some(prepare(i.clone().into())), ..expr.take() }.into()
 			} else {
 				expr.take().into()
 			};
 		};
 	}
 
-	fn visit_mut_var_declarator(&mut self, decl:&mut VarDeclarator) {
+	fn visit_mut_var_declarator(&mut self, decl: &mut VarDeclarator) {
 		decl.visit_mut_children_with(self);
 
 		if let Pat::Ident(ref mut ident) = decl.name {
-			let mut folder = Rename { name:Some(prepare(Ident::from(&*ident))) };
+			let mut folder = Rename { name: Some(prepare(Ident::from(&*ident))) };
 
 			decl.init.visit_mut_with(&mut folder);
 		}
@@ -90,7 +94,7 @@ impl VisitMut for FnName {
 
 macro_rules! impl_for {
 	($name:ident, $T:tt) => {
-		fn $name(&mut self, node:&mut $T) {
+		fn $name(&mut self, node: &mut $T) {
 			match node.ident {
 				Some(..) => return,
 				None => {
@@ -122,7 +126,7 @@ macro_rules! impl_for {
 macro_rules! noop {
 	($name:ident, $T:tt) => {
 		/// Don't recurse.
-		fn $name(&mut self, _:&mut $T) {}
+		fn $name(&mut self, _: &mut $T) {}
 	};
 }
 

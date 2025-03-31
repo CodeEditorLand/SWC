@@ -31,6 +31,6 @@ impl CleanCmd {
 	}
 }
 
-fn run_cargo_clean(dir:&Path) -> Result<()> {
+fn run_cargo_clean(dir: &Path) -> Result<()> {
 	run_cmd(std::process::Command::new("cargo").arg("clean").current_dir(dir))
 }

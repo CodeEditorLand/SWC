@@ -1,4 +1,4 @@
-use petgraph::{prelude::GraphMap, Directed};
+use petgraph::{Directed, prelude::GraphMap};
 use rustc_hash::FxBuildHasher;
 
 use crate::ModuleId;

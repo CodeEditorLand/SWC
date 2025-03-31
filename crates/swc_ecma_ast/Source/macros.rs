@@ -179,7 +179,9 @@ macro_rules! test_de {
 	($name:ident, $T:path, $s:literal) => {
 		#[test]
 		#[cfg(feature = "serde-impl")]
-		fn $name() { let _var:$T = ::serde_json::from_str(&$s).expect("failed to parse json"); }
+		fn $name() {
+			let _var: $T = ::serde_json::from_str(&$s).expect("failed to parse json");
+		}
 	};
 }
 
@@ -204,8 +206,8 @@ macro_rules! bridge_from {
 	($dst:ty, $bridge:ty, $src:ty) => {
 		impl From<$src> for $dst {
 			#[cfg_attr(not(debug_assertions), inline(always))]
-			fn from(src:$src) -> $dst {
-				let src:$bridge = src.into();
+			fn from(src: $src) -> $dst {
+				let src: $bridge = src.into();
 
 				src.into()
 			}

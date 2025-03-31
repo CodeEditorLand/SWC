@@ -7,17 +7,17 @@ use syn::{fold::Fold, *};
 mod fold;
 
 #[proc_macro_attribute]
-pub fn emitter(_attr:TokenStream, item:TokenStream) -> TokenStream {
-	let item:ImplItemFn = syn::parse(item).expect("failed to parse input as an item");
+pub fn emitter(_attr: TokenStream, item: TokenStream) -> TokenStream {
+	let item: ImplItemFn = syn::parse(item).expect("failed to parse input as an item");
 
-	let item = fold::InjectSelf { parser:None }.fold_impl_item_fn(item);
+	let item = fold::InjectSelf { parser: None }.fold_impl_item_fn(item);
 
 	let item = expand(item);
 
 	print("emitter", item.into_token_stream())
 }
 
-fn expand(i:ImplItemFn) -> ImplItemFn {
+fn expand(i: ImplItemFn) -> ImplItemFn {
 	let mtd_name = i.sig.ident.clone();
 
 	assert!(
@@ -32,21 +32,16 @@ fn expand(i:ImplItemFn) -> ImplItemFn {
 				.clone()
 				.into_iter()
 				.nth(1)
-				.and_then(|arg| {
-					match arg {
-						FnArg::Typed(ty) => Some(ty.ty),
-						_ => None,
-					}
+				.and_then(|arg| match arg {
+					FnArg::Typed(ty) => Some(ty.ty),
+					_ => None,
 				})
 				.map(|ty| {
 					// &Ident -> Ident
 					match *ty {
 						Type::Reference(TypeReference { elem, .. }) => *elem,
 						_ => {
-							panic!(
-								"Type of node parameter should be reference but got {}",
-								ty.into_token_stream()
-							)
+							panic!("Type of node parameter should be reference but got {}", ty.into_token_stream())
 						},
 					}
 				})

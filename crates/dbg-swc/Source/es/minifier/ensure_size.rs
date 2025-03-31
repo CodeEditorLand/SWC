@@ -7,19 +7,15 @@ use anyhow::{Context, Result};
 use clap::Args;
 use rayon::prelude::*;
 use swc_common::{
-	GLOBALS,
-	SourceFile,
-	SourceMap,
+	GLOBALS, SourceFile, SourceMap,
 	errors::{ColorConfig, HANDLER, Handler},
 };
 use tracing::info;
 
 use crate::util::{
-	all_js_files,
-	gzipped_size,
+	all_js_files, gzipped_size,
 	minifier::{get_esbuild_output, get_minified, get_terser_output},
-	print_js,
-	wrap_task,
+	print_js, wrap_task,
 };
 
 /// [Experimental] Ensure that we are performing better than other minification
@@ -27,19 +23,19 @@ use crate::util::{
 #[derive(Debug, Args)]
 pub struct EnsureSize {
 	#[clap(long)]
-	pub no_terser:bool,
+	pub no_terser: bool,
 
 	#[clap(long)]
-	pub no_esbuild:bool,
+	pub no_esbuild: bool,
 
 	/// This can be a directyory or a file.
 	///
 	/// If this is a directory, all `.js` files in it will be verified.
-	pub path:PathBuf,
+	pub path: PathBuf,
 }
 
 impl EnsureSize {
-	pub fn run(self, cm:Arc<SourceMap>) -> Result<()> {
+	pub fn run(self, cm: Arc<SourceMap>) -> Result<()> {
 		let all_files = all_js_files(&self.path)?;
 
 		info!("Using {} files", all_files.len());
@@ -99,8 +95,7 @@ impl EnsureSize {
 		{
 			let swc_total = results.iter().map(|f| f.swc.mangled_size).sum::<usize>();
 
-			let terser_total =
-				results.iter().flat_map(|f| f.terser.map(|v| v.mangled_size)).sum::<usize>();
+			let terser_total = results.iter().flat_map(|f| f.terser.map(|v| v.mangled_size)).sum::<usize>();
 
 			println!("Total");
 
@@ -131,8 +126,7 @@ impl EnsureSize {
 		{
 			let swc_total = results.iter().map(|f| f.swc.gzipped_size).sum::<usize>();
 
-			let terser_total =
-				results.iter().flat_map(|f| f.terser.map(|v| v.gzipped_size)).sum::<usize>();
+			let terser_total = results.iter().flat_map(|f| f.terser.map(|v| v.gzipped_size)).sum::<usize>();
 
 			println!("Total (gzipped)");
 
@@ -164,41 +158,38 @@ impl EnsureSize {
 		Ok(())
 	}
 
-	fn check_file(&self, cm:Arc<SourceMap>, js_file:&Path) -> Result<Option<FileSize>> {
+	fn check_file(&self, cm: Arc<SourceMap>, js_file: &Path) -> Result<Option<FileSize>> {
 		wrap_task(|| {
 			info!("Checking {}", js_file.display());
 
 			let fm = cm.load_file(js_file).context("failed to load file")?;
 
-			let handler =
-				Handler::with_tty_emitter(ColorConfig::Never, true, false, Some(cm.clone()));
+			let handler = Handler::with_tty_emitter(ColorConfig::Never, true, false, Some(cm.clone()));
 
 			HANDLER.set(&handler, || {
 				let code_mangled = {
 					let minified_mangled = get_minified(cm.clone(), js_file, true, true)?;
 
-					print_js(cm.clone(), &minified_mangled.module, true)
-						.context("failed to convert ast to code")?
+					print_js(cm.clone(), &minified_mangled.module, true).context("failed to convert ast to code")?
 				};
 
 				let swc_no_mangle = {
 					let minified_no_mangled = get_minified(cm.clone(), js_file, true, false)?;
 
-					print_js(cm, &minified_no_mangled.module, true)
-						.context("failed to convert ast to code")?
+					print_js(cm, &minified_no_mangled.module, true).context("failed to convert ast to code")?
 				};
 
 				// eprintln!("The output size of swc minifier: {}", code_mangled.len());
 
 				let mut file_size = FileSize {
 					fm,
-					swc:MinifierOutput {
-						mangled_size:code_mangled.len(),
-						no_mangle_size:swc_no_mangle.len(),
-						gzipped_size:gzipped_size(&code_mangled),
+					swc: MinifierOutput {
+						mangled_size: code_mangled.len(),
+						no_mangle_size: swc_no_mangle.len(),
+						gzipped_size: gzipped_size(&code_mangled),
 					},
-					terser:Default::default(),
-					esbuild:Default::default(),
+					terser: Default::default(),
+					esbuild: Default::default(),
 				};
 
 				if !self.no_terser {
@@ -207,9 +198,9 @@ impl EnsureSize {
 					let terser_no_mangle = get_terser_output(js_file, true, false)?;
 
 					file_size.terser = Some(MinifierOutput {
-						mangled_size:terser_mangled.len(),
-						no_mangle_size:terser_no_mangle.len(),
-						gzipped_size:gzipped_size(&terser_mangled),
+						mangled_size: terser_mangled.len(),
+						no_mangle_size: terser_no_mangle.len(),
+						gzipped_size: gzipped_size(&terser_mangled),
 					});
 				}
 
@@ -219,9 +210,9 @@ impl EnsureSize {
 					let esbuild_no_mangle = get_esbuild_output(js_file, false)?;
 
 					file_size.esbuild = Some(MinifierOutput {
-						mangled_size:esbuild_mangled.len(),
-						no_mangle_size:esbuild_no_mangle.len(),
-						gzipped_size:gzipped_size(&esbuild_mangled),
+						mangled_size: esbuild_mangled.len(),
+						no_mangle_size: esbuild_no_mangle.len(),
+						gzipped_size: gzipped_size(&esbuild_mangled),
 					});
 				}
 
@@ -239,21 +230,21 @@ impl EnsureSize {
 #[allow(unused)]
 #[derive(Debug)]
 struct FileSize {
-	fm:Arc<SourceFile>,
+	fm: Arc<SourceFile>,
 
-	swc:MinifierOutput,
+	swc: MinifierOutput,
 
-	terser:Option<MinifierOutput>,
+	terser: Option<MinifierOutput>,
 
-	esbuild:Option<MinifierOutput>,
+	esbuild: Option<MinifierOutput>,
 }
 
 #[allow(unused)]
 #[derive(Debug, Clone, Copy)]
 struct MinifierOutput {
-	mangled_size:usize,
-	no_mangle_size:usize,
+	mangled_size: usize,
+	no_mangle_size: usize,
 
 	/// Minify + mangle + gzip
-	gzipped_size:usize,
+	gzipped_size: usize,
 }

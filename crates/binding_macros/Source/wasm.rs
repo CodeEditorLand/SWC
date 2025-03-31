@@ -19,9 +19,7 @@ pub use swc::{
 };
 #[doc(hidden)]
 pub use swc_common::{
-	FileName,
-	GLOBALS,
-	Mark,
+	FileName, GLOBALS, Mark,
 	comments::{self, SingleThreadedComments},
 	errors::Handler,
 };
@@ -43,7 +41,7 @@ pub use wasm_bindgen_futures::future_to_promise;
 // from the bindgen generated swc interfaces.
 #[doc(hidden)]
 pub fn compat_serializer() -> Arc<Serializer> {
-	static V:Lazy<Arc<Serializer>> = Lazy::new(|| {
+	static V: Lazy<Arc<Serializer>> = Lazy::new(|| {
 		let s = Serializer::new()
 			.serialize_maps_as_objects(true)
 			.serialize_missing_as_null(true);
@@ -55,13 +53,10 @@ pub fn compat_serializer() -> Arc<Serializer> {
 }
 
 #[doc(hidden)]
-pub fn try_with_handler_globals<F, Ret>(
-	cm:Lrc<SourceMap>,
-	config:HandlerOpts,
-	op:F,
-) -> Result<Ret, Error>
+pub fn try_with_handler_globals<F, Ret>(cm: Lrc<SourceMap>, config: HandlerOpts, op: F) -> Result<Ret, Error>
 where
-	F: FnOnce(&Handler) -> Result<Ret, Error>, {
+	F: FnOnce(&Handler) -> Result<Ret, Error>,
+{
 	GLOBALS.set(&Default::default(), || swc::try_with_handler(cm, config, op))
 }
 
@@ -69,7 +64,7 @@ where
 pub fn compiler() -> Arc<Compiler> {
 	console_error_panic_hook::set_once();
 
-	static C:Lazy<Arc<Compiler>> = Lazy::new(|| {
+	static C: Lazy<Arc<Compiler>> = Lazy::new(|| {
 		let cm = Arc::new(SourceMap::new(FilePathMapping::empty()));
 
 		Arc::new(Compiler::new(cm))
@@ -79,7 +74,7 @@ pub fn compiler() -> Arc<Compiler> {
 }
 
 #[doc(hidden)]
-pub fn convert_err(err:Error, error_format:Option<ErrorFormat>) -> wasm_bindgen::prelude::JsValue {
+pub fn convert_err(err: Error, error_format: Option<ErrorFormat>) -> wasm_bindgen::prelude::JsValue {
 	error_format.unwrap_or(ErrorFormat::Normal).format(&err).into()
 }
 

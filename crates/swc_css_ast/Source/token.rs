@@ -12,12 +12,14 @@ use swc_common::{EqIgnoreSpan, Span, ast_node, util::take::Take};
 #[ast_node("PreservedToken")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct TokenAndSpan {
-	pub span:Span,
-	pub token:Token,
+	pub span: Span,
+	pub token: Token,
 }
 
 impl Take for TokenAndSpan {
-	fn dummy() -> Self { Self { span:Take::dummy(), token:Take::dummy() } }
+	fn dummy() -> Self {
+		Self { span: Take::dummy(), token: Take::dummy() }
+	}
 }
 
 #[derive(Debug, Clone, PartialEq, EqIgnoreSpan, Hash)]
@@ -53,14 +55,14 @@ pub enum NumberType {
 #[cfg_attr(feature = "rkyv", repr(C))]
 #[cfg_attr(feature = "serde-impl", derive(Serialize, Deserialize))]
 pub struct DimensionToken {
-	pub value:f64,
-	pub raw_value:Atom,
+	pub value: f64,
+	pub raw_value: Atom,
 
-	pub unit:Atom,
+	pub unit: Atom,
 
 	#[cfg_attr(feature = "serde-impl", serde(rename = "type"))]
-	pub type_flag:NumberType,
-	pub raw_unit:Atom,
+	pub type_flag: NumberType,
+	pub raw_unit: Atom,
 }
 
 #[derive(Debug, Clone, PartialEq, EqIgnoreSpan)]
@@ -75,58 +77,58 @@ pub struct DimensionToken {
 #[cfg_attr(feature = "serde-impl", derive(serde::Serialize, serde::Deserialize))]
 pub enum Token {
 	Ident {
-		value:Atom,
-		raw:Atom,
+		value: Atom,
+		raw: Atom,
 	},
 	Function {
-		value:Atom,
-		raw:Atom,
+		value: Atom,
+		raw: Atom,
 	},
 	/// `@`
 	AtKeyword {
-		value:Atom,
-		raw:Atom,
+		value: Atom,
+		raw: Atom,
 	},
 	/// `#`
 	Hash {
-		is_id:bool,
+		is_id: bool,
 
-		value:Atom,
-		raw:Atom,
+		value: Atom,
+		raw: Atom,
 	},
 	String {
-		value:Atom,
-		raw:Atom,
+		value: Atom,
+		raw: Atom,
 	},
 	BadString {
-		raw:Atom,
+		raw: Atom,
 	},
 	/// `url(value)`
 	Url {
-		value:Atom,
+		value: Atom,
 		/// Name and value
-		raw:Box<UrlKeyValue>,
+		raw: Box<UrlKeyValue>,
 	},
 	BadUrl {
-		raw:Atom,
+		raw: Atom,
 	},
 	Delim {
-		value:char,
+		value: char,
 	},
 	Number {
-		value:f64,
-		raw:Atom,
+		value: f64,
+		raw: Atom,
 		#[cfg_attr(feature = "serde-impl", serde(rename = "type"))]
-		type_flag:NumberType,
+		type_flag: NumberType,
 	},
 	Percentage {
-		value:f64,
-		raw:Atom,
+		value: f64,
+		raw: Atom,
 	},
 	Dimension(Box<DimensionToken>),
 	/// One or more whitespace.
 	WhiteSpace {
-		value:Atom,
+		value: Atom,
 	},
 	/// `<!--`
 	CDO,
@@ -153,19 +155,21 @@ pub enum Token {
 }
 
 impl Take for Token {
-	fn dummy() -> Self { Self::Semi }
+	fn dummy() -> Self {
+		Self::Semi
+	}
 }
 
 #[allow(clippy::derived_hash_with_manual_eq)]
 #[allow(clippy::transmute_float_to_int)]
 impl Hash for Token {
-	fn hash<H:Hasher>(&self, state:&mut H) {
-		fn integer_decode(val:f64) -> (u64, i16, i8) {
-			let bits:u64 = unsafe { mem::transmute(val) };
+	fn hash<H: Hasher>(&self, state: &mut H) {
+		fn integer_decode(val: f64) -> (u64, i16, i8) {
+			let bits: u64 = unsafe { mem::transmute(val) };
 
-			let sign:i8 = if bits >> 63 == 0 { 1 } else { -1 };
+			let sign: i8 = if bits >> 63 == 0 { 1 } else { -1 };
 
-			let mut exponent:i16 = ((bits >> 52) & 0x7FF) as i16;
+			let mut exponent: i16 = ((bits >> 52) & 0x7FF) as i16;
 
 			let mantissa = if exponent == 0 {
 				(bits & 0xFFFFFFFFFFFFF) << 1

@@ -15,22 +15,30 @@ impl ToJsString for f64 {
 pub struct JsNumber(f64);
 
 impl From<f64> for JsNumber {
-	fn from(v:f64) -> Self { JsNumber(v) }
+	fn from(v: f64) -> Self {
+		JsNumber(v)
+	}
 }
 
 impl From<JsNumber> for f64 {
-	fn from(v:JsNumber) -> Self { v.0 }
+	fn from(v: JsNumber) -> Self {
+		v.0
+	}
 }
 
 impl std::ops::Deref for JsNumber {
 	type Target = f64;
 
-	fn deref(&self) -> &Self::Target { &self.0 }
+	fn deref(&self) -> &Self::Target {
+		&self.0
+	}
 }
 
 impl JsNumber {
 	// https://tc39.es/ecma262/#sec-toint32
-	fn as_int32(&self) -> i32 { self.as_uint32() as i32 }
+	fn as_int32(&self) -> i32 {
+		self.as_uint32() as i32
+	}
 
 	// https://tc39.es/ecma262/#sec-touint32
 	fn as_uint32(&self) -> u32 {
@@ -47,40 +55,50 @@ impl JsNumber {
 impl std::ops::Add<JsNumber> for JsNumber {
 	type Output = JsNumber;
 
-	fn add(self, rhs:JsNumber) -> Self::Output { JsNumber(self.0 + rhs.0) }
+	fn add(self, rhs: JsNumber) -> Self::Output {
+		JsNumber(self.0 + rhs.0)
+	}
 }
 
 // JsNumber - JsNumber
 impl std::ops::Sub<JsNumber> for JsNumber {
 	type Output = JsNumber;
 
-	fn sub(self, rhs:JsNumber) -> Self::Output { JsNumber(self.0 - rhs.0) }
+	fn sub(self, rhs: JsNumber) -> Self::Output {
+		JsNumber(self.0 - rhs.0)
+	}
 }
 
 // JsNumber * JsNumber
 impl std::ops::Mul<JsNumber> for JsNumber {
 	type Output = JsNumber;
 
-	fn mul(self, rhs:JsNumber) -> Self::Output { JsNumber(self.0 * rhs.0) }
+	fn mul(self, rhs: JsNumber) -> Self::Output {
+		JsNumber(self.0 * rhs.0)
+	}
 }
 
 // JsNumber / JsNumber
 impl std::ops::Div<JsNumber> for JsNumber {
 	type Output = JsNumber;
 
-	fn div(self, rhs:JsNumber) -> Self::Output { JsNumber(self.0 / rhs.0) }
+	fn div(self, rhs: JsNumber) -> Self::Output {
+		JsNumber(self.0 / rhs.0)
+	}
 }
 
 // JsNumber % JsNumber
 impl std::ops::Rem<JsNumber> for JsNumber {
 	type Output = JsNumber;
 
-	fn rem(self, rhs:JsNumber) -> Self::Output { JsNumber(self.0 % rhs.0) }
+	fn rem(self, rhs: JsNumber) -> Self::Output {
+		JsNumber(self.0 % rhs.0)
+	}
 }
 
 // JsNumber ** JsNumber
 impl JsNumber {
-	pub fn pow(self, rhs:JsNumber) -> JsNumber {
+	pub fn pow(self, rhs: JsNumber) -> JsNumber {
 		// https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-exponentiate
 		// https://github.com/rust-lang/rust/issues/60468
 		if rhs.0.is_nan() {
@@ -100,7 +118,7 @@ impl JsNumber {
 impl std::ops::Shl<JsNumber> for JsNumber {
 	type Output = JsNumber;
 
-	fn shl(self, rhs:JsNumber) -> Self::Output {
+	fn shl(self, rhs: JsNumber) -> Self::Output {
 		JsNumber(self.as_int32().wrapping_shl(rhs.as_uint32()) as f64)
 	}
 }
@@ -110,7 +128,7 @@ impl std::ops::Shl<JsNumber> for JsNumber {
 impl std::ops::Shr<JsNumber> for JsNumber {
 	type Output = JsNumber;
 
-	fn shr(self, rhs:JsNumber) -> Self::Output {
+	fn shr(self, rhs: JsNumber) -> Self::Output {
 		JsNumber((self.as_int32()).wrapping_shr(rhs.as_uint32()) as f64)
 	}
 }
@@ -118,7 +136,7 @@ impl std::ops::Shr<JsNumber> for JsNumber {
 // JsNumber >>> JsNumber
 // https://tc39.es/ecma262/#sec-numeric-types-number-unsignedRightShift
 impl JsNumber {
-	pub fn unsigned_shr(self, rhs:JsNumber) -> JsNumber {
+	pub fn unsigned_shr(self, rhs: JsNumber) -> JsNumber {
 		JsNumber((self.as_uint32()).wrapping_shr(rhs.as_uint32()) as f64)
 	}
 }
@@ -128,7 +146,7 @@ impl JsNumber {
 impl std::ops::BitOr<JsNumber> for JsNumber {
 	type Output = JsNumber;
 
-	fn bitor(self, rhs:JsNumber) -> Self::Output {
+	fn bitor(self, rhs: JsNumber) -> Self::Output {
 		JsNumber((self.as_int32() | rhs.as_int32()) as f64)
 	}
 }
@@ -138,7 +156,7 @@ impl std::ops::BitOr<JsNumber> for JsNumber {
 impl std::ops::BitAnd<JsNumber> for JsNumber {
 	type Output = JsNumber;
 
-	fn bitand(self, rhs:JsNumber) -> Self::Output {
+	fn bitand(self, rhs: JsNumber) -> Self::Output {
 		JsNumber((self.as_int32() & rhs.as_int32()) as f64)
 	}
 }
@@ -148,7 +166,7 @@ impl std::ops::BitAnd<JsNumber> for JsNumber {
 impl std::ops::BitXor<JsNumber> for JsNumber {
 	type Output = JsNumber;
 
-	fn bitxor(self, rhs:JsNumber) -> Self::Output {
+	fn bitxor(self, rhs: JsNumber) -> Self::Output {
 		JsNumber((self.as_int32() ^ rhs.as_int32()) as f64)
 	}
 }
@@ -157,14 +175,18 @@ impl std::ops::BitXor<JsNumber> for JsNumber {
 impl std::ops::Neg for JsNumber {
 	type Output = JsNumber;
 
-	fn neg(self) -> Self::Output { JsNumber(-self.0) }
+	fn neg(self) -> Self::Output {
+		JsNumber(-self.0)
+	}
 }
 
 // ~ JsNumber
 impl std::ops::Not for JsNumber {
 	type Output = JsNumber;
 
-	fn not(self) -> Self::Output { JsNumber(!(self.as_int32()) as f64) }
+	fn not(self) -> Self::Output {
+		JsNumber(!(self.as_int32()) as f64)
+	}
 }
 
 #[cfg(test)]

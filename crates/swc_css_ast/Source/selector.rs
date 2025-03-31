@@ -8,19 +8,21 @@ use crate::{Delimiter, Ident, ListOfComponentValues, Str, TokenAndSpan};
 #[ast_node("SelectorList")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct SelectorList {
-	pub span:Span,
-	pub children:Vec<ComplexSelector>,
+	pub span: Span,
+	pub children: Vec<ComplexSelector>,
 }
 
 impl Take for SelectorList {
-	fn dummy() -> Self { Self { span:Take::dummy(), children:Take::dummy() } }
+	fn dummy() -> Self {
+		Self { span: Take::dummy(), children: Take::dummy() }
+	}
 }
 
 #[ast_node("SelectorList")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct ForgivingSelectorList {
-	pub span:Span,
-	pub children:Vec<ForgivingComplexSelector>,
+	pub span: Span,
+	pub children: Vec<ForgivingComplexSelector>,
 }
 
 #[ast_node]
@@ -35,22 +37,22 @@ pub enum ForgivingComplexSelector {
 #[ast_node("CompoundSelectorList")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct CompoundSelectorList {
-	pub span:Span,
-	pub children:Vec<CompoundSelector>,
+	pub span: Span,
+	pub children: Vec<CompoundSelector>,
 }
 
 #[ast_node("RelativeSelectorList")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct RelativeSelectorList {
-	pub span:Span,
-	pub children:Vec<RelativeSelector>,
+	pub span: Span,
+	pub children: Vec<RelativeSelector>,
 }
 
 #[ast_node("ForgivingRelativeSelectorList")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct ForgivingRelativeSelectorList {
-	pub span:Span,
-	pub children:Vec<ForgivingRelativeSelector>,
+	pub span: Span,
+	pub children: Vec<ForgivingRelativeSelector>,
 }
 
 #[ast_node]
@@ -65,12 +67,14 @@ pub enum ForgivingRelativeSelector {
 #[ast_node("ComplexSelector")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct ComplexSelector {
-	pub span:Span,
-	pub children:Vec<ComplexSelectorChildren>,
+	pub span: Span,
+	pub children: Vec<ComplexSelectorChildren>,
 }
 
 impl Take for ComplexSelector {
-	fn dummy() -> Self { Self { span:Take::dummy(), children:Take::dummy() } }
+	fn dummy() -> Self {
+		Self { span: Take::dummy(), children: Take::dummy() }
+	}
 }
 
 #[ast_node]
@@ -85,27 +89,27 @@ pub enum ComplexSelectorChildren {
 #[ast_node("RelativeSelector")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct RelativeSelector {
-	pub span:Span,
-	pub combinator:Option<Combinator>,
-	pub selector:ComplexSelector,
+	pub span: Span,
+	pub combinator: Option<Combinator>,
+	pub selector: ComplexSelector,
 }
 
 /// e.g. `foo.c1.c2`
 #[ast_node("CompoundSelector")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct CompoundSelector {
-	pub span:Span,
+	pub span: Span,
 	/// "&"
-	pub nesting_selector:Option<NestingSelector>,
-	pub type_selector:Option<Box<TypeSelector>>,
-	pub subclass_selectors:Vec<SubclassSelector>,
+	pub nesting_selector: Option<NestingSelector>,
+	pub type_selector: Option<Box<TypeSelector>>,
+	pub subclass_selectors: Vec<SubclassSelector>,
 }
 
 #[ast_node("Combinator")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct Combinator {
-	pub span:Span,
-	pub value:CombinatorValue,
+	pub span: Span,
+	pub value: CombinatorValue,
 }
 
 #[derive(StringEnum, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Hash, Is, EqIgnoreSpan)]
@@ -137,7 +141,7 @@ pub enum CombinatorValue {
 #[ast_node("NestingSelector")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct NestingSelector {
-	pub span:Span,
+	pub span: Span,
 }
 
 #[ast_node]
@@ -152,22 +156,22 @@ pub enum TypeSelector {
 #[ast_node("TagNameSelector")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct TagNameSelector {
-	pub span:Span,
-	pub name:WqName,
+	pub span: Span,
+	pub name: WqName,
 }
 
 #[ast_node("UniversalSelector")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct UniversalSelector {
-	pub span:Span,
-	pub prefix:Option<NamespacePrefix>,
+	pub span: Span,
+	pub prefix: Option<NamespacePrefix>,
 }
 
 #[ast_node("NamespacePrefix")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct NamespacePrefix {
-	pub span:Span,
-	pub namespace:Option<Namespace>,
+	pub span: Span,
+	pub namespace: Option<Namespace>,
 }
 
 #[ast_node]
@@ -182,22 +186,22 @@ pub enum Namespace {
 #[ast_node("NamedNamespace")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct NamedNamespace {
-	pub span:Span,
-	pub name:Ident,
+	pub span: Span,
+	pub name: Ident,
 }
 
 #[ast_node("AnyNamespace")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct AnyNamespace {
-	pub span:Span,
+	pub span: Span,
 }
 
 #[ast_node("WqName")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct WqName {
-	pub span:Span,
-	pub prefix:Option<NamespacePrefix>,
-	pub value:Ident,
+	pub span: Span,
+	pub prefix: Option<NamespacePrefix>,
+	pub value: Ident,
 }
 
 #[ast_node]
@@ -222,27 +226,27 @@ pub enum SubclassSelector {
 #[ast_node("IdSelector")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct IdSelector {
-	pub span:Span,
+	pub span: Span,
 	/// Does not include `#`
-	pub text:Ident,
+	pub text: Ident,
 }
 
 #[ast_node("ClassSelector")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct ClassSelector {
-	pub span:Span,
+	pub span: Span,
 	/// Does not include `.`
-	pub text:Ident,
+	pub text: Ident,
 }
 
 #[ast_node("AttributeSelector")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct AttributeSelector {
-	pub span:Span,
-	pub name:WqName,
-	pub matcher:Option<AttributeSelectorMatcher>,
-	pub value:Option<AttributeSelectorValue>,
-	pub modifier:Option<AttributeSelectorModifier>,
+	pub span: Span,
+	pub name: WqName,
+	pub matcher: Option<AttributeSelectorMatcher>,
+	pub value: Option<AttributeSelectorValue>,
+	pub modifier: Option<AttributeSelectorModifier>,
 }
 
 #[derive(StringEnum, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Hash, Is, EqIgnoreSpan)]
@@ -277,8 +281,8 @@ pub enum AttributeSelectorMatcherValue {
 #[ast_node("AttributeSelectorMatcher")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct AttributeSelectorMatcher {
-	pub span:Span,
-	pub value:AttributeSelectorMatcherValue,
+	pub span: Span,
+	pub value: AttributeSelectorMatcherValue,
 }
 
 #[ast_node]
@@ -294,16 +298,16 @@ pub enum AttributeSelectorValue {
 #[ast_node("AttributeSelectorModifier")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct AttributeSelectorModifier {
-	pub span:Span,
-	pub value:Ident,
+	pub span: Span,
+	pub value: Ident,
 }
 
 #[ast_node("PseudoClassSelector")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct PseudoClassSelector {
-	pub span:Span,
-	pub name:Ident,
-	pub children:Option<Vec<PseudoClassSelectorChildren>>,
+	pub span: Span,
+	pub name: Ident,
+	pub children: Option<Vec<PseudoClassSelectorChildren>>,
 }
 
 #[ast_node]
@@ -358,19 +362,19 @@ pub enum AnPlusB {
 #[ast_node("AnPlusBNotation")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct AnPlusBNotation {
-	pub span:Span,
-	pub a:Option<i32>,
-	pub a_raw:Option<Atom>,
-	pub b:Option<i32>,
-	pub b_raw:Option<Atom>,
+	pub span: Span,
+	pub a: Option<i32>,
+	pub a_raw: Option<Atom>,
+	pub b: Option<i32>,
+	pub b_raw: Option<Atom>,
 }
 
 #[ast_node("PseudoElementSelector")]
 #[derive(Eq, Hash, EqIgnoreSpan)]
 pub struct PseudoElementSelector {
-	pub span:Span,
-	pub name:Ident,
-	pub children:Option<Vec<PseudoElementSelectorChildren>>,
+	pub span: Span,
+	pub name: Ident,
+	pub children: Option<Vec<PseudoElementSelectorChildren>>,
 }
 
 #[ast_node]
@@ -389,12 +393,14 @@ pub enum PseudoElementSelectorChildren {
 #[ast_node("CustomHighlightName")]
 #[derive(Eq, Hash)]
 pub struct CustomHighlightName {
-	pub span:Span,
+	pub span: Span,
 
-	pub value:Atom,
-	pub raw:Option<Atom>,
+	pub value: Atom,
+	pub raw: Option<Atom>,
 }
 
 impl EqIgnoreSpan for CustomHighlightName {
-	fn eq_ignore_span(&self, other:&Self) -> bool { self.value == other.value }
+	fn eq_ignore_span(&self, other: &Self) -> bool {
+		self.value == other.value
+	}
 }

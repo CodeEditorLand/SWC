@@ -12,7 +12,7 @@ impl<I> Parser<I>
 where
 	I: ParserInput,
 {
-	pub(super) fn parse_at_rule_prelude(&mut self, name:&str) -> PResult<Option<AtRulePrelude>> {
+	pub(super) fn parse_at_rule_prelude(&mut self, name: &str) -> PResult<Option<AtRulePrelude>> {
 		let prelude = match name {
 			"charset" => {
 				self.input.skip_ws();
@@ -31,7 +31,7 @@ where
 						if value.starts_with("--") {
 							ColorProfileName::DashedIdent(self.parse()?)
 						} else {
-							let name:Ident = self.parse()?;
+							let name: Ident = self.parse()?;
 
 							ColorProfileName::Ident(name)
 						}
@@ -98,10 +98,8 @@ where
 					matching_functions.push(self.parse()?);
 				}
 
-				let prelude = AtRulePrelude::DocumentPrelude(DocumentPrelude {
-					span:span!(self, span.lo),
-					matching_functions,
-				});
+				let prelude =
+					AtRulePrelude::DocumentPrelude(DocumentPrelude { span: span!(self, span.lo), matching_functions });
 
 				self.input.skip_ws();
 
@@ -136,8 +134,8 @@ where
 
 				Some(prelude)
 			},
-			"stylistic" | "historical-forms" | "styleset" | "character-variant" | "swash"
-			| "ornaments" | "annotation"
+			"stylistic" | "historical-forms" | "styleset" | "character-variant" | "swash" | "ornaments"
+			| "annotation"
 				if self.ctx.in_font_feature_values_at_rule =>
 			{
 				self.input.skip_ws();
@@ -161,10 +159,7 @@ where
 					// TODO why we need it?
 					tok!("function") => ImportHref::Url(self.parse()?),
 					_ => {
-						return Err(Error::new(
-							span,
-							ErrorKind::Expected("string, url or function token"),
-						));
+						return Err(Error::new(span, ErrorKind::Expected("string, url or function token")));
 					},
 				});
 
@@ -172,9 +167,7 @@ where
 
 				let layer_name = if !is!(self, EOF) {
 					match cur!(self) {
-						Token::Ident { value, .. }
-							if matches_eq_ignore_ascii_case!(value, "layer") =>
-						{
+						Token::Ident { value, .. } if matches_eq_ignore_ascii_case!(value, "layer") => {
 							let name = ImportLayerName::Ident(self.parse()?);
 
 							self.input.skip_ws();
@@ -182,10 +175,8 @@ where
 							Some(Box::new(name))
 						},
 
-						Token::Function { value, .. }
-							if matches_eq_ignore_ascii_case!(value, "layer") =>
-						{
-							let ctx = Ctx { in_import_at_rule:true, ..self.ctx };
+						Token::Function { value, .. } if matches_eq_ignore_ascii_case!(value, "layer") => {
+							let ctx = Ctx { in_import_at_rule: true, ..self.ctx };
 
 							let func = self.with_ctx(ctx).parse_as::<Function>()?;
 
@@ -203,7 +194,7 @@ where
 				let import_conditions = if !is!(self, EOF) { Some(self.parse()?) } else { None };
 
 				let prelude = AtRulePrelude::ImportPrelude(ImportPrelude {
-					span:span!(self, span.lo),
+					span: span!(self, span.lo),
 					href,
 					layer_name,
 					import_conditions,
@@ -211,8 +202,7 @@ where
 
 				Some(prelude)
 			},
-			"keyframes" | "-webkit-keyframes" | "-moz-keyframes" | "-o-keyframes"
-			| "-ms-keyframes" => {
+			"keyframes" | "-webkit-keyframes" | "-moz-keyframes" | "-o-keyframes" | "-ms-keyframes" => {
 				self.input.skip_ws();
 
 				let prelude = AtRulePrelude::KeyframesPrelude(self.parse()?);
@@ -225,7 +215,7 @@ where
 				self.input.skip_ws();
 
 				if is!(self, Ident) {
-					let mut name_list:Vec<LayerName> = Vec::new();
+					let mut name_list: Vec<LayerName> = Vec::new();
 
 					name_list.push(self.parse()?);
 
@@ -250,7 +240,7 @@ where
 
 						Some(AtRulePrelude::LayerPrelude(LayerPrelude::NameList(LayerNameList {
 							name_list,
-							span:Span::new(first.lo, last.hi),
+							span: Span::new(first.lo, last.hi),
 						})))
 					};
 
@@ -301,17 +291,14 @@ where
 					_ => {
 						let span = self.input.cur_span();
 
-						return Err(Error::new(
-							span,
-							ErrorKind::Expected("string, url or function tokens"),
-						));
+						return Err(Error::new(span, ErrorKind::Expected("string, url or function tokens")));
 					},
 				};
 
 				let prelude = AtRulePrelude::NamespacePrelude(NamespacePrelude {
-					span:span!(self, span.lo),
+					span: span!(self, span.lo),
 					prefix,
-					uri:Box::new(uri),
+					uri: Box::new(uri),
 				});
 
 				self.input.skip_ws();
@@ -422,7 +409,7 @@ where
 				if self.config.css_modules {
 					let span = self.input.cur_span();
 
-					let _:ComponentValue = self.parse()?;
+					let _: ComponentValue = self.parse()?;
 
 					self.errors.push(Error::new(span, ErrorKind::ValueAtRule));
 
@@ -446,7 +433,7 @@ where
 		Ok(prelude)
 	}
 
-	pub(super) fn parse_at_rule_block(&mut self, name:&str) -> PResult<Vec<ComponentValue>> {
+	pub(super) fn parse_at_rule_block(&mut self, name: &str) -> PResult<Vec<ComponentValue>> {
 		let block_contents = match name {
 			"charset" => {
 				let span = self.input.cur_span();
@@ -454,42 +441,39 @@ where
 				return Err(Error::new(span, ErrorKind::Unexpected("'{' token")));
 			},
 			"color-profile" => {
-				let declaration_list:Vec<DeclarationOrAtRule> = self.parse()?;
+				let declaration_list: Vec<DeclarationOrAtRule> = self.parse()?;
 
-				let declaration_list:Vec<ComponentValue> =
+				let declaration_list: Vec<ComponentValue> =
 					declaration_list.into_iter().map(ComponentValue::from).collect();
 
 				declaration_list
 			},
-			"container" => {
-				match self.ctx.block_contents_grammar {
-					BlockContentsGrammar::StyleBlock => {
-						let ctx = Ctx { in_container_at_rule:true, ..self.ctx };
+			"container" => match self.ctx.block_contents_grammar {
+				BlockContentsGrammar::StyleBlock => {
+					let ctx = Ctx { in_container_at_rule: true, ..self.ctx };
 
-						let style_blocks = self.with_ctx(ctx).parse_as::<Vec<StyleBlock>>()?;
+					let style_blocks = self.with_ctx(ctx).parse_as::<Vec<StyleBlock>>()?;
 
-						let style_blocks:Vec<ComponentValue> =
-							style_blocks.into_iter().map(ComponentValue::from).collect();
+					let style_blocks: Vec<ComponentValue> =
+						style_blocks.into_iter().map(ComponentValue::from).collect();
 
-						style_blocks
-					},
+					style_blocks
+				},
 
-					_ => {
-						let ctx = Ctx { in_container_at_rule:true, ..self.ctx };
+				_ => {
+					let ctx = Ctx { in_container_at_rule: true, ..self.ctx };
 
-						let rule_list = self.with_ctx(ctx).parse_as::<Vec<Rule>>()?;
+					let rule_list = self.with_ctx(ctx).parse_as::<Vec<Rule>>()?;
 
-						let rule_list:Vec<ComponentValue> =
-							rule_list.into_iter().map(ComponentValue::from).collect();
+					let rule_list: Vec<ComponentValue> = rule_list.into_iter().map(ComponentValue::from).collect();
 
-						rule_list
-					},
-				}
+					rule_list
+				},
 			},
 			"counter-style" => {
-				let declaration_list:Vec<DeclarationOrAtRule> = self.parse()?;
+				let declaration_list: Vec<DeclarationOrAtRule> = self.parse()?;
 
-				let declaration_list:Vec<ComponentValue> =
+				let declaration_list: Vec<ComponentValue> =
 					declaration_list.into_iter().map(ComponentValue::from).collect();
 
 				declaration_list
@@ -499,60 +483,57 @@ where
 
 				return Err(Error::new(span, ErrorKind::Unexpected("'{' token")));
 			},
-			"document" | "-moz-document" => {
-				match self.ctx.block_contents_grammar {
-					BlockContentsGrammar::StyleBlock => {
-						let style_blocks:Vec<StyleBlock> = self.parse()?;
+			"document" | "-moz-document" => match self.ctx.block_contents_grammar {
+				BlockContentsGrammar::StyleBlock => {
+					let style_blocks: Vec<StyleBlock> = self.parse()?;
 
-						let style_blocks:Vec<ComponentValue> =
-							style_blocks.into_iter().map(ComponentValue::from).collect();
+					let style_blocks: Vec<ComponentValue> =
+						style_blocks.into_iter().map(ComponentValue::from).collect();
 
-						style_blocks
-					},
+					style_blocks
+				},
 
-					_ => {
-						let rule_list = self.parse_as::<Vec<Rule>>()?;
+				_ => {
+					let rule_list = self.parse_as::<Vec<Rule>>()?;
 
-						let rule_list:Vec<ComponentValue> =
-							rule_list.into_iter().map(ComponentValue::from).collect();
+					let rule_list: Vec<ComponentValue> = rule_list.into_iter().map(ComponentValue::from).collect();
 
-						rule_list
-					},
-				}
+					rule_list
+				},
 			},
 			"font-face" => {
-				let declaration_list:Vec<DeclarationOrAtRule> = self.parse()?;
+				let declaration_list: Vec<DeclarationOrAtRule> = self.parse()?;
 
-				let declaration_list:Vec<ComponentValue> =
+				let declaration_list: Vec<ComponentValue> =
 					declaration_list.into_iter().map(ComponentValue::from).collect();
 
 				declaration_list
 			},
 			"font-feature-values" => {
-				let ctx = Ctx { in_font_feature_values_at_rule:true, ..self.ctx };
+				let ctx = Ctx { in_font_feature_values_at_rule: true, ..self.ctx };
 
 				let declaration_list = self.with_ctx(ctx).parse_as::<Vec<DeclarationOrAtRule>>()?;
 
-				let declaration_list:Vec<ComponentValue> =
+				let declaration_list: Vec<ComponentValue> =
 					declaration_list.into_iter().map(ComponentValue::from).collect();
 
 				declaration_list
 			},
-			"stylistic" | "historical-forms" | "styleset" | "character-variant" | "swash"
-			| "ornaments" | "annotation"
+			"stylistic" | "historical-forms" | "styleset" | "character-variant" | "swash" | "ornaments"
+			| "annotation"
 				if self.ctx.in_font_feature_values_at_rule =>
 			{
-				let declaration_list:Vec<DeclarationOrAtRule> = self.parse()?;
+				let declaration_list: Vec<DeclarationOrAtRule> = self.parse()?;
 
-				let declaration_list:Vec<ComponentValue> =
+				let declaration_list: Vec<ComponentValue> =
 					declaration_list.into_iter().map(ComponentValue::from).collect();
 
 				declaration_list
 			},
 			"font-palette-values" => {
-				let declaration_list:Vec<DeclarationOrAtRule> = self.parse()?;
+				let declaration_list: Vec<DeclarationOrAtRule> = self.parse()?;
 
-				let declaration_list:Vec<ComponentValue> =
+				let declaration_list: Vec<ComponentValue> =
 					declaration_list.into_iter().map(ComponentValue::from).collect();
 
 				declaration_list
@@ -562,82 +543,73 @@ where
 
 				return Err(Error::new(span, ErrorKind::Unexpected("'{' token")));
 			},
-			"keyframes" | "-webkit-keyframes" | "-moz-keyframes" | "-o-keyframes"
-			| "-ms-keyframes" => {
+			"keyframes" | "-webkit-keyframes" | "-moz-keyframes" | "-o-keyframes" | "-ms-keyframes" => {
 				let ctx = Ctx {
-					block_contents_grammar:BlockContentsGrammar::RuleList,
-					in_keyframes_at_rule:true,
+					block_contents_grammar: BlockContentsGrammar::RuleList,
+					in_keyframes_at_rule: true,
 					..self.ctx
 				};
 
 				let rule_list = self.with_ctx(ctx).parse_as::<Vec<Rule>>()?;
 
-				let rule_list:Vec<ComponentValue> = rule_list
+				let rule_list: Vec<ComponentValue> = rule_list
 					.into_iter()
-					.map(|rule| {
-						match rule {
-							Rule::AtRule(at_rule) => {
-								self.errors.push(Error::new(
-									at_rule.span,
-									ErrorKind::Unexpected("at-rules are not allowed here"),
-								));
+					.map(|rule| match rule {
+						Rule::AtRule(at_rule) => {
+							self.errors
+								.push(Error::new(at_rule.span, ErrorKind::Unexpected("at-rules are not allowed here")));
 
-								ComponentValue::AtRule(at_rule)
-							},
+							ComponentValue::AtRule(at_rule)
+						},
 
-							Rule::QualifiedRule(qualified_rule) => {
-								let locv = match qualified_rule.prelude {
-									QualifiedRulePrelude::ListOfComponentValues(locv) => locv,
-									_ => {
-										unreachable!();
-									},
-								};
+						Rule::QualifiedRule(qualified_rule) => {
+							let locv = match qualified_rule.prelude {
+								QualifiedRulePrelude::ListOfComponentValues(locv) => locv,
+								_ => {
+									unreachable!();
+								},
+							};
 
-								let res = self.parse_according_to_grammar(&locv, |parser| {
+							let res = self.parse_according_to_grammar(&locv, |parser| {
+								parser.input.skip_ws();
+
+								let child = parser.parse()?;
+
+								let mut keyframes_selectors: Vec<KeyframeSelector> = vec![child];
+
+								loop {
+									parser.input.skip_ws();
+
+									if !eat!(parser, ",") {
+										break;
+									}
+
 									parser.input.skip_ws();
 
 									let child = parser.parse()?;
 
-									let mut keyframes_selectors:Vec<KeyframeSelector> = vec![child];
-
-									loop {
-										parser.input.skip_ws();
-
-										if !eat!(parser, ",") {
-											break;
-										}
-
-										parser.input.skip_ws();
-
-										let child = parser.parse()?;
-
-										keyframes_selectors.push(child);
-									}
-
-									Ok(keyframes_selectors)
-								});
-
-								match res {
-									Ok(keyframes_selectors) => {
-										ComponentValue::KeyframeBlock(Box::new(KeyframeBlock {
-											span:qualified_rule.span,
-											prelude:keyframes_selectors,
-											block:qualified_rule.block,
-										}))
-									},
-
-									Err(err) => {
-										self.errors.push(err);
-
-										ComponentValue::ListOfComponentValues(Box::new(locv))
-									},
+									keyframes_selectors.push(child);
 								}
-							},
 
-							Rule::ListOfComponentValues(locv) => {
-								ComponentValue::ListOfComponentValues(locv)
-							},
-						}
+								Ok(keyframes_selectors)
+							});
+
+							match res {
+								Ok(keyframes_selectors) => ComponentValue::KeyframeBlock(Box::new(KeyframeBlock {
+									span: qualified_rule.span,
+									prelude: keyframes_selectors,
+									block: qualified_rule.block,
+								})),
+
+								Err(err) => {
+									self.errors.push(err);
+
+									ComponentValue::ListOfComponentValues(Box::new(locv))
+								},
+							}
+						},
+
+						Rule::ListOfComponentValues(locv) => ComponentValue::ListOfComponentValues(locv),
 					})
 					.collect();
 
@@ -646,31 +618,27 @@ where
 			"layer" => {
 				let rule_list = self.parse_as::<Vec<Rule>>()?;
 
-				let rule_list:Vec<ComponentValue> =
-					rule_list.into_iter().map(ComponentValue::from).collect();
+				let rule_list: Vec<ComponentValue> = rule_list.into_iter().map(ComponentValue::from).collect();
 
 				rule_list
 			},
-			"media" => {
-				match self.ctx.block_contents_grammar {
-					BlockContentsGrammar::StyleBlock => {
-						let style_blocks:Vec<StyleBlock> = self.parse()?;
+			"media" => match self.ctx.block_contents_grammar {
+				BlockContentsGrammar::StyleBlock => {
+					let style_blocks: Vec<StyleBlock> = self.parse()?;
 
-						let style_blocks:Vec<ComponentValue> =
-							style_blocks.into_iter().map(ComponentValue::from).collect();
+					let style_blocks: Vec<ComponentValue> =
+						style_blocks.into_iter().map(ComponentValue::from).collect();
 
-						style_blocks
-					},
+					style_blocks
+				},
 
-					_ => {
-						let rule_list = self.parse_as::<Vec<Rule>>()?;
+				_ => {
+					let rule_list = self.parse_as::<Vec<Rule>>()?;
 
-						let rule_list:Vec<ComponentValue> =
-							rule_list.into_iter().map(ComponentValue::from).collect();
+					let rule_list: Vec<ComponentValue> = rule_list.into_iter().map(ComponentValue::from).collect();
 
-						rule_list
-					},
-				}
+					rule_list
+				},
 			},
 			"namespace" => {
 				let span = self.input.cur_span();
@@ -678,19 +646,18 @@ where
 				return Err(Error::new(span, ErrorKind::Unexpected("")));
 			},
 			"nest" => {
-				let style_blocks:Vec<StyleBlock> = self.parse()?;
+				let style_blocks: Vec<StyleBlock> = self.parse()?;
 
-				let style_blocks:Vec<ComponentValue> =
-					style_blocks.into_iter().map(ComponentValue::from).collect();
+				let style_blocks: Vec<ComponentValue> = style_blocks.into_iter().map(ComponentValue::from).collect();
 
 				style_blocks
 			},
 			"page" => {
 				let declaration_list = self
-					.with_ctx(Ctx { in_page_at_rule:true, ..self.ctx })
+					.with_ctx(Ctx { in_page_at_rule: true, ..self.ctx })
 					.parse_as::<Vec<DeclarationOrAtRule>>()?;
 
-				let declaration_list:Vec<ComponentValue> =
+				let declaration_list: Vec<ComponentValue> =
 					declaration_list.into_iter().map(ComponentValue::from).collect();
 
 				declaration_list
@@ -713,46 +680,43 @@ where
 			| "right-bottom"
 				if self.ctx.in_page_at_rule =>
 			{
-				let declaration_list:Vec<DeclarationOrAtRule> = self.parse()?;
+				let declaration_list: Vec<DeclarationOrAtRule> = self.parse()?;
 
-				let declaration_list:Vec<ComponentValue> =
+				let declaration_list: Vec<ComponentValue> =
 					declaration_list.into_iter().map(ComponentValue::from).collect();
 
 				declaration_list
 			},
 			"property" => {
-				let declaration_list:Vec<DeclarationOrAtRule> = self.parse()?;
+				let declaration_list: Vec<DeclarationOrAtRule> = self.parse()?;
 
-				let declaration_list:Vec<ComponentValue> =
+				let declaration_list: Vec<ComponentValue> =
 					declaration_list.into_iter().map(ComponentValue::from).collect();
 
 				declaration_list
 			},
-			"supports" => {
-				match self.ctx.block_contents_grammar {
-					BlockContentsGrammar::StyleBlock => {
-						let style_blocks:Vec<StyleBlock> = self.parse()?;
+			"supports" => match self.ctx.block_contents_grammar {
+				BlockContentsGrammar::StyleBlock => {
+					let style_blocks: Vec<StyleBlock> = self.parse()?;
 
-						let style_blocks:Vec<ComponentValue> =
-							style_blocks.into_iter().map(ComponentValue::from).collect();
+					let style_blocks: Vec<ComponentValue> =
+						style_blocks.into_iter().map(ComponentValue::from).collect();
 
-						style_blocks
-					},
+					style_blocks
+				},
 
-					_ => {
-						let rule_list = self.parse_as::<Vec<Rule>>()?;
+				_ => {
+					let rule_list = self.parse_as::<Vec<Rule>>()?;
 
-						let rule_list:Vec<ComponentValue> =
-							rule_list.into_iter().map(ComponentValue::from).collect();
+					let rule_list: Vec<ComponentValue> = rule_list.into_iter().map(ComponentValue::from).collect();
 
-						rule_list
-					},
-				}
+					rule_list
+				},
 			},
 			"viewport" | "-ms-viewport" | "-o-viewport" => {
-				let declaration_list:Vec<DeclarationOrAtRule> = self.parse()?;
+				let declaration_list: Vec<DeclarationOrAtRule> = self.parse()?;
 
-				let declaration_list:Vec<ComponentValue> =
+				let declaration_list: Vec<ComponentValue> =
 					declaration_list.into_iter().map(ComponentValue::from).collect();
 
 				declaration_list
@@ -760,16 +724,14 @@ where
 			"starting-style" => {
 				let rule_list = self.parse_as::<Vec<Rule>>()?;
 
-				let rule_list:Vec<ComponentValue> =
-					rule_list.into_iter().map(ComponentValue::from).collect();
+				let rule_list: Vec<ComponentValue> = rule_list.into_iter().map(ComponentValue::from).collect();
 
 				rule_list
 			},
 			"scope" => {
 				let rule_list = self.parse_as::<Vec<Rule>>()?;
 
-				let rule_list:Vec<ComponentValue> =
-					rule_list.into_iter().map(ComponentValue::from).collect();
+				let rule_list: Vec<ComponentValue> = rule_list.into_iter().map(ComponentValue::from).collect();
 
 				rule_list
 			},
@@ -792,10 +754,8 @@ where
 
 		let supports = if !is!(self, EOF) {
 			match cur!(self) {
-				Token::Function { value, .. }
-					if matches_eq_ignore_ascii_case!(value, "supports") =>
-				{
-					let ctx = Ctx { in_import_at_rule:true, ..self.ctx };
+				Token::Function { value, .. } if matches_eq_ignore_ascii_case!(value, "supports") => {
+					let ctx = Ctx { in_import_at_rule: true, ..self.ctx };
 
 					let func = self.with_ctx(ctx).parse_as::<Function>()?;
 
@@ -820,7 +780,7 @@ where
 			None
 		};
 
-		Ok(ImportConditions { span:span!(self, span.lo), supports, media })
+		Ok(ImportConditions { span: span!(self, span.lo), supports, media })
 	}
 }
 
@@ -836,14 +796,12 @@ where
 				bump!(self);
 
 				match cur!(self) {
-					Token::Function { value, .. }
-						if matches_eq_ignore_ascii_case!(value, "local", "global") =>
-					{
+					Token::Function { value, .. } if matches_eq_ignore_ascii_case!(value, "local", "global") => {
 						let span = self.input.cur_span();
 
 						let pseudo = match bump!(self) {
 							Token::Function { value, raw } => {
-								Ident { span:span!(self, span.lo), value, raw:Some(raw) }
+								Ident { span: span!(self, span.lo), value, raw: Some(raw) }
 							},
 							_ => {
 								unreachable!();
@@ -859,15 +817,13 @@ where
 						expect!(self, ")");
 
 						Ok(KeyframesName::PseudoFunction(Box::new(KeyframesPseudoFunction {
-							span:span!(self, span.lo),
+							span: span!(self, span.lo),
 							pseudo,
 							name,
 						})))
 					},
 
-					Token::Ident { value, .. }
-						if matches_eq_ignore_ascii_case!(value, "local", "global") =>
-					{
+					Token::Ident { value, .. } if matches_eq_ignore_ascii_case!(value, "local", "global") => {
 						let pseudo = self.parse()?;
 
 						self.input.skip_ws();
@@ -875,7 +831,7 @@ where
 						let name = self.parse()?;
 
 						Ok(KeyframesName::PseudoPrefix(Box::new(KeyframesPseudoPrefix {
-							span:span!(self, span.lo),
+							span: span!(self, span.lo),
 							pseudo,
 							name,
 						})))
@@ -893,13 +849,10 @@ where
 			},
 
 			tok!("ident") => {
-				let custom_ident:CustomIdent = self.parse()?;
+				let custom_ident: CustomIdent = self.parse()?;
 
 				if matches_eq_ignore_ascii_case!(custom_ident.value, "none") {
-					return Err(Error::new(
-						custom_ident.span,
-						ErrorKind::InvalidCustomIdent(custom_ident.value),
-					));
+					return Err(Error::new(custom_ident.span, ErrorKind::InvalidCustomIdent(custom_ident.value)));
 				}
 
 				Ok(KeyframesName::CustomIdent(Box::new(custom_ident)))
@@ -922,15 +875,12 @@ where
 	fn parse(&mut self) -> PResult<KeyframeSelector> {
 		match cur!(self) {
 			tok!("ident") => {
-				let ident:Ident = self.parse()?;
+				let ident: Ident = self.parse()?;
 
 				let lower = ident.value.to_ascii_lowercase();
 
 				if lower != "from" && lower != "to" {
-					return Err(Error::new(
-						ident.span,
-						ErrorKind::Expected("'from' or 'to' idents"),
-					));
+					return Err(Error::new(ident.span, ErrorKind::Expected("'from' or 'to' idents")));
 				}
 
 				Ok(KeyframeSelector::Ident(ident))
@@ -967,7 +917,7 @@ where
 			font_family.push(self.parse()?);
 		}
 
-		Ok(FontFeatureValuesPrelude { span:span!(self, span.lo), font_family })
+		Ok(FontFeatureValuesPrelude { span: span!(self, span.lo), font_family })
 	}
 }
 
@@ -1020,7 +970,7 @@ where
 			}
 		};
 
-		Ok(SupportsCondition { span:Span::new(start_pos, last_pos), conditions })
+		Ok(SupportsCondition { span: Span::new(start_pos, last_pos), conditions })
 	}
 }
 
@@ -1033,16 +983,13 @@ where
 
 		let keyword = match cur!(self) {
 			Token::Ident { value, .. } if value.as_ref().eq_ignore_ascii_case("not") => {
-				let ident:Ident = self.parse()?;
+				let ident: Ident = self.parse()?;
 
 				Some(ident)
 			},
 
 			_ => {
-				return Err(Error::new(
-					span,
-					ErrorKind::Expected("ident (with 'not' value) token"),
-				));
+				return Err(Error::new(span, ErrorKind::Expected("ident (with 'not' value) token")));
 			},
 		};
 
@@ -1050,7 +997,7 @@ where
 
 		let supports_in_parens = self.parse()?;
 
-		Ok(SupportsNot { span:span!(self, span.lo), keyword, condition:supports_in_parens })
+		Ok(SupportsNot { span: span!(self, span.lo), keyword, condition: supports_in_parens })
 	}
 }
 
@@ -1063,16 +1010,13 @@ where
 
 		let keyword = match cur!(self) {
 			Token::Ident { value, .. } if value.as_ref().eq_ignore_ascii_case("and") => {
-				let ident:Ident = self.parse()?;
+				let ident: Ident = self.parse()?;
 
 				Some(ident)
 			},
 
 			_ => {
-				return Err(Error::new(
-					span,
-					ErrorKind::Expected("ident (with 'and' value) token"),
-				));
+				return Err(Error::new(span, ErrorKind::Expected("ident (with 'and' value) token")));
 			},
 		};
 
@@ -1080,7 +1024,7 @@ where
 
 		let supports_in_parens = self.parse()?;
 
-		Ok(SupportsAnd { span:span!(self, span.lo), keyword, condition:supports_in_parens })
+		Ok(SupportsAnd { span: span!(self, span.lo), keyword, condition: supports_in_parens })
 	}
 }
 
@@ -1093,7 +1037,7 @@ where
 
 		let keyword = match cur!(self) {
 			Token::Ident { value, .. } if value.as_ref().eq_ignore_ascii_case("or") => {
-				let ident:Ident = self.parse()?;
+				let ident: Ident = self.parse()?;
 
 				Some(ident)
 			},
@@ -1107,7 +1051,7 @@ where
 
 		let supports_in_parens = self.parse()?;
 
-		Ok(SupportsOr { span:span!(self, span.lo), keyword, condition:supports_in_parens })
+		Ok(SupportsOr { span: span!(self, span.lo), keyword, condition: supports_in_parens })
 	}
 }
 
@@ -1143,9 +1087,7 @@ where
 						self.input.reset(&state);
 
 						match self.parse() {
-							Ok(general_enclosed) => {
-								Ok(SupportsInParens::GeneralEnclosed(general_enclosed))
-							},
+							Ok(general_enclosed) => Ok(SupportsInParens::GeneralEnclosed(general_enclosed)),
 
 							Err(err) => Err(err),
 						}
@@ -1181,11 +1123,9 @@ where
 				Ok(SupportsFeature::Declaration(Box::new(declaration)))
 			},
 
-			Token::Function { value, .. }
-				if matches_eq_ignore_ascii_case!(&**value, "selector") =>
-			{
+			Token::Function { value, .. } if matches_eq_ignore_ascii_case!(&**value, "selector") => {
 				// TODO improve me
-				let ctx = Ctx { in_supports_at_rule:true, ..self.ctx };
+				let ctx = Ctx { in_supports_at_rule: true, ..self.ctx };
 
 				let function = self.with_ctx(ctx).parse_as::<Function>()?;
 
@@ -1208,7 +1148,7 @@ where
 	fn parse(&mut self) -> PResult<GeneralEnclosed> {
 		match cur!(self) {
 			tok!("function") => {
-				let ctx = Ctx { need_canonicalize:false, ..self.ctx };
+				let ctx = Ctx { need_canonicalize: false, ..self.ctx };
 
 				let function = self.with_ctx(ctx).parse_as::<Function>()?;
 
@@ -1222,35 +1162,29 @@ where
 
 				for component_value in &block.value {
 					match component_value {
-						ComponentValue::PreservedToken(token_and_span) => {
-							match token_and_span.token {
-								Token::WhiteSpace { .. } => {
-									continue;
-								},
+						ComponentValue::PreservedToken(token_and_span) => match token_and_span.token {
+							Token::WhiteSpace { .. } => {
+								continue;
+							},
 
-								Token::Ident { .. } => {
-									found_ident = true;
+							Token::Ident { .. } => {
+								found_ident = true;
 
-									break;
-								},
+								break;
+							},
 
-								_ => {
-									return Err(Error::new(
-										block.span,
-										ErrorKind::Expected(
-											"ident at first position in <general-enclosed>",
-										),
-									));
-								},
-							}
+							_ => {
+								return Err(Error::new(
+									block.span,
+									ErrorKind::Expected("ident at first position in <general-enclosed>"),
+								));
+							},
 						},
 
 						_ => {
 							return Err(Error::new(
 								block.span,
-								ErrorKind::Expected(
-									"ident at first position in <general-enclosed>",
-								),
+								ErrorKind::Expected("ident at first position in <general-enclosed>"),
 							));
 						},
 					}
@@ -1307,7 +1241,7 @@ where
 	I: ParserInput,
 {
 	fn parse(&mut self) -> PResult<MediaQueryList> {
-		let query:MediaQuery = self.parse()?;
+		let query: MediaQuery = self.parse()?;
 
 		let mut queries = vec![query];
 
@@ -1343,7 +1277,7 @@ where
 			},
 		};
 
-		Ok(MediaQueryList { span:Span::new(start_pos, last_pos), queries })
+		Ok(MediaQueryList { span: Span::new(start_pos, last_pos), queries })
 	}
 }
 
@@ -1385,22 +1319,21 @@ where
 				condition_without_or = Some(Box::new(MediaConditionType::WithoutOr(self.parse()?)));
 			}
 
-			let end_pos = if let Some(MediaConditionType::WithoutOr(condition_without_or)) =
-				condition_without_or.as_deref()
-			{
-				condition_without_or.span.hi
-			} else if let Some(MediaType::Ident(ident)) = &media_type {
-				ident.span.hi
-			} else {
-				unreachable!();
-			};
+			let end_pos =
+				if let Some(MediaConditionType::WithoutOr(condition_without_or)) = condition_without_or.as_deref() {
+					condition_without_or.span.hi
+				} else if let Some(MediaType::Ident(ident)) = &media_type {
+					ident.span.hi
+				} else {
+					unreachable!();
+				};
 
 			return Ok(MediaQuery {
-				span:Span::new(start_pos, end_pos),
+				span: Span::new(start_pos, end_pos),
 				modifier,
 				media_type,
 				keyword,
-				condition:condition_without_or,
+				condition: condition_without_or,
 			});
 		}
 
@@ -1408,14 +1341,14 @@ where
 			self.input.reset(&state);
 		}
 
-		let condition:MediaCondition = self.parse()?;
+		let condition: MediaCondition = self.parse()?;
 
 		Ok(MediaQuery {
-			span:Span::new(start_pos, condition.span.hi),
-			modifier:None,
-			media_type:None,
-			keyword:None,
-			condition:Some(Box::new(MediaConditionType::All(condition))),
+			span: Span::new(start_pos, condition.span.hi),
+			modifier: None,
+			media_type: None,
+			keyword: None,
+			condition: Some(Box::new(MediaConditionType::All(condition))),
 		})
 	}
 }
@@ -1427,7 +1360,7 @@ where
 	fn parse(&mut self) -> PResult<MediaType> {
 		match cur!(self) {
 			_ if !is_one_of_case_insensitive_ident!(self, "not", "and", "or", "only", "layer") => {
-				let name:Ident = self.parse()?;
+				let name: Ident = self.parse()?;
 
 				Ok(MediaType::Ident(name))
 			},
@@ -1437,9 +1370,7 @@ where
 
 				Err(Error::new(
 					span,
-					ErrorKind::Expected(
-						"ident (exclude the keywords 'only', 'not', 'and', 'or' and 'layer')",
-					),
+					ErrorKind::Expected("ident (exclude the keywords 'only', 'not', 'and', 'or' and 'layer')"),
 				))
 			},
 		}
@@ -1495,7 +1426,7 @@ where
 			}
 		};
 
-		Ok(MediaCondition { span:Span::new(start_pos, last_pos), conditions })
+		Ok(MediaCondition { span: Span::new(start_pos, last_pos), conditions })
 	}
 }
 
@@ -1538,7 +1469,7 @@ where
 			}
 		};
 
-		Ok(MediaConditionWithoutOr { span:Span::new(start_pos, last_pos), conditions })
+		Ok(MediaConditionWithoutOr { span: Span::new(start_pos, last_pos), conditions })
 	}
 }
 
@@ -1551,16 +1482,13 @@ where
 
 		let keyword = match cur!(self) {
 			Token::Ident { value, .. } if value.as_ref().eq_ignore_ascii_case("not") => {
-				let ident:Ident = self.parse()?;
+				let ident: Ident = self.parse()?;
 
 				Some(ident)
 			},
 
 			_ => {
-				return Err(Error::new(
-					span,
-					ErrorKind::Expected("ident (with 'not' value) token"),
-				));
+				return Err(Error::new(span, ErrorKind::Expected("ident (with 'not' value) token")));
 			},
 		};
 
@@ -1568,7 +1496,7 @@ where
 
 		let media_in_parens = self.parse()?;
 
-		Ok(MediaNot { span:span!(self, span.lo), keyword, condition:media_in_parens })
+		Ok(MediaNot { span: span!(self, span.lo), keyword, condition: media_in_parens })
 	}
 }
 
@@ -1581,16 +1509,13 @@ where
 
 		let keyword = match cur!(self) {
 			Token::Ident { value, .. } if value.as_ref().eq_ignore_ascii_case("and") => {
-				let ident:Ident = self.parse()?;
+				let ident: Ident = self.parse()?;
 
 				Some(ident)
 			},
 
 			_ => {
-				return Err(Error::new(
-					span,
-					ErrorKind::Expected("ident (with 'and' value) token"),
-				));
+				return Err(Error::new(span, ErrorKind::Expected("ident (with 'and' value) token")));
 			},
 		};
 
@@ -1598,7 +1523,7 @@ where
 
 		let media_in_parens = self.parse()?;
 
-		Ok(MediaAnd { span:span!(self, span.lo), keyword, condition:media_in_parens })
+		Ok(MediaAnd { span: span!(self, span.lo), keyword, condition: media_in_parens })
 	}
 }
 
@@ -1611,7 +1536,7 @@ where
 
 		let keyword = match cur!(self) {
 			Token::Ident { value, .. } if value.as_ref().eq_ignore_ascii_case("or") => {
-				let ident:Ident = self.parse()?;
+				let ident: Ident = self.parse()?;
 
 				Some(ident)
 			},
@@ -1625,7 +1550,7 @@ where
 
 		let media_in_parens = self.parse()?;
 
-		Ok(MediaOr { span:span!(self, span.lo), keyword, condition:media_in_parens })
+		Ok(MediaOr { span: span!(self, span.lo), keyword, condition: media_in_parens })
 	}
 }
 
@@ -1691,10 +1616,7 @@ where
 
 				expect!(self, ")");
 
-				return Ok(MediaFeature::Boolean(MediaFeatureBoolean {
-					span:span!(self, span.lo),
-					name,
-				}));
+				return Ok(MediaFeature::Boolean(MediaFeatureBoolean { span: span!(self, span.lo), name }));
 			},
 
 			_ => {},
@@ -1715,7 +1637,7 @@ where
 					},
 				};
 
-				Ok(MediaFeature::Boolean(MediaFeatureBoolean { span:span!(self, span.lo), name }))
+				Ok(MediaFeature::Boolean(MediaFeatureBoolean { span: span!(self, span.lo), name }))
 			},
 
 			tok!(":") => {
@@ -1737,7 +1659,7 @@ where
 				expect!(self, ")");
 
 				Ok(MediaFeature::Plain(MediaFeaturePlain {
-					span:span!(self, span.lo),
+					span: span!(self, span.lo),
 					name,
 					value,
 				}))
@@ -1775,10 +1697,10 @@ where
 
 				if eat!(self, ")") {
 					return Ok(MediaFeature::Range(MediaFeatureRange {
-						span:span!(self, span.lo),
-						left:Box::new(left),
-						comparison:left_comparison,
-						right:Box::new(center),
+						span: span!(self, span.lo),
+						left: Box::new(left),
+						comparison: left_comparison,
+						right: Box::new(center),
 					}));
 				}
 
@@ -1840,15 +1762,13 @@ where
 				if !is_valid_operator {
 					return Err(Error::new(
 						span,
-						ErrorKind::Expected(
-							"left comparison operator should be equal right comparison operator",
-						),
+						ErrorKind::Expected("left comparison operator should be equal right comparison operator"),
 					));
 				}
 
 				Ok(MediaFeature::RangeInterval(MediaFeatureRangeInterval {
-					span:span!(self, span.lo),
-					left:Box::new(left),
+					span: span!(self, span.lo),
+					left: Box::new(left),
 					left_comparison,
 					name,
 					right_comparison,
@@ -1879,18 +1799,14 @@ where
 
 					let right = Some(self.parse()?);
 
-					return Ok(MediaFeatureValue::Ratio(Ratio {
-						span:span!(self, span.lo),
-						left,
-						right,
-					}));
+					return Ok(MediaFeatureValue::Ratio(Ratio { span: span!(self, span.lo), left, right }));
 				}
 
 				Ok(MediaFeatureValue::Number(left))
 			},
 
 			tok!("ident") => {
-				let name:Ident = self.parse()?;
+				let name: Ident = self.parse()?;
 
 				Ok(MediaFeatureValue::Ident(name))
 			},
@@ -1902,12 +1818,10 @@ where
 				Ok(MediaFeatureValue::Function(function))
 			},
 
-			_ => {
-				Err(Error::new(
-					span,
-					ErrorKind::Expected("number, ident, dimension or function token"),
-				))
-			},
+			_ => Err(Error::new(
+				span,
+				ErrorKind::Expected("number, ident, dimension or function token"),
+			)),
 		}
 	}
 }
@@ -1917,7 +1831,7 @@ where
 	I: ParserInput,
 {
 	fn parse(&mut self) -> PResult<PageSelectorList> {
-		let selector:PageSelector = self.parse()?;
+		let selector: PageSelector = self.parse()?;
 
 		let mut selectors = vec![selector];
 
@@ -1949,7 +1863,7 @@ where
 			},
 		};
 
-		Ok(PageSelectorList { span:Span::new(start_pos, last_pos), selectors })
+		Ok(PageSelectorList { span: Span::new(start_pos, last_pos), selectors })
 	}
 }
 
@@ -1980,7 +1894,7 @@ where
 			None
 		};
 
-		Ok(PageSelector { span:span!(self, span.lo), page_type, pseudos })
+		Ok(PageSelector { span: span!(self, span.lo), page_type, pseudos })
 	}
 }
 
@@ -1993,7 +1907,7 @@ where
 
 		let value = self.parse()?;
 
-		Ok(PageSelectorType { span:span!(self, span.lo), value })
+		Ok(PageSelectorType { span: span!(self, span.lo), value })
 	}
 }
 
@@ -2007,10 +1921,8 @@ where
 		expect!(self, ":");
 
 		let value = match cur!(self) {
-			Token::Ident { value, .. }
-				if matches_eq_ignore_ascii_case!(value, "left", "right", "first", "blank") =>
-			{
-				let name:Ident = self.parse()?;
+			Token::Ident { value, .. } if matches_eq_ignore_ascii_case!(value, "left", "right", "first", "blank") => {
+				let name: Ident = self.parse()?;
 
 				name
 			},
@@ -2025,7 +1937,7 @@ where
 			},
 		};
 
-		Ok(PageSelectorPseudo { span:span!(self, span.lo), value })
+		Ok(PageSelectorPseudo { span: span!(self, span.lo), value })
 	}
 }
 
@@ -2046,7 +1958,7 @@ where
 			}
 		}
 
-		Ok(LayerName { name, span:span!(self, start) })
+		Ok(LayerName { name, span: span!(self, start) })
 	}
 }
 
@@ -2057,7 +1969,7 @@ where
 	fn parse(&mut self) -> PResult<ContainerCondition> {
 		let start_pos = self.input.cur_span().lo;
 
-		let mut name:Option<ContainerName> = None;
+		let mut name: Option<ContainerName> = None;
 
 		if is!(self, "ident") && !is_case_insensitive_ident!(self, "not") {
 			name = Some(self.parse()?);
@@ -2065,9 +1977,9 @@ where
 			self.input.skip_ws();
 		}
 
-		let query:ContainerQuery = self.parse()?;
+		let query: ContainerQuery = self.parse()?;
 
-		Ok(ContainerCondition { span:Span::new(start_pos, query.span.hi), name, query })
+		Ok(ContainerCondition { span: Span::new(start_pos, query.span.hi), name, query })
 	}
 }
 
@@ -2078,7 +1990,7 @@ where
 	fn parse(&mut self) -> PResult<ContainerName> {
 		match cur!(self) {
 			tok!("ident") => {
-				let custom_ident:CustomIdent = self.parse()?;
+				let custom_ident: CustomIdent = self.parse()?;
 
 				Ok(ContainerName::CustomIdent(custom_ident))
 			},
@@ -2143,7 +2055,7 @@ where
 			};
 		}
 
-		Ok(ContainerQuery { span:Span::new(start_pos, last_pos), queries })
+		Ok(ContainerQuery { span: Span::new(start_pos, last_pos), queries })
 	}
 }
 
@@ -2156,16 +2068,13 @@ where
 
 		let keyword = match cur!(self) {
 			Token::Ident { value, .. } if value.as_ref().eq_ignore_ascii_case("not") => {
-				let ident:Ident = self.parse()?;
+				let ident: Ident = self.parse()?;
 
 				Some(ident)
 			},
 
 			_ => {
-				return Err(Error::new(
-					span,
-					ErrorKind::Expected("ident (with 'not' value) token"),
-				));
+				return Err(Error::new(span, ErrorKind::Expected("ident (with 'not' value) token")));
 			},
 		};
 
@@ -2173,7 +2082,7 @@ where
 
 		let query_in_parens = self.parse()?;
 
-		Ok(ContainerQueryNot { span:span!(self, span.lo), keyword, query:query_in_parens })
+		Ok(ContainerQueryNot { span: span!(self, span.lo), keyword, query: query_in_parens })
 	}
 }
 
@@ -2186,16 +2095,13 @@ where
 
 		let keyword = match cur!(self) {
 			Token::Ident { value, .. } if value.as_ref().eq_ignore_ascii_case("and") => {
-				let ident:Ident = self.parse()?;
+				let ident: Ident = self.parse()?;
 
 				Some(ident)
 			},
 
 			_ => {
-				return Err(Error::new(
-					span,
-					ErrorKind::Expected("ident (with 'and' value) token"),
-				));
+				return Err(Error::new(span, ErrorKind::Expected("ident (with 'and' value) token")));
 			},
 		};
 
@@ -2203,7 +2109,7 @@ where
 
 		let query_in_parens = self.parse()?;
 
-		Ok(ContainerQueryAnd { span:span!(self, span.lo), keyword, query:query_in_parens })
+		Ok(ContainerQueryAnd { span: span!(self, span.lo), keyword, query: query_in_parens })
 	}
 }
 
@@ -2216,7 +2122,7 @@ where
 
 		let keyword = match cur!(self) {
 			Token::Ident { value, .. } if value.as_ref().eq_ignore_ascii_case("or") => {
-				let ident:Ident = self.parse()?;
+				let ident: Ident = self.parse()?;
 
 				Some(ident)
 			},
@@ -2230,7 +2136,7 @@ where
 
 		let query_in_parens = self.parse()?;
 
-		Ok(ContainerQueryOr { span:span!(self, span.lo), keyword, query:query_in_parens })
+		Ok(ContainerQueryOr { span: span!(self, span.lo), keyword, query: query_in_parens })
 	}
 }
 
@@ -2297,7 +2203,7 @@ where
 					},
 				};
 
-				Ok(SizeFeature::Boolean(SizeFeatureBoolean { span:span!(self, span.lo), name }))
+				Ok(SizeFeature::Boolean(SizeFeatureBoolean { span: span!(self, span.lo), name }))
 			},
 
 			tok!(":") => {
@@ -2318,7 +2224,7 @@ where
 
 				expect!(self, ")");
 
-				Ok(SizeFeature::Plain(SizeFeaturePlain { span:span!(self, span.lo), name, value }))
+				Ok(SizeFeature::Plain(SizeFeaturePlain { span: span!(self, span.lo), name, value }))
 			},
 
 			tok!("<") | tok!(">") | tok!("=") => {
@@ -2353,10 +2259,10 @@ where
 
 				if eat!(self, ")") {
 					return Ok(SizeFeature::Range(SizeFeatureRange {
-						span:span!(self, span.lo),
-						left:Box::new(left),
-						comparison:left_comparison,
-						right:Box::new(center),
+						span: span!(self, span.lo),
+						left: Box::new(left),
+						comparison: left_comparison,
+						right: Box::new(center),
 					}));
 				}
 
@@ -2418,15 +2324,13 @@ where
 				if !is_valid_operator {
 					return Err(Error::new(
 						span,
-						ErrorKind::Expected(
-							"left comparison operator should be equal right comparison operator",
-						),
+						ErrorKind::Expected("left comparison operator should be equal right comparison operator"),
 					));
 				}
 
 				Ok(SizeFeature::RangeInterval(SizeFeatureRangeInterval {
-					span:span!(self, span.lo),
-					left:Box::new(left),
+					span: span!(self, span.lo),
+					left: Box::new(left),
 					left_comparison,
 					name,
 					right_comparison,
@@ -2457,18 +2361,14 @@ where
 
 					let right = Some(self.parse()?);
 
-					return Ok(SizeFeatureValue::Ratio(Ratio {
-						span:span!(self, span.lo),
-						left,
-						right,
-					}));
+					return Ok(SizeFeatureValue::Ratio(Ratio { span: span!(self, span.lo), left, right }));
 				}
 
 				Ok(SizeFeatureValue::Number(left))
 			},
 
 			tok!("ident") => {
-				let name:Ident = self.parse()?;
+				let name: Ident = self.parse()?;
 
 				Ok(SizeFeatureValue::Ident(name))
 			},
@@ -2480,12 +2380,10 @@ where
 				Ok(SizeFeatureValue::Function(function))
 			},
 
-			_ => {
-				Err(Error::new(
-					span,
-					ErrorKind::Expected("number, ident, dimension or function token"),
-				))
-			},
+			_ => Err(Error::new(
+				span,
+				ErrorKind::Expected("number, ident, dimension or function token"),
+			)),
 		}
 	}
 }
@@ -2511,13 +2409,10 @@ where
 		match bump!(self) {
 			Token::Ident { value, raw, .. } => {
 				if !value.starts_with("--") {
-					return Err(Error::new(
-						span,
-						ErrorKind::Expected("Extension name should start with '--'"),
-					));
+					return Err(Error::new(span, ErrorKind::Expected("Extension name should start with '--'")));
 				}
 
-				Ok(ExtensionName { span, value, raw:Some(raw) })
+				Ok(ExtensionName { span, value, raw: Some(raw) })
 			},
 
 			_ => {
@@ -2539,16 +2434,14 @@ where
 		self.input.skip_ws();
 
 		let media = match cur!(self) {
-			_ if is_case_insensitive_ident!(self, "true")
-				|| is_case_insensitive_ident!(self, "false") =>
-			{
+			_ if is_case_insensitive_ident!(self, "true") || is_case_insensitive_ident!(self, "false") => {
 				CustomMediaQueryMediaType::Ident(self.parse()?)
 			},
 
 			_ => CustomMediaQueryMediaType::MediaQueryList(self.parse()?),
 		};
 
-		Ok(CustomMediaQuery { span:span!(self, span.lo), name, media })
+		Ok(CustomMediaQuery { span: span!(self, span.lo), name, media })
 	}
 }
 
@@ -2560,7 +2453,7 @@ where
 		let span = self.input.cur_span();
 
 		if is!(self, EOF) {
-			return Ok(ScopeRange { span:span!(self, span.lo), scope_start:None, scope_end:None });
+			return Ok(ScopeRange { span: span!(self, span.lo), scope_start: None, scope_end: None });
 		}
 
 		match cur!(self) {
@@ -2591,7 +2484,7 @@ where
 					None
 				};
 
-				Ok(ScopeRange { span:span!(self, span.lo), scope_start:Some(start), scope_end:end })
+				Ok(ScopeRange { span: span!(self, span.lo), scope_start: Some(start), scope_end: end })
 			},
 
 			_ => {
@@ -2606,11 +2499,7 @@ where
 
 					expect!(self, ")");
 
-					return Ok(ScopeRange {
-						span:span!(self, span.lo),
-						scope_start:None,
-						scope_end:Some(end),
-					});
+					return Ok(ScopeRange { span: span!(self, span.lo), scope_start: None, scope_end: Some(end) });
 				}
 
 				return Err(Error::new(span, ErrorKind::InvalidScopeAtRule));

@@ -28,17 +28,18 @@ macro_rules! scoped_tls {
 /// Wrapper for [scoped_tls::ScopedKey] with better error messages.
 pub struct ScopedKey<T>
 where
-	T: 'static, {
+	T: 'static,
+{
 	#[doc(hidden)]
-	pub inner:&'static scoped_tls::ScopedKey<T>,
+	pub inner: &'static scoped_tls::ScopedKey<T>,
 
 	#[cfg(debug_assertions)]
 	#[doc(hidden)]
-	pub module_path:&'static str,
+	pub module_path: &'static str,
 
 	#[cfg(debug_assertions)]
 	#[doc(hidden)]
-	pub name:&'static str,
+	pub name: &'static str,
 }
 
 impl<T> ScopedKey<T>
@@ -47,18 +48,20 @@ where
 {
 	/// See [scoped_tls::ScopedKey] for actual documentation.
 	#[cfg_attr(not(debug_assertions), inline(always))]
-	pub fn set<F, R>(&'static self, t:&T, f:F) -> R
+	pub fn set<F, R>(&'static self, t: &T, f: F) -> R
 	where
-		F: FnOnce() -> R, {
+		F: FnOnce() -> R,
+	{
 		self.inner.set(t, f)
 	}
 
 	/// See [scoped_tls::ScopedKey] for actual documentation.
 	#[track_caller]
 	#[cfg_attr(not(debug_assertions), inline(always))]
-	pub fn with<F, R>(&'static self, f:F) -> R
+	pub fn with<F, R>(&'static self, f: F) -> R
 	where
-		F: FnOnce(&T) -> R, {
+		F: FnOnce(&T) -> R,
+	{
 		#[cfg(debug_assertions)]
 		if !self.inner.is_set() {
 			// Override panic message
@@ -73,7 +76,9 @@ where
 
 	/// See [scoped_tls::ScopedKey] for actual documentation.
 	#[cfg_attr(not(debug_assertions), inline(always))]
-	pub fn is_set(&'static self) -> bool { self.inner.is_set() }
+	pub fn is_set(&'static self) -> bool {
+		self.inner.is_set()
+	}
 }
 
 #[cfg(test)]

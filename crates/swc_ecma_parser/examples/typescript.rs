@@ -1,13 +1,12 @@
 use swc_common::{
-	FileName,
-	SourceMap,
+	FileName, SourceMap,
 	errors::{ColorConfig, Handler},
 	sync::Lrc,
 };
 use swc_ecma_parser::{Capturing, Parser, StringInput, Syntax, lexer::Lexer};
 
 fn main() {
-	let cm:Lrc<SourceMap> = Default::default();
+	let cm: Lrc<SourceMap> = Default::default();
 
 	let handler = Handler::with_tty_emitter(ColorConfig::Auto, true, false, Some(cm.clone()));
 
@@ -16,8 +15,7 @@ fn main() {
 	//     .load_file(Path::new("test.ts"))
 	//     .expect("failed to load test.ts");
 
-	let fm =
-		cm.new_source_file(FileName::Custom("test.ts".into()).into(), "interface Foo {}".into());
+	let fm = cm.new_source_file(FileName::Custom("test.ts".into()).into(), "interface Foo {}".into());
 
 	let lexer = Lexer::new(
 		Syntax::Typescript(Default::default()),
@@ -41,7 +39,7 @@ fn main() {
 
 	println!("Tokens: {:?}", parser.input().take());
 
-	let cm:Lrc<SourceMap> = Default::default();
+	let cm: Lrc<SourceMap> = Default::default();
 
 	let handler = Handler::with_tty_emitter(ColorConfig::Auto, true, false, Some(cm.clone()));
 
@@ -50,8 +48,7 @@ fn main() {
 	//     .load_file(Path::new("test.ts"))
 	//     .expect("failed to load test.ts");
 
-	let fm =
-		cm.new_source_file(FileName::Custom("test.ts".into()).into(), "interface Foo {}".into());
+	let fm = cm.new_source_file(FileName::Custom("test.ts".into()).into(), "interface Foo {}".into());
 
 	let lexer = Lexer::new(
 		Syntax::Typescript(Default::default()),

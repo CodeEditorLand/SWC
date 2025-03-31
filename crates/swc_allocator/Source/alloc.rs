@@ -20,12 +20,12 @@ thread_local! {
 /// The actual storage for [FastAlloc].
 #[derive(Default)]
 pub struct Allocator {
-	alloc:Bump,
+	alloc: Bump,
 }
 
 pub struct AllocGuard {
 	#[cfg(feature = "scoped")]
-	orig:Option<&'static Allocator>,
+	orig: Option<&'static Allocator>,
 }
 
 impl Drop for AllocGuard {
@@ -66,7 +66,7 @@ impl Default for FastAlloc {
 	fn default() -> Self {
 		Self {
 			#[cfg(feature = "scoped")]
-			alloc:if let Some(v) = ALLOC.get() { Some(v) } else { None },
+			alloc: if let Some(v) = ALLOC.get() { Some(v) } else { None },
 		}
 	}
 }
@@ -74,7 +74,7 @@ impl Default for FastAlloc {
 impl FastAlloc {
 	/// `true` is passed to `f` if the box is allocated with a custom allocator.
 	#[cfg(feature = "nightly")]
-	fn with_allocator<T>(&self, f:impl FnOnce(&dyn std::alloc::Allocator, bool) -> T) -> T {
+	fn with_allocator<T>(&self, f: impl FnOnce(&dyn std::alloc::Allocator, bool) -> T) -> T {
 		#[cfg(feature = "scoped")]
 		if let Some(arena) = &self.alloc {
 			return f((&&arena.alloc) as &dyn std::alloc::Allocator, true);
@@ -85,12 +85,14 @@ impl FastAlloc {
 }
 
 #[cfg(feature = "nightly")]
-fn mark_ptr_as_arena_mode(ptr:NonNull<[u8]>) -> NonNull<[u8]> { ptr }
+fn mark_ptr_as_arena_mode(ptr: NonNull<[u8]>) -> NonNull<[u8]> {
+	ptr
+}
 
 #[cfg(feature = "nightly")]
 unsafe impl std::alloc::Allocator for FastAlloc {
 	#[inline]
-	fn allocate(&self, layout:Layout) -> Result<NonNull<[u8]>, AllocError> {
+	fn allocate(&self, layout: Layout) -> Result<NonNull<[u8]>, AllocError> {
 		self.with_allocator(|a, is_arena_mode| {
 			let ptr = a.allocate(layout)?;
 
@@ -99,7 +101,7 @@ unsafe impl std::alloc::Allocator for FastAlloc {
 	}
 
 	#[inline]
-	fn allocate_zeroed(&self, layout:Layout) -> Result<NonNull<[u8]>, AllocError> {
+	fn allocate_zeroed(&self, layout: Layout) -> Result<NonNull<[u8]>, AllocError> {
 		self.with_allocator(|a, is_arena_mode| {
 			let ptr = a.allocate_zeroed(layout)?;
 
@@ -108,7 +110,7 @@ unsafe impl std::alloc::Allocator for FastAlloc {
 	}
 
 	#[inline]
-	unsafe fn deallocate(&self, ptr:NonNull<u8>, layout:Layout) {
+	unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: Layout) {
 		#[cfg(feature = "scoped")]
 		if self.alloc.is_some() {
 			self.with_allocator(|alloc, _| alloc.deallocate(ptr, layout));
@@ -122,9 +124,9 @@ unsafe impl std::alloc::Allocator for FastAlloc {
 	#[inline]
 	unsafe fn grow(
 		&self,
-		ptr:NonNull<u8>,
-		old_layout:Layout,
-		new_layout:Layout,
+		ptr: NonNull<u8>,
+		old_layout: Layout,
+		new_layout: Layout,
 	) -> Result<NonNull<[u8]>, AllocError> {
 		self.with_allocator(|alloc, is_arena_mode| {
 			let ptr = alloc.grow(ptr, old_layout, new_layout)?;
@@ -136,9 +138,9 @@ unsafe impl std::alloc::Allocator for FastAlloc {
 	#[inline]
 	unsafe fn grow_zeroed(
 		&self,
-		ptr:NonNull<u8>,
-		old_layout:Layout,
-		new_layout:Layout,
+		ptr: NonNull<u8>,
+		old_layout: Layout,
+		new_layout: Layout,
 	) -> Result<NonNull<[u8]>, AllocError> {
 		self.with_allocator(|alloc, is_arena_mode| {
 			let ptr = alloc.grow_zeroed(ptr, old_layout, new_layout)?;
@@ -150,9 +152,9 @@ unsafe impl std::alloc::Allocator for FastAlloc {
 	#[inline]
 	unsafe fn shrink(
 		&self,
-		ptr:NonNull<u8>,
-		old_layout:Layout,
-		new_layout:Layout,
+		ptr: NonNull<u8>,
+		old_layout: Layout,
+		new_layout: Layout,
 	) -> Result<NonNull<[u8]>, AllocError> {
 		self.with_allocator(|alloc, is_arena_mode| {
 			let ptr = alloc.shrink(ptr, old_layout, new_layout)?;
@@ -164,21 +166,28 @@ unsafe impl std::alloc::Allocator for FastAlloc {
 	#[inline(always)]
 	fn by_ref(&self) -> &Self
 	where
-		Self: Sized, {
+		Self: Sized,
+	{
 		self
 	}
 }
 
 impl From<Bump> for Allocator {
-	fn from(alloc:Bump) -> Self { Self { alloc } }
+	fn from(alloc: Bump) -> Self {
+		Self { alloc }
+	}
 }
 
 impl Deref for Allocator {
 	type Target = Bump;
 
-	fn deref(&self) -> &Bump { &self.alloc }
+	fn deref(&self) -> &Bump {
+		&self.alloc
+	}
 }
 
 impl DerefMut for Allocator {
-	fn deref_mut(&mut self) -> &mut Bump { &mut self.alloc }
+	fn deref_mut(&mut self) -> &mut Bump {
+		&mut self.alloc
+	}
 }

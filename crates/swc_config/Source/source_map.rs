@@ -11,28 +11,26 @@ pub enum SourceMapContent {
 	#[serde(rename_all = "camelCase")]
 	Parsed {
 		#[serde(default)]
-		sources:Vec<Arc<str>>,
+		sources: Vec<Arc<str>>,
 		#[serde(default)]
-		names:Vec<Arc<str>>,
+		names: Vec<Arc<str>>,
 		#[serde(default)]
-		mappings:String,
+		mappings: String,
 		#[serde(default)]
-		range_mappings:String,
+		range_mappings: String,
 		#[serde(default)]
-		file:Option<Arc<str>>,
+		file: Option<Arc<str>>,
 		#[serde(default)]
-		source_root:Option<String>,
+		source_root: Option<String>,
 		#[serde(default)]
-		sources_content:Option<Vec<Option<Arc<str>>>>,
+		sources_content: Option<Vec<Option<Arc<str>>>>,
 	},
 }
 
 impl SourceMapContent {
 	pub fn to_sourcemap(&self) -> Result<SourceMap> {
 		match self {
-			SourceMapContent::Json(s) => {
-				SourceMap::from_slice(s.as_bytes()).context("failed to parse sourcemap")
-			},
+			SourceMapContent::Json(s) => SourceMap::from_slice(s.as_bytes()).context("failed to parse sourcemap"),
 
 			SourceMapContent::Parsed {
 				sources,
@@ -83,10 +81,7 @@ impl SourceMapContent {
 
 						if nums.len() > 1 {
 							if nums.len() != 4 && nums.len() != 5 {
-								bail!(
-									"invalid vlq segment size; expected 4 or 5, got {}",
-									nums.len()
-								);
+								bail!("invalid vlq segment size; expected 4 or 5, got {}", nums.len());
 							}
 
 							src_id = (i64::from(src_id) + nums[1]) as u32;
@@ -113,24 +108,19 @@ impl SourceMapContent {
 						}
 
 						tokens.push(RawToken {
-							dst_line:dst_line as u32,
+							dst_line: dst_line as u32,
 							dst_col,
 							src_line,
 							src_col,
-							src_id:src,
-							name_id:name,
-							is_range:false,
+							src_id: src,
+							name_id: name,
+							is_range: false,
 						});
 					}
 				}
 
-				let mut map = SourceMap::new(
-					file.clone(),
-					tokens,
-					names.clone(),
-					sources.clone(),
-					sources_content.clone(),
-				);
+				let mut map =
+					SourceMap::new(file.clone(), tokens, names.clone(), sources.clone(), sources_content.clone());
 
 				map.set_source_root(source_root.clone());
 

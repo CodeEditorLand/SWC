@@ -19,30 +19,28 @@ use swc_common::{GLOBALS, SourceMap, errors::HANDLER};
 use tracing::info;
 
 use crate::util::{
-	gzipped_size,
-	make_pretty,
+	gzipped_size, make_pretty,
 	minifier::{get_minified, get_terser_output},
-	print_js,
-	wrap_task,
+	print_js, wrap_task,
 };
 
 #[derive(Debug, Args)]
 pub struct CheckSizeCommand {
 	/// The directory store inputs to the swc minifier.
 	#[clap(long, short = 'w', default_value = ".next/dbg-swc/minifier-check-size")]
-	workspace:PathBuf,
+	workspace: PathBuf,
 
 	/// Rerun `npm run build` even if `workspace` is not empty.
 	#[clap(long)]
-	ensure_fresh:bool,
+	ensure_fresh: bool,
 
 	/// Show every file, even if the output of swc minifier was smaller.
 	#[clap(long)]
-	show_all:bool,
+	show_all: bool,
 }
 
 impl CheckSizeCommand {
-	pub fn run(self, cm:Arc<SourceMap>) -> Result<()> {
+	pub fn run(self, cm: Arc<SourceMap>) -> Result<()> {
 		let app_dir = current_dir().context("failed to get current directory")?;
 
 		let files = self.store_minifier_inputs(&app_dir)?;
@@ -53,11 +51,7 @@ impl CheckSizeCommand {
 			HANDLER.with(|handler| {
 				files
 					.into_par_iter()
-					.map(|file| {
-						GLOBALS.set(globals, || {
-							HANDLER.set(handler, || self.minify_file(cm.clone(), &file))
-						})
-					})
+					.map(|file| GLOBALS.set(globals, || HANDLER.set(handler, || self.minify_file(cm.clone(), &file))))
 					.collect::<Result<Vec<_>>>()
 			})
 		})?;
@@ -118,8 +112,7 @@ impl CheckSizeCommand {
 
 			let terser = get_terser_output(&files[selection].path, true, false)?;
 
-			std::fs::write(&terser_path, terser.as_bytes())
-				.context("failed to write terser.output.js")?;
+			std::fs::write(&terser_path, terser.as_bytes()).context("failed to write terser.output.js")?;
 
 			make_pretty(&terser_path)?;
 
@@ -141,7 +134,7 @@ impl CheckSizeCommand {
 
 	/// Invokes `npm run build` with appropriate environment variables, and
 	/// store the result in `self.workspace`.
-	fn store_minifier_inputs(&self, app_dir:&Path) -> Result<Vec<PathBuf>> {
+	fn store_minifier_inputs(&self, app_dir: &Path) -> Result<Vec<PathBuf>> {
 		wrap_task(|| {
 			if !self.ensure_fresh
 				&& self.workspace.is_dir()
@@ -154,8 +147,7 @@ impl CheckSizeCommand {
 					 not set"
 				);
 
-				return get_all_files(&self.workspace.join("inputs"))
-					.context("failed to get files from cache");
+				return get_all_files(&self.workspace.join("inputs")).context("failed to get files from cache");
 			}
 
 			let files = self.build_app(app_dir)?;
@@ -165,8 +157,7 @@ impl CheckSizeCommand {
 				.map(|file| {
 					let file_path = self.workspace.join("inputs").join(file.name);
 
-					create_dir_all(file_path.parent().unwrap())
-						.context("failed to create a directory")?;
+					create_dir_all(file_path.parent().unwrap()).context("failed to create a directory")?;
 
 					fs::write(&file_path, file.source).context("failed to write file")?;
 
@@ -178,7 +169,7 @@ impl CheckSizeCommand {
 	}
 
 	/// Invokes `npm run build` and extacts the inputs for the swc minifier.
-	fn build_app(&self, app_dir:&Path) -> Result<Vec<InputFile>> {
+	fn build_app(&self, app_dir: &Path) -> Result<Vec<InputFile>> {
 		wrap_task(|| {
 			info!("Running `npm run build`");
 
@@ -208,27 +199,24 @@ impl CheckSizeCommand {
 			output
 				.par_lines()
 				.filter(|line| line.contains("{ name:"))
-				.map(|line| {
-					parse_loose_json::<InputFile>(line).context("failed to parse input file")
-				})
+				.map(|line| parse_loose_json::<InputFile>(line).context("failed to parse input file"))
 				.collect::<Result<_>>()
 		})
 		.with_context(|| format!("failed to build app in `{}`", app_dir.display()))
 	}
 
-	fn minify_file(&self, cm:Arc<SourceMap>, js_file:&Path) -> Result<CompareResult> {
+	fn minify_file(&self, cm: Arc<SourceMap>, js_file: &Path) -> Result<CompareResult> {
 		wrap_task(|| {
-			let terser_full =
-				get_terser_output(js_file, true, true).context("failed to get terser output")?;
+			let terser_full = get_terser_output(js_file, true, true).context("failed to get terser output")?;
 
 			let swc_full = get_minified(cm.clone(), js_file, true, true)?;
 
 			let swc_full = print_js(cm.clone(), &swc_full.module, true)?;
 
 			Ok(CompareResult {
-				terser:gzipped_size(&terser_full),
-				swc:gzipped_size(&swc_full),
-				path:js_file.to_owned(),
+				terser: gzipped_size(&terser_full),
+				swc: gzipped_size(&swc_full),
+				path: js_file.to_owned(),
 			})
 		})
 		.with_context(|| format!("failed to minify `{}`", js_file.display()))
@@ -236,20 +224,21 @@ impl CheckSizeCommand {
 }
 
 struct CompareResult {
-	path:PathBuf,
-	swc:usize,
-	terser:usize,
+	path: PathBuf,
+	swc: usize,
+	terser: usize,
 }
 
 #[derive(Deserialize)]
 struct InputFile {
-	name:String,
-	source:String,
+	name: String,
+	source: String,
 }
 
-fn parse_loose_json<T>(s:&str) -> Result<T>
+fn parse_loose_json<T>(s: &str) -> Result<T>
 where
-	T: DeserializeOwned, {
+	T: DeserializeOwned,
+{
 	wrap_task(|| {
 		let mut c = Command::new("node");
 
@@ -276,7 +265,7 @@ where
 	.with_context(|| format!("failed to parse loose json: {}", s))
 }
 
-fn get_all_files(path:&Path) -> Result<Vec<PathBuf>> {
+fn get_all_files(path: &Path) -> Result<Vec<PathBuf>> {
 	if path.is_dir() {
 		let v = read_dir(path)
 			.with_context(|| format!("failed to read directory at `{}`", path.display()))?

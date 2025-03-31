@@ -1,10 +1,7 @@
 use std::fmt;
 
 use serde::{
-	Deserialize,
-	Deserializer,
-	Serialize,
-	Serializer,
+	Deserialize, Deserializer, Serialize, Serializer,
 	de::{Unexpected, Visitor},
 };
 
@@ -17,11 +14,13 @@ pub enum IsModule {
 }
 
 impl Default for IsModule {
-	fn default() -> Self { IsModule::Bool(true) }
+	fn default() -> Self {
+		IsModule::Bool(true)
+	}
 }
 
 impl Merge for IsModule {
-	fn merge(&mut self, other:Self) {
+	fn merge(&mut self, other: Self) {
 		if *self == Default::default() {
 			*self = other;
 		}
@@ -29,9 +28,10 @@ impl Merge for IsModule {
 }
 
 impl Serialize for IsModule {
-	fn serialize<S>(&self, serializer:S) -> Result<S::Ok, S::Error>
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 	where
-		S: Serializer, {
+		S: Serializer,
+	{
 		match *self {
 			IsModule::Bool(ref b) => b.serialize(serializer),
 			IsModule::Unknown => "unknown".serialize(serializer),
@@ -44,19 +44,21 @@ struct IsModuleVisitor;
 impl Visitor<'_> for IsModuleVisitor {
 	type Value = IsModule;
 
-	fn expecting(&self, formatter:&mut fmt::Formatter) -> fmt::Result {
+	fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
 		formatter.write_str("a boolean or the string 'unknown'")
 	}
 
-	fn visit_bool<E>(self, b:bool) -> Result<Self::Value, E>
+	fn visit_bool<E>(self, b: bool) -> Result<Self::Value, E>
 	where
-		E: serde::de::Error, {
+		E: serde::de::Error,
+	{
 		Ok(IsModule::Bool(b))
 	}
 
-	fn visit_str<E>(self, s:&str) -> Result<Self::Value, E>
+	fn visit_str<E>(self, s: &str) -> Result<Self::Value, E>
 	where
-		E: serde::de::Error, {
+		E: serde::de::Error,
+	{
 		match s {
 			"unknown" => Ok(IsModule::Unknown),
 			_ => Err(serde::de::Error::invalid_value(Unexpected::Str(s), &self)),
@@ -65,9 +67,10 @@ impl Visitor<'_> for IsModuleVisitor {
 }
 
 impl<'de> Deserialize<'de> for IsModule {
-	fn deserialize<D>(deserializer:D) -> Result<Self, D::Error>
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
 	where
-		D: Deserializer<'de>, {
+		D: Deserializer<'de>,
+	{
 		deserializer.deserialize_any(IsModuleVisitor)
 	}
 }

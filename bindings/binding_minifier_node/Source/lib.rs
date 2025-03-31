@@ -27,6 +27,6 @@ fn init() {
 /// Hack for `Type Generation`
 #[napi(object)]
 pub struct TransformOutput {
-	pub code:String,
-	pub map:Option<String>,
+	pub code: String,
+	pub map: Option<String>,
 }

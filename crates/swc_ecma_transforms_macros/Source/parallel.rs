@@ -5,7 +5,7 @@ use syn::{Expr, Ident, ImplItem, ImplItemFn, ItemImpl, Meta, Type, parse_quote};
 
 use crate::common::Mode;
 
-pub fn expand(attr:TokenStream, mut item:ItemImpl) -> ItemImpl {
+pub fn expand(attr: TokenStream, mut item: ItemImpl) -> ItemImpl {
 	let mode = {
 		let p = &item.trait_.as_ref().unwrap().1;
 
@@ -34,7 +34,7 @@ pub fn expand(attr:TokenStream, mut item:ItemImpl) -> ItemImpl {
 	item
 }
 
-fn node_type(suffix:&str) -> Type {
+fn node_type(suffix: &str) -> Type {
 	match suffix {
 		"module_items" => parse_quote!(ModuleItem),
 		"stmts" => parse_quote!(Stmt),
@@ -44,41 +44,31 @@ fn node_type(suffix:&str) -> Type {
 	}
 }
 
-fn post_visit_hook(mode:Mode, suffix:&str) -> Option<Expr> {
+fn post_visit_hook(mode: Mode, suffix: &str) -> Option<Expr> {
 	match suffix {
-		"module_items" => {
-			Some(match mode {
-				Mode::Fold => {
-					parse_quote!(swc_ecma_transforms_base::perf::Parallel::after_module_items(
-						self, &mut nodes
-					))
-				},
+		"module_items" => Some(match mode {
+			Mode::Fold => {
+				parse_quote!(swc_ecma_transforms_base::perf::Parallel::after_module_items(self, &mut nodes))
+			},
 
-				Mode::VisitMut => {
-					parse_quote!(swc_ecma_transforms_base::perf::Parallel::after_module_items(
-						self, nodes
-					))
-				},
-			})
-		},
-		"stmts" => {
-			Some(match mode {
-				Mode::Fold => {
-					parse_quote!(swc_ecma_transforms_base::perf::Parallel::after_stmts(
-						self, &mut nodes
-					))
-				},
+			Mode::VisitMut => {
+				parse_quote!(swc_ecma_transforms_base::perf::Parallel::after_module_items(self, nodes))
+			},
+		}),
+		"stmts" => Some(match mode {
+			Mode::Fold => {
+				parse_quote!(swc_ecma_transforms_base::perf::Parallel::after_stmts(self, &mut nodes))
+			},
 
-				Mode::VisitMut => {
-					parse_quote!(swc_ecma_transforms_base::perf::Parallel::after_stmts(self, nodes))
-				},
-			})
-		},
+			Mode::VisitMut => {
+				parse_quote!(swc_ecma_transforms_base::perf::Parallel::after_stmts(self, nodes))
+			},
+		}),
 		_ => None,
 	}
 }
 
-fn explode_hook_method_name(explode:bool, suffix:&str) -> Option<Ident> {
+fn explode_hook_method_name(explode: bool, suffix: &str) -> Option<Ident> {
 	if !explode {
 		return None;
 	}
@@ -90,7 +80,7 @@ fn explode_hook_method_name(explode:bool, suffix:&str) -> Option<Ident> {
 	}
 }
 
-fn make_par_visit_method(mode:Mode, suffix:&str, explode:bool) -> ImplItemFn {
+fn make_par_visit_method(mode: Mode, suffix: &str, explode: bool) -> ImplItemFn {
 	let method_name = Ident::new(&format!("{}_{}", mode.prefix(), suffix), Span::call_site());
 
 	let hook = post_visit_hook(mode, suffix);

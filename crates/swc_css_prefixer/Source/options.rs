@@ -7,7 +7,9 @@ use serde::Deserialize;
 #[serde(deny_unknown_fields)]
 pub struct Options {
 	#[serde(default = "default_targets")]
-	pub env:Option<Targets>,
+	pub env: Option<Targets>,
 }
 
-fn default_targets() -> Option<Targets> { Some(Targets::Query(Query::Single("".into()))) }
+fn default_targets() -> Option<Targets> {
+	Some(Targets::Query(Query::Single("".into())))
+}

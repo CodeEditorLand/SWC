@@ -26,7 +26,7 @@ pub mod umd;
 #[serde(rename_all = "camelCase")]
 pub struct EsModuleConfig {
 	#[serde(flatten, default)]
-	pub config:Config,
+	pub config: Config,
 }
 
 type SpanCtx = (Span, SyntaxContext);

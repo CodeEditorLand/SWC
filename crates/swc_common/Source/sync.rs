@@ -60,11 +60,8 @@ mod concurrent {
 
 	pub use once_cell::sync::{Lazy, OnceCell};
 	pub use parking_lot::{
-		MappedMutexGuard as MappedLockGuard,
-		MappedRwLockReadGuard as MappedReadGuard,
-		MappedRwLockWriteGuard as MappedWriteGuard,
-		MutexGuard as LockGuard,
-		RwLockReadGuard as ReadGuard,
+		MappedMutexGuard as MappedLockGuard, MappedRwLockReadGuard as MappedReadGuard,
+		MappedRwLockWriteGuard as MappedWriteGuard, MutexGuard as LockGuard, RwLockReadGuard as ReadGuard,
 		RwLockWriteGuard as WriteGuard,
 	};
 }
@@ -83,10 +80,7 @@ mod single {
 
 	pub use std::{
 		cell::{
-			Ref as ReadGuard,
-			RefMut as WriteGuard,
-			RefMut as MappedWriteGuard,
-			RefMut as LockGuard,
+			Ref as ReadGuard, RefMut as WriteGuard, RefMut as MappedWriteGuard, RefMut as LockGuard,
 			RefMut as MappedLockGuard,
 		},
 		rc::{Rc as Lrc, Weak},
@@ -98,7 +92,9 @@ pub struct Lock<T>(InnerLock<T>);
 
 impl<T> Lock<T> {
 	#[inline(always)]
-	pub fn new(inner:T) -> Self { Lock(InnerLock::new(inner)) }
+	pub fn new(inner: T) -> Self {
+		Lock(InnerLock::new(inner))
+	}
 
 	// #[inline(always)]
 	// pub fn into_inner(self) -> T {
@@ -124,11 +120,15 @@ impl<T> Lock<T> {
 
 	#[cfg(feature = "concurrent")]
 	#[inline(always)]
-	pub fn lock(&self) -> LockGuard<'_, T> { self.0.lock() }
+	pub fn lock(&self) -> LockGuard<'_, T> {
+		self.0.lock()
+	}
 
 	#[cfg(not(feature = "concurrent"))]
 	#[inline(always)]
-	pub fn lock(&self) -> LockGuard<'_, T> { self.0.borrow_mut() }
+	pub fn lock(&self) -> LockGuard<'_, T> {
+		self.0.borrow_mut()
+	}
 
 	// #[inline(always)]
 	// pub fn with_lock<F: FnOnce(&mut T) -> R, R>(&self, f: F) -> R {
@@ -136,28 +136,39 @@ impl<T> Lock<T> {
 	// }
 
 	#[inline(always)]
-	pub fn borrow(&self) -> LockGuard<'_, T> { self.lock() }
+	pub fn borrow(&self) -> LockGuard<'_, T> {
+		self.lock()
+	}
 
 	#[inline(always)]
-	pub fn borrow_mut(&self) -> LockGuard<'_, T> { self.lock() }
+	pub fn borrow_mut(&self) -> LockGuard<'_, T> {
+		self.lock()
+	}
 }
 
-impl<T:Default> Default for Lock<T> {
+impl<T: Default> Default for Lock<T> {
 	#[inline]
-	fn default() -> Self { Lock::new(T::default()) }
+	fn default() -> Self {
+		Lock::new(T::default())
+	}
 }
 
 impl<T> LockCell<T> {
 	#[inline(always)]
-	pub fn new(inner:T) -> Self { LockCell(Lock::new(inner)) }
+	pub fn new(inner: T) -> Self {
+		LockCell(Lock::new(inner))
+	}
 
 	#[inline(always)]
-	pub fn set(&self, new_inner:T) { *self.0.lock() = new_inner; }
+	pub fn set(&self, new_inner: T) {
+		*self.0.lock() = new_inner;
+	}
 
 	#[inline(always)]
 	pub fn get(&self) -> T
 	where
-		T: Copy, {
+		T: Copy,
+	{
 		*self.0.lock()
 	}
 }
@@ -165,56 +176,70 @@ impl<T> LockCell<T> {
 pub trait HashMapExt<K, V> {
 	/// Same as HashMap::insert, but it may panic if there's already an
 	/// entry for `key` with a value not equal to `value`
-	fn insert_same(&mut self, key:K, value:V);
+	fn insert_same(&mut self, key: K, value: V);
 }
 
-impl<K:Eq + Hash, V:Eq, S:BuildHasher> HashMapExt<K, V> for HashMap<K, V, S> {
-	fn insert_same(&mut self, key:K, value:V) {
+impl<K: Eq + Hash, V: Eq, S: BuildHasher> HashMapExt<K, V> for HashMap<K, V, S> {
+	fn insert_same(&mut self, key: K, value: V) {
 		self.entry(key).and_modify(|old| assert!(*old == value)).or_insert(value);
 	}
 }
 
-impl<T:Copy + Debug> Debug for LockCell<T> {
-	fn fmt(&self, f:&mut Formatter<'_>) -> fmt::Result {
+impl<T: Copy + Debug> Debug for LockCell<T> {
+	fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
 		f.debug_struct("LockCell").field("value", &self.get()).finish()
 	}
 }
 
-impl<T:Default> Default for LockCell<T> {
+impl<T: Default> Default for LockCell<T> {
 	/// Creates a `LockCell<T>`, with the `Default` value for T.
 	#[inline]
-	fn default() -> LockCell<T> { LockCell::new(Default::default()) }
+	fn default() -> LockCell<T> {
+		LockCell::new(Default::default())
+	}
 }
 
-impl<T:PartialEq + Copy> PartialEq for LockCell<T> {
+impl<T: PartialEq + Copy> PartialEq for LockCell<T> {
 	#[inline]
-	fn eq(&self, other:&LockCell<T>) -> bool { self.get() == other.get() }
+	fn eq(&self, other: &LockCell<T>) -> bool {
+		self.get() == other.get()
+	}
 }
 
-impl<T:Eq + Copy> Eq for LockCell<T> {}
+impl<T: Eq + Copy> Eq for LockCell<T> {}
 
-impl<T:PartialOrd + Copy> PartialOrd for LockCell<T> {
+impl<T: PartialOrd + Copy> PartialOrd for LockCell<T> {
 	#[inline]
-	fn partial_cmp(&self, other:&LockCell<T>) -> Option<Ordering> {
+	fn partial_cmp(&self, other: &LockCell<T>) -> Option<Ordering> {
 		self.get().partial_cmp(&other.get())
 	}
 
 	#[inline]
-	fn lt(&self, other:&LockCell<T>) -> bool { self.get() < other.get() }
+	fn lt(&self, other: &LockCell<T>) -> bool {
+		self.get() < other.get()
+	}
 
 	#[inline]
-	fn le(&self, other:&LockCell<T>) -> bool { self.get() <= other.get() }
+	fn le(&self, other: &LockCell<T>) -> bool {
+		self.get() <= other.get()
+	}
 
 	#[inline]
-	fn gt(&self, other:&LockCell<T>) -> bool { self.get() > other.get() }
+	fn gt(&self, other: &LockCell<T>) -> bool {
+		self.get() > other.get()
+	}
 
 	#[inline]
-	fn ge(&self, other:&LockCell<T>) -> bool { self.get() >= other.get() }
+	fn ge(&self, other: &LockCell<T>) -> bool {
+		self.get() >= other.get()
+	}
 }
 
-impl<T:Ord + Copy> Ord for LockCell<T> {
+impl<T: Ord + Copy> Ord for LockCell<T> {
 	#[inline]
-	fn cmp(&self, other:&LockCell<T>) -> Ordering { self.get().cmp(&other.get()) }
+	fn cmp(&self, other: &LockCell<T>) -> Ordering {
+		self.get().cmp(&other.get())
+	}
 }
 
 #[derive(Debug, Default)]
@@ -222,24 +247,36 @@ pub struct RwLock<T>(InnerRwLock<T>);
 
 impl<T> RwLock<T> {
 	#[inline(always)]
-	pub fn new(inner:T) -> Self { RwLock(InnerRwLock::new(inner)) }
+	pub fn new(inner: T) -> Self {
+		RwLock(InnerRwLock::new(inner))
+	}
 
 	#[cfg(not(feature = "concurrent"))]
 	#[inline(always)]
-	pub fn read(&self) -> ReadGuard<'_, T> { self.0.borrow() }
+	pub fn read(&self) -> ReadGuard<'_, T> {
+		self.0.borrow()
+	}
 
 	#[cfg(feature = "concurrent")]
 	#[inline(always)]
-	pub fn read(&self) -> ReadGuard<'_, T> { self.0.read() }
+	pub fn read(&self) -> ReadGuard<'_, T> {
+		self.0.read()
+	}
 
 	#[inline(always)]
-	pub fn borrow(&self) -> ReadGuard<'_, T> { self.read() }
+	pub fn borrow(&self) -> ReadGuard<'_, T> {
+		self.read()
+	}
 
 	#[inline(always)]
-	pub fn get_mut(&mut self) -> &mut T { self.0.get_mut() }
+	pub fn get_mut(&mut self) -> &mut T {
+		self.0.get_mut()
+	}
 
 	#[inline(always)]
-	pub fn with_read_lock<F:FnOnce(&T) -> R, R>(&self, f:F) -> R { f(&*self.read()) }
+	pub fn with_read_lock<F: FnOnce(&T) -> R, R>(&self, f: F) -> R {
+		f(&*self.read())
+	}
 
 	#[allow(clippy::result_unit_err)]
 	#[cfg(not(feature = "concurrent"))]
@@ -251,27 +288,39 @@ impl<T> RwLock<T> {
 	#[allow(clippy::result_unit_err)]
 	#[cfg(feature = "concurrent")]
 	#[inline(always)]
-	pub fn try_write(&self) -> Result<WriteGuard<'_, T>, ()> { self.0.try_write().ok_or(()) }
+	pub fn try_write(&self) -> Result<WriteGuard<'_, T>, ()> {
+		self.0.try_write().ok_or(())
+	}
 
 	#[cfg(not(feature = "concurrent"))]
 	#[inline(always)]
-	pub fn write(&self) -> WriteGuard<'_, T> { self.0.borrow_mut() }
+	pub fn write(&self) -> WriteGuard<'_, T> {
+		self.0.borrow_mut()
+	}
 
 	#[cfg(feature = "concurrent")]
 	#[inline(always)]
-	pub fn write(&self) -> WriteGuard<'_, T> { self.0.write() }
+	pub fn write(&self) -> WriteGuard<'_, T> {
+		self.0.write()
+	}
 
 	#[inline(always)]
-	pub fn with_write_lock<F:FnOnce(&mut T) -> R, R>(&self, f:F) -> R { f(&mut *self.write()) }
+	pub fn with_write_lock<F: FnOnce(&mut T) -> R, R>(&self, f: F) -> R {
+		f(&mut *self.write())
+	}
 
 	#[inline(always)]
-	pub fn borrow_mut(&self) -> WriteGuard<'_, T> { self.write() }
+	pub fn borrow_mut(&self) -> WriteGuard<'_, T> {
+		self.write()
+	}
 }
 
 // FIXME: Probably a bad idea
-impl<T:Clone> Clone for RwLock<T> {
+impl<T: Clone> Clone for RwLock<T> {
 	#[inline]
-	fn clone(&self) -> Self { RwLock::new(self.borrow().clone()) }
+	fn clone(&self) -> Self {
+		RwLock::new(self.borrow().clone())
+	}
 }
 
 pub struct LockCell<T>(Lock<T>);

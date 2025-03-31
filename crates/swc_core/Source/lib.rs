@@ -289,7 +289,7 @@ pub mod testing {
 #[cfg_attr(docsrs, doc(cfg(feature = "allocator_node")))]
 extern crate swc_malloc;
 
-pub static SWC_CORE_VERSION:&str = include_str!(concat!(env!("OUT_DIR"), "/core_pkg_version.txt"));
+pub static SWC_CORE_VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/core_pkg_version.txt"));
 
 mod __diagnostics;
 pub mod diagnostics {
@@ -298,21 +298,21 @@ pub mod diagnostics {
 	#[derive(Debug)]
 	pub struct CoreEngineDiagnostics {
 		/// Semver package version of swc_core.
-		pub package_semver:String,
+		pub package_semver: String,
 		/// Commit sha of swc_core built against.
-		pub git_sha:String,
+		pub git_sha: String,
 		/// List of features enabled
-		pub cargo_features:String,
+		pub cargo_features: String,
 	}
 
 	/// Returns metadata about the swc_core engine that was built against.
 	pub fn get_core_engine_diagnostics() -> CoreEngineDiagnostics {
 		CoreEngineDiagnostics {
-			package_semver:option_env!("VERGEN_BUILD_SEMVER")
+			package_semver: option_env!("VERGEN_BUILD_SEMVER")
 				.unwrap_or_else(|| PKG_SEMVER_FALLBACK)
 				.to_string(),
-			git_sha:GIT_SHA.to_string(),
-			cargo_features:option_env!("VERGEN_CARGO_FEATURES")
+			git_sha: GIT_SHA.to_string(),
+			cargo_features: option_env!("VERGEN_CARGO_FEATURES")
 				.unwrap_or_else(|| "Unavailable to query")
 				.to_string(),
 		}

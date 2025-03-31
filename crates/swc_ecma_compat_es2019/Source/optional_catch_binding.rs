@@ -5,13 +5,15 @@ use swc_trace_macro::swc_trace;
 
 struct OptionalCatchBinding;
 
-pub fn optional_catch_binding() -> impl Pass { visit_mut_pass(OptionalCatchBinding) }
+pub fn optional_catch_binding() -> impl Pass {
+	visit_mut_pass(OptionalCatchBinding)
+}
 
 #[swc_trace]
 impl VisitMut for OptionalCatchBinding {
 	noop_visit_mut_type!(fail);
 
-	fn visit_mut_catch_clause(&mut self, cc:&mut CatchClause) {
+	fn visit_mut_catch_clause(&mut self, cc: &mut CatchClause) {
 		cc.visit_mut_children_with(self);
 
 		if cc.param.is_some() {

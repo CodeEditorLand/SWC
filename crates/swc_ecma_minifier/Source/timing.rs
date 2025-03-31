@@ -8,14 +8,16 @@ use crate::util::now;
 /// TOOD: Add timings.
 #[derive(Default, Debug)]
 pub struct Timings {
-	current_section:Option<(String, Instant)>,
-	entries:Vec<(String, Duration)>,
+	current_section: Option<(String, Instant)>,
+	entries: Vec<(String, Duration)>,
 }
 
 impl Timings {
-	pub fn new() -> Timings { Default::default() }
+	pub fn new() -> Timings {
+		Default::default()
+	}
 
-	pub fn section(&mut self, name:&str) {
+	pub fn section(&mut self, name: &str) {
 		self.end_section();
 
 		self.current_section = now().map(|now| (String::from(name), now));
@@ -31,7 +33,7 @@ impl Timings {
 	pub fn log(&mut self) {
 		self.end_section();
 
-		let entries_printout:Vec<u8> = self
+		let entries_printout: Vec<u8> = self
 			.entries
 			.iter()
 			.flat_map(|(name, duration)| {

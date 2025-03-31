@@ -1,7 +1,5 @@
 use nom::{
-	IResult,
-	InputIter,
-	Slice,
+	IResult, InputIter, Slice,
 	bytes::complete::{tag, take_while},
 	error::ErrorKind,
 };
@@ -13,7 +11,7 @@ use crate::ast::*;
 pub mod ast;
 mod input;
 
-pub fn parse(i:Input) -> IResult<Input, JsDoc> {
+pub fn parse(i: Input) -> IResult<Input, JsDoc> {
 	let i = skip(i);
 
 	let mut tags = Vec::new();
@@ -38,10 +36,10 @@ pub fn parse(i:Input) -> IResult<Input, JsDoc> {
 
 	let hi = i.span().hi;
 
-	Ok((i, JsDoc { span:Span::new(lo, hi), tags, description }))
+	Ok((i, JsDoc { span: Span::new(lo, hi), tags, description }))
 }
 
-pub fn parse_tag_item(i:Input) -> IResult<Input, TagItem> {
+pub fn parse_tag_item(i: Input) -> IResult<Input, TagItem> {
 	let i = skip(i);
 
 	let (_, i) = tag("@")(i)?;
@@ -78,7 +76,7 @@ pub fn parse_tag_item(i:Input) -> IResult<Input, TagItem> {
 
 			i = input;
 
-			Tag::Augments(AugmentsTag { span, class:name_path })
+			Tag::Augments(AugmentsTag { span, class: name_path })
 		},
 
 		"author" => {
@@ -193,7 +191,7 @@ pub fn parse_tag_item(i:Input) -> IResult<Input, TagItem> {
 
 			i = input;
 
-			Tag::Unknown(UnknownTag { span, extras:ty })
+			Tag::Unknown(UnknownTag { span, extras: ty })
 		},
 
 		"example" => {
@@ -201,7 +199,7 @@ pub fn parse_tag_item(i:Input) -> IResult<Input, TagItem> {
 
 			i = input;
 
-			Tag::Example(ExampleTag { span, text:text.into() })
+			Tag::Example(ExampleTag { span, text: text.into() })
 		},
 
 		"exports" => {
@@ -209,7 +207,7 @@ pub fn parse_tag_item(i:Input) -> IResult<Input, TagItem> {
 
 			i = input;
 
-			Tag::Exports(ExportsTag { span, module_name:text })
+			Tag::Exports(ExportsTag { span, module_name: text })
 		},
 
 		"external" | "host" => {
@@ -234,7 +232,7 @@ pub fn parse_tag_item(i:Input) -> IResult<Input, TagItem> {
 
 			i = input;
 
-			Tag::Unknown(UnknownTag { span, extras:ty })
+			Tag::Unknown(UnknownTag { span, extras: ty })
 		},
 
 		"function" | "func" | "method" => {
@@ -568,19 +566,23 @@ pub fn parse_tag_item(i:Input) -> IResult<Input, TagItem> {
 	Ok((i, TagItem { span, tag_name, tag }))
 }
 
-fn parse_opt_str(i:Input) -> IResult<Input, Option<Text>> {
+fn parse_opt_str(i: Input) -> IResult<Input, Option<Text>> {
 	let (i, res) = parse_line(i)?;
 
 	if res.value.is_empty() { Ok((i, None)) } else { Ok((i, Some(res))) }
 }
 
-fn parse_str(i:Input) -> IResult<Input, Text> { parse_line(i) }
+fn parse_str(i: Input) -> IResult<Input, Text> {
+	parse_line(i)
+}
 
-fn parse_type(i:Input) -> IResult<Input, Text> { parse_line(i) }
+fn parse_type(i: Input) -> IResult<Input, Text> {
+	parse_line(i)
+}
 
 // ----- ----- Done ----- -----
 
-fn trim(i:Input) -> Input {
+fn trim(i: Input) -> Input {
 	let prev_len = i.len();
 
 	let new_str = i.trim_start();
@@ -596,7 +598,7 @@ fn trim(i:Input) -> Input {
 	i.slice(start..end)
 }
 
-fn parse_opt_type(i:Input) -> IResult<Input, Option<Text>> {
+fn parse_opt_type(i: Input) -> IResult<Input, Option<Text>> {
 	let i = skip_ws(i);
 
 	if i.starts_with('{') {
@@ -612,7 +614,7 @@ fn parse_opt_type(i:Input) -> IResult<Input, Option<Text>> {
 	parse_opt_word(i)
 }
 
-fn parse_one_of<'i>(i:Input<'i>, list:&[&str]) -> IResult<Input<'i>, Text> {
+fn parse_one_of<'i>(i: Input<'i>, list: &[&str]) -> IResult<Input<'i>, Text> {
 	for &item in list {
 		if i.starts_with(item) {
 			let res = tag::<&str, Input<'_>, (_, ErrorKind)>(item)(i);
@@ -627,7 +629,7 @@ fn parse_one_of<'i>(i:Input<'i>, list:&[&str]) -> IResult<Input<'i>, Text> {
 	Err(nom::Err::Error(nom::error::Error::new(i, ErrorKind::Tag)))
 }
 
-fn parse_name_path(mut i:Input) -> IResult<Input, NamePath> {
+fn parse_name_path(mut i: Input) -> IResult<Input, NamePath> {
 	let lo = i.span().lo;
 
 	let mut components = Vec::new();
@@ -646,7 +648,7 @@ fn parse_name_path(mut i:Input) -> IResult<Input, NamePath> {
 					return Err(err);
 				}
 
-				return Ok((i, NamePath { span:Span::new(lo, i.span().hi), components }));
+				return Ok((i, NamePath { span: Span::new(lo, i.span().hi), components }));
 			},
 		};
 
@@ -654,7 +656,7 @@ fn parse_name_path(mut i:Input) -> IResult<Input, NamePath> {
 	}
 }
 
-fn parse_opt_word(i:Input) -> IResult<Input, Option<Text>> {
+fn parse_opt_word(i: Input) -> IResult<Input, Option<Text>> {
 	let (i, v) = parse_word(i)?;
 
 	if v.value.is_empty() {
@@ -664,10 +666,10 @@ fn parse_opt_word(i:Input) -> IResult<Input, Option<Text>> {
 	Ok((i, Some(v)))
 }
 
-fn parse_word(i:Input) -> IResult<Input, Text> {
-	let res = i.iter_indices().find(|(_, c)| {
-		!(('a' <= *c && *c <= 'z') || ('A' <= *c && *c <= 'Z' || *c == '<' || *c == '>'))
-	});
+fn parse_word(i: Input) -> IResult<Input, Text> {
+	let res = i
+		.iter_indices()
+		.find(|(_, c)| !(('a' <= *c && *c <= 'z') || ('A' <= *c && *c <= 'Z' || *c == '<' || *c == '>')));
 
 	if let Some((idx, _)) = res {
 		let rest = i.slice(idx + 1..);
@@ -681,7 +683,7 @@ fn parse_word(i:Input) -> IResult<Input, Text> {
 	}
 }
 
-fn parse_line(i:Input) -> IResult<Input, Text> {
+fn parse_line(i: Input) -> IResult<Input, Text> {
 	let i = skip_ws(i);
 
 	let res = i.iter_indices().find(|(_, c)| *c == '\n' || *c == '\r');
@@ -700,7 +702,7 @@ fn parse_line(i:Input) -> IResult<Input, Text> {
 /// Skips whitespace
 ///
 /// This function does not handle newline nor *.
-fn skip_ws(i:Input) -> Input {
+fn skip_ws(i: Input) -> Input {
 	let mut index = 0;
 
 	for (idx, c) in i.char_indices() {
@@ -717,7 +719,7 @@ fn skip_ws(i:Input) -> Input {
 }
 
 /// Skips whitespace and * at line start
-fn skip(i:Input) -> Input {
+fn skip(i: Input) -> Input {
 	//
 
 	let mut at_line_start = true;
@@ -759,7 +761,9 @@ mod tests {
 
 	use super::*;
 
-	fn input(s:&str) -> Input { Input::new(BytePos(0), BytePos(s.as_bytes().len() as _), s) }
+	fn input(s: &str) -> Input {
+		Input::new(BytePos(0), BytePos(s.as_bytes().len() as _), s)
+	}
 
 	#[test]
 	fn issue_1058() {

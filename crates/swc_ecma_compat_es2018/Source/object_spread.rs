@@ -9,20 +9,22 @@ use super::object_rest_spread::Config;
 
 #[derive(Clone, Copy)]
 pub(super) struct ObjectSpread {
-	pub config:Config,
+	pub config: Config,
 }
 
 impl Parallel for ObjectSpread {
-	fn create(&self) -> Self { ObjectSpread { config:self.config } }
+	fn create(&self) -> Self {
+		ObjectSpread { config: self.config }
+	}
 
-	fn merge(&mut self, _:Self) {}
+	fn merge(&mut self, _: Self) {}
 }
 
 #[swc_trace]
 impl VisitMut for ObjectSpread {
 	noop_visit_mut_type!(fail);
 
-	fn visit_mut_expr(&mut self, expr:&mut Expr) {
+	fn visit_mut_expr(&mut self, expr: &mut Expr) {
 		expr.visit_mut_children_with(self);
 
 		if let Expr::Object(ObjectLit { span, props }) = expr {
@@ -32,14 +34,13 @@ impl VisitMut for ObjectSpread {
 				return;
 			}
 
-			let mut callee =
-				if self.config.set_property { helper!(extends) } else { helper!(object_spread) };
+			let mut callee = if self.config.set_property { helper!(extends) } else { helper!(object_spread) };
 
 			// { foo, ...x } => ({ foo }, x)
 			let args = {
 				let mut buf = Vec::new();
 
-				let mut obj = ObjectLit { span:DUMMY_SP, props:Vec::new() };
+				let mut obj = ObjectLit { span: DUMMY_SP, props: Vec::new() };
 
 				let mut first = true;
 
@@ -50,9 +51,9 @@ impl VisitMut for ObjectSpread {
 							if !first && obj.props.is_empty() && !self.config.pure_getters {
 								buf = vec![
 									Expr::Call(CallExpr {
-										span:DUMMY_SP,
-										callee:callee.clone(),
-										args:buf.take(),
+										span: DUMMY_SP,
+										callee: callee.clone(),
+										args: buf.take(),
 										..Default::default()
 									})
 									.as_arg(),
@@ -70,9 +71,9 @@ impl VisitMut for ObjectSpread {
 								if !first && !self.config.pure_getters {
 									buf = vec![
 										Expr::Call(CallExpr {
-											span:DUMMY_SP,
-											callee:helper!(object_spread_props),
-											args:buf.take(),
+											span: DUMMY_SP,
+											callee: helper!(object_spread_props),
+											args: buf.take(),
 											..Default::default()
 										})
 										.as_arg(),
@@ -98,7 +99,7 @@ impl VisitMut for ObjectSpread {
 				buf
 			};
 
-			*expr = CallExpr { span:*span, callee, args, ..Default::default() }.into();
+			*expr = CallExpr { span: *span, callee, args, ..Default::default() }.into();
 		}
 	}
 }

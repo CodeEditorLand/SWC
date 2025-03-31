@@ -14,7 +14,7 @@ mod util;
 #[derive(Debug, Parser)]
 struct CliArgs {
 	#[clap(subcommand)]
-	cmd:Cmd,
+	cmd: Cmd,
 }
 
 #[derive(Debug, Subcommand)]

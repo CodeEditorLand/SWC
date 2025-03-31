@@ -8,17 +8,19 @@ use swc_trace_macro::swc_trace;
 /// syntax. This fixes the only arguments-related bug in ES Modules-supporting
 /// browsers (Edge 16 & 17). Use this plugin instead of
 /// @babel/plugin-transform-parameters when targeting ES Modules.
-pub fn edge_default_param() -> impl Pass { visit_mut_pass(EdgeDefaultParam::default()) }
+pub fn edge_default_param() -> impl Pass {
+	visit_mut_pass(EdgeDefaultParam::default())
+}
 #[derive(Default, Clone, Copy)]
 struct EdgeDefaultParam {
-	in_arrow:bool,
+	in_arrow: bool,
 }
 
 #[swc_trace]
 impl VisitMut for EdgeDefaultParam {
 	noop_visit_mut_type!(fail);
 
-	fn visit_mut_arrow_expr(&mut self, n:&mut ArrowExpr) {
+	fn visit_mut_arrow_expr(&mut self, n: &mut ArrowExpr) {
 		self.in_arrow = true;
 
 		n.params.visit_mut_children_with(self);
@@ -28,7 +30,7 @@ impl VisitMut for EdgeDefaultParam {
 		n.body.visit_mut_children_with(self);
 	}
 
-	fn visit_mut_object_pat(&mut self, n:&mut ObjectPat) {
+	fn visit_mut_object_pat(&mut self, n: &mut ObjectPat) {
 		n.visit_mut_children_with(self);
 
 		if !self.in_arrow {
@@ -38,12 +40,10 @@ impl VisitMut for EdgeDefaultParam {
 		for idx in 0..n.props.len() {
 			let prop = &(n.props[idx]);
 
-			if let ObjectPatProp::Assign(AssignPatProp { value: Some(value), key, span, .. }) = prop
-			{
+			if let ObjectPatProp::Assign(AssignPatProp { value: Some(value), key, span, .. }) = prop {
 				let prop = ObjectPatProp::KeyValue(KeyValuePatProp {
-					key:PropName::Ident(key.clone().into()),
-					value:AssignPat { span:*span, left:key.clone().into(), right:value.clone() }
-						.into(),
+					key: PropName::Ident(key.clone().into()),
+					value: AssignPat { span: *span, left: key.clone().into(), right: value.clone() }.into(),
 				});
 
 				n.props[idx] = prop;
@@ -60,7 +60,9 @@ mod tests {
 
 	use super::*;
 
-	fn tr() -> impl Pass { (resolver(Mark::new(), Mark::new(), false), edge_default_param()) }
+	fn tr() -> impl Pass {
+		(resolver(Mark::new(), Mark::new(), false), edge_default_param())
+	}
 
 	test!(
 		::swc_ecma_parser::Syntax::default(),

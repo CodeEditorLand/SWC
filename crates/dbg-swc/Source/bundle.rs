@@ -9,7 +9,7 @@ use swc_timer::timer;
 
 use crate::util::{ModuleRecord, parse_js, wrap_task};
 
-pub fn bundle(cm:Arc<SourceMap>, entry_url:&str) -> Result<ModuleRecord> {
+pub fn bundle(cm: Arc<SourceMap>, entry_url: &str) -> Result<ModuleRecord> {
 	wrap_task(|| {
 		let _timer = timer!("bundle");
 
@@ -27,8 +27,7 @@ pub fn bundle(cm:Arc<SourceMap>, entry_url:&str) -> Result<ModuleRecord> {
 			bail!("`deno bundle` failed with status code {}", output.status);
 		}
 
-		let code =
-			String::from_utf8(output.stdout).context("deno bundle emitted non-utf8 output")?;
+		let code = String::from_utf8(output.stdout).context("deno bundle emitted non-utf8 output")?;
 
 		let fm = cm.new_source_file(FileName::Anon.into(), code);
 

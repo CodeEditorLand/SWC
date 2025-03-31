@@ -14,20 +14,18 @@ fn main() {
 	for entry in walkdir::WalkDir::new("tests/typescript") {
 		let entry = entry.unwrap();
 
-		if !entry.path().to_string_lossy().ends_with(".ts")
-			&& !entry.path().to_string_lossy().ends_with(".tsx")
-		{
+		if !entry.path().to_string_lossy().ends_with(".ts") && !entry.path().to_string_lossy().ends_with(".tsx") {
 			continue;
 		}
 
-		let cm:Lrc<SourceMap> = Default::default();
+		let cm: Lrc<SourceMap> = Default::default();
 
 		let fm = cm.load_file(entry.path()).unwrap();
 
 		let lexer = Lexer::new(
 			Syntax::Typescript(TsSyntax {
-				no_early_errors:true,
-				tsx:entry.path().to_string_lossy().ends_with(".tsx"),
+				no_early_errors: true,
+				tsx: entry.path().to_string_lossy().ends_with(".tsx"),
 				..Default::default()
 			}),
 			Default::default(),
@@ -59,20 +57,18 @@ fn main() {
 	for entry in walkdir::WalkDir::new("tests/typescript") {
 		let entry = entry.unwrap();
 
-		if !entry.path().to_string_lossy().ends_with(".ts")
-			&& !entry.path().to_string_lossy().ends_with(".tsx")
-		{
+		if !entry.path().to_string_lossy().ends_with(".ts") && !entry.path().to_string_lossy().ends_with(".tsx") {
 			continue;
 		}
 
-		let cm:Lrc<SourceMap> = Default::default();
+		let cm: Lrc<SourceMap> = Default::default();
 
 		let fm = cm.load_file(entry.path()).unwrap();
 
 		let lexer = Lexer::new(
 			Syntax::Typescript(TsSyntax {
-				no_early_errors:true,
-				tsx:entry.path().to_string_lossy().ends_with(".tsx"),
+				no_early_errors: true,
+				tsx: entry.path().to_string_lossy().ends_with(".tsx"),
 				..Default::default()
 			}),
 			Default::default(),

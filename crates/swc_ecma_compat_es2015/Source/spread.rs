@@ -5,38 +5,25 @@ use swc_common::{DUMMY_SP, Span, Spanned, util::take::Take};
 use swc_ecma_ast::*;
 use swc_ecma_transforms_base::{ext::ExprRefExt, helper, perf::Check};
 use swc_ecma_transforms_macros::fast_path;
-use swc_ecma_utils::{
-	ExprFactory,
-	StmtLike,
-	alias_ident_for,
-	member_expr,
-	prepend_stmt,
-	quote_ident,
-};
-use swc_ecma_visit::{
-	Visit,
-	VisitMut,
-	VisitMutWith,
-	VisitWith,
-	noop_visit_mut_type,
-	noop_visit_type,
-	visit_mut_pass,
-};
+use swc_ecma_utils::{ExprFactory, StmtLike, alias_ident_for, member_expr, prepend_stmt, quote_ident};
+use swc_ecma_visit::{Visit, VisitMut, VisitMutWith, VisitWith, noop_visit_mut_type, noop_visit_type, visit_mut_pass};
 use swc_trace_macro::swc_trace;
 
-pub fn spread(c:Config) -> impl Pass { visit_mut_pass(Spread { c, vars:Default::default() }) }
+pub fn spread(c: Config) -> impl Pass {
+	visit_mut_pass(Spread { c, vars: Default::default() })
+}
 
 #[derive(Debug, Clone, Copy, Default, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Config {
-	pub loose:bool,
+	pub loose: bool,
 }
 
 /// es2015 - `SpreadElement`
 #[derive(Default)]
 struct Spread {
-	c:Config,
-	vars:Vec<VarDeclarator>,
+	c: Config,
+	vars: Vec<VarDeclarator>,
 }
 
 #[swc_trace]
@@ -44,16 +31,20 @@ struct Spread {
 impl VisitMut for Spread {
 	noop_visit_mut_type!(fail);
 
-	fn visit_mut_module_items(&mut self, n:&mut Vec<ModuleItem>) { self.visit_mut_stmt_like(n); }
+	fn visit_mut_module_items(&mut self, n: &mut Vec<ModuleItem>) {
+		self.visit_mut_stmt_like(n);
+	}
 
-	fn visit_mut_stmts(&mut self, n:&mut Vec<Stmt>) { self.visit_mut_stmt_like(n); }
+	fn visit_mut_stmts(&mut self, n: &mut Vec<Stmt>) {
+		self.visit_mut_stmt_like(n);
+	}
 
-	fn visit_mut_expr(&mut self, e:&mut Expr) {
+	fn visit_mut_expr(&mut self, e: &mut Expr) {
 		e.visit_mut_children_with(self);
 
 		match e {
 			Expr::Array(ArrayLit { span, elems }) => {
-				if !elems.iter().any(|e| matches!(e, Some(ExprOrSpread { spread:Some(_), .. }))) {
+				if !elems.iter().any(|e| matches!(e, Some(ExprOrSpread { spread: Some(_), .. }))) {
 					return;
 				}
 
@@ -70,7 +61,7 @@ impl VisitMut for Spread {
 
 				let (this, callee_updated) = match &**callee {
 					Expr::SuperProp(SuperPropExpr { obj: Super { span, .. }, .. }) => {
-						(ThisExpr { span:*span }.into(), None)
+						(ThisExpr { span: *span }.into(), None)
 					},
 
 					Expr::Member(MemberExpr { obj, .. }) if obj.is_this() => (obj.clone(), None),
@@ -88,60 +79,48 @@ impl VisitMut for Spread {
 						let ident = alias_ident_for(obj, "_instance");
 
 						self.vars.push(VarDeclarator {
-							span:DUMMY_SP,
-							definite:false,
+							span: DUMMY_SP,
+							definite: false,
 							// Initialized by paren expression.
-							name:ident.clone().into(),
+							name: ident.clone().into(),
 							// Initialized by paren expression.
-							init:None,
+							init: None,
 						});
 
 						let this = ident.clone().into();
 
-						let callee:Expr = AssignExpr {
-							span:DUMMY_SP,
-							left:ident.into(),
-							op:op!("="),
-							right:obj.clone(),
-						}
-						.into();
+						let callee: Expr =
+							AssignExpr { span: DUMMY_SP, left: ident.into(), op: op!("="), right: obj.clone() }.into();
 						(
 							this,
-							Some(
-								MemberExpr { span:*span, obj:callee.into(), prop:prop.clone() }
-									.into(),
-							),
+							Some(MemberExpr { span: *span, obj: callee.into(), prop: prop.clone() }.into()),
 						)
 					},
 
 					// https://github.com/swc-project/swc/issues/400
 					// _ => (undefined(callee.span()), callee),
-					_ => (ThisExpr { span:callee.span() }.into(), None),
+					_ => (ThisExpr { span: callee.span() }.into(), None),
 				};
 
 				let args_array = if args.iter().all(|e| {
-					matches!(e, ExprOrSpread { spread:None, .. })
+					matches!(e, ExprOrSpread { spread: None, .. })
 						|| matches!(e, ExprOrSpread { expr, .. } if expr.is_array())
 				}) {
-					ArrayLit {
-						span:*span,
-						elems:expand_literal_args(args.take().into_iter().map(Some)),
-					}
-					.into()
+					ArrayLit { span: *span, elems: expand_literal_args(args.take().into_iter().map(Some)) }.into()
 				} else {
 					self.concat_args(*span, args.take().into_iter().map(Some), false)
 				};
 
 				let apply = MemberExpr {
-					span:DUMMY_SP,
-					obj:callee_updated.unwrap_or_else(|| callee.take()),
-					prop:quote_ident!("apply").into(),
+					span: DUMMY_SP,
+					obj: callee_updated.unwrap_or_else(|| callee.take()),
+					prop: quote_ident!("apply").into(),
 				};
 
 				*e = CallExpr {
-					span:*span,
-					callee:apply.as_callee(),
-					args:vec![this.as_arg(), args_array.as_arg()],
+					span: *span,
+					callee: apply.as_callee(),
+					args: vec![this.as_arg(), args_array.as_arg()],
 					..Default::default()
 				}
 				.into()
@@ -157,9 +136,9 @@ impl VisitMut for Spread {
 				let args = self.concat_args(*span, args.take().into_iter().map(Some), true);
 
 				*e = CallExpr {
-					span:*span,
-					callee:helper!(construct),
-					args:vec![callee.take().as_arg(), args.as_arg()],
+					span: *span,
+					callee: helper!(construct),
+					args: vec![callee.take().as_arg(), args.as_arg()],
 					..Default::default()
 				}
 				.into();
@@ -172,10 +151,11 @@ impl VisitMut for Spread {
 
 #[swc_trace]
 impl Spread {
-	fn visit_mut_stmt_like<T>(&mut self, items:&mut Vec<T>)
+	fn visit_mut_stmt_like<T>(&mut self, items: &mut Vec<T>)
 	where
 		T: StmtLike,
-		Vec<T>: VisitMutWith<Self>, {
+		Vec<T>: VisitMutWith<Self>,
+	{
 		let orig = self.vars.take();
 
 		items.visit_mut_children_with(self);
@@ -183,10 +163,7 @@ impl Spread {
 		if !self.vars.is_empty() {
 			prepend_stmt(
 				items,
-				T::from(
-					VarDecl { kind:VarDeclKind::Var, decls:self.vars.take(), ..Default::default() }
-						.into(),
-				),
+				T::from(VarDecl { kind: VarDeclKind::Var, decls: self.vars.take(), ..Default::default() }.into()),
 			);
 		}
 
@@ -198,9 +175,9 @@ impl Spread {
 impl Spread {
 	fn concat_args(
 		&self,
-		span:Span,
-		args:impl ExactSizeIterator<Item = Option<ExprOrSpread>>,
-		need_array:bool,
+		span: Span,
+		args: impl ExactSizeIterator<Item = Option<ExprOrSpread>>,
+		need_array: bool,
 	) -> Expr {
 		// []
 		//
@@ -248,7 +225,7 @@ impl Spread {
 				match arg.spread {
 					Some(_) => {
 						if !current_elems.is_empty() {
-							arg_list.push(ArrayLit { span:DUMMY_SP, elems:current_elems }.as_arg());
+							arg_list.push(ArrayLit { span: DUMMY_SP, elems: current_elems }.as_arg());
 
 							current_elems = Vec::new();
 						}
@@ -263,15 +240,15 @@ impl Spread {
 			}
 
 			if !current_elems.is_empty() {
-				arg_list.push(ArrayLit { span:DUMMY_SP, elems:current_elems }.as_arg());
+				arg_list.push(ArrayLit { span: DUMMY_SP, elems: current_elems }.as_arg());
 			}
 
 			return CallExpr {
-				span:DUMMY_SP,
-				callee:ArrayLit { span:DUMMY_SP, elems:Vec::new() }
+				span: DUMMY_SP,
+				callee: ArrayLit { span: DUMMY_SP, elems: Vec::new() }
 					.make_member(quote_ident!("concat"))
 					.as_callee(),
-				args:arg_list,
+				args: arg_list,
 				..Default::default()
 			}
 			.into();
@@ -281,21 +258,19 @@ impl Spread {
 			if let Some(arg) = arg {
 				let ExprOrSpread { expr, spread } = arg;
 
-				fn to_consumable_array(expr:Box<Expr>, span:Span) -> CallExpr {
+				fn to_consumable_array(expr: Box<Expr>, span: Span) -> CallExpr {
 					if matches!(*expr, Expr::Lit(Lit::Str(..))) {
 						CallExpr {
 							span,
-							callee:quote_ident!("Array")
-								.make_member(quote_ident!("from"))
-								.as_callee(),
-							args:vec![expr.as_arg()],
+							callee: quote_ident!("Array").make_member(quote_ident!("from")).as_callee(),
+							args: vec![expr.as_arg()],
 							..Default::default()
 						}
 					} else {
 						CallExpr {
 							span,
-							callee:helper!(to_consumable_array),
-							args:vec![expr.as_arg()],
+							callee: helper!(to_consumable_array),
+							args: vec![expr.as_arg()],
 							..Default::default()
 						}
 					}
@@ -313,13 +288,13 @@ impl Spread {
 									if need_array {
 										return CallExpr {
 											span,
-											callee:member_expr!(
+											callee: member_expr!(
 												Default::default(),
 												DUMMY_SP,
 												Array.prototype.slice.call
 											)
 											.as_callee(),
-											args:vec![expr.as_arg()],
+											args: vec![expr.as_arg()],
 											..Default::default()
 										}
 										.into();
@@ -329,13 +304,9 @@ impl Spread {
 								} else {
 									CallExpr {
 										span,
-										callee:member_expr!(
-											Default::default(),
-											DUMMY_SP,
-											Array.prototype.slice.call
-										)
-										.as_callee(),
-										args:vec![expr.as_arg()],
+										callee: member_expr!(Default::default(), DUMMY_SP, Array.prototype.slice.call)
+											.as_callee(),
+										args: vec![expr.as_arg()],
 										..Default::default()
 									}
 									.as_arg()
@@ -344,21 +315,17 @@ impl Spread {
 
 							_ => {
 								if args_len == 1 && !need_array {
-									return if self.c.loose {
-										*expr
-									} else {
-										to_consumable_array(expr, span).into()
-									};
+									return if self.c.loose { *expr } else { to_consumable_array(expr, span).into() };
 								}
 								// [].concat(arr) is shorter than _to_consumable_array(arr)
 								if args_len == 1 {
 									return if self.c.loose {
 										CallExpr {
-											span:DUMMY_SP,
-											callee:ArrayLit { span:DUMMY_SP, elems:Vec::new() }
+											span: DUMMY_SP,
+											callee: ArrayLit { span: DUMMY_SP, elems: Vec::new() }
 												.make_member(quote_ident!("concat"))
 												.as_callee(),
-											args:vec![expr.as_arg()],
+											args: vec![expr.as_arg()],
 											..Default::default()
 										}
 										.into()
@@ -393,26 +360,26 @@ impl Spread {
 				.make_member(IdentName::new("concat".into(), DUMMY_SP))
 				.as_callee();
 
-			return CallExpr { span, callee, args:buf, ..Default::default() }.into();
+			return CallExpr { span, callee, args: buf, ..Default::default() }.into();
 		}
 
 		CallExpr {
 			// TODO
 			span,
 
-			callee:first_arr
+			callee: first_arr
 				.take()
 				.unwrap_or_else(|| {
 					// No arg
 
 					// assert!(args.is_empty());
 
-					Expr::Array(ArrayLit { span, elems:Vec::new() })
+					Expr::Array(ArrayLit { span, elems: Vec::new() })
 				})
 				.make_member(IdentName::new("concat".into(), span))
 				.as_callee(),
 
-			args:buf,
+			args: buf,
 			..Default::default()
 		}
 		.into()
@@ -420,13 +387,8 @@ impl Spread {
 }
 
 #[tracing::instrument(level = "info", skip_all)]
-fn expand_literal_args(
-	args:impl ExactSizeIterator<Item = Option<ExprOrSpread>>,
-) -> Vec<Option<ExprOrSpread>> {
-	fn expand(
-		buf:&mut Vec<Option<ExprOrSpread>>,
-		args:impl ExactSizeIterator<Item = Option<ExprOrSpread>>,
-	) {
+fn expand_literal_args(args: impl ExactSizeIterator<Item = Option<ExprOrSpread>>) -> Vec<Option<ExprOrSpread>> {
+	fn expand(buf: &mut Vec<Option<ExprOrSpread>>, args: impl ExactSizeIterator<Item = Option<ExprOrSpread>>) {
 		for mut arg in args {
 			if let Some(ExprOrSpread { spread: Some(spread_span), expr }) = arg {
 				match *expr {
@@ -436,7 +398,7 @@ fn expand_literal_args(
 						continue;
 					},
 
-					_ => arg = Some(ExprOrSpread { spread:Some(spread_span), expr }),
+					_ => arg = Some(ExprOrSpread { spread: Some(spread_span), expr }),
 				}
 			}
 
@@ -453,13 +415,13 @@ fn expand_literal_args(
 
 #[derive(Default)]
 struct SpreadFinder {
-	found:bool,
+	found: bool,
 }
 
 impl Visit for SpreadFinder {
 	noop_visit_type!(fail);
 
-	fn visit_expr_or_spread(&mut self, n:&ExprOrSpread) {
+	fn visit_expr_or_spread(&mut self, n: &ExprOrSpread) {
 		n.visit_children_with(self);
 
 		self.found |= n.spread.is_some();
@@ -467,5 +429,7 @@ impl Visit for SpreadFinder {
 }
 
 impl Check for SpreadFinder {
-	fn should_handle(&self) -> bool { self.found }
+	fn should_handle(&self) -> bool {
+		self.found
+	}
 }

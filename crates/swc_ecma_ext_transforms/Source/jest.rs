@@ -4,20 +4,22 @@ use swc_ecma_ast::*;
 use swc_ecma_utils::{StmtLike, prepend_stmts};
 use swc_ecma_visit::{VisitMut, VisitMutWith, noop_visit_mut_type, visit_mut_pass};
 
-static HOIST_METHODS:phf::Set<&str> =
-	phf_set!["mock", "unmock", "enableAutomock", "disableAutomock", "deepUnmock"];
+static HOIST_METHODS: phf::Set<&str> = phf_set!["mock", "unmock", "enableAutomock", "disableAutomock", "deepUnmock"];
 
-pub fn jest() -> impl Pass { visit_mut_pass(Jest::default()) }
+pub fn jest() -> impl Pass {
+	visit_mut_pass(Jest::default())
+}
 
 #[derive(Default)]
 struct Jest {
-	imported:Vec<Id>,
+	imported: Vec<Id>,
 }
 
 impl Jest {
-	fn visit_mut_stmt_like<T>(&mut self, orig:&mut Vec<T>)
+	fn visit_mut_stmt_like<T>(&mut self, orig: &mut Vec<T>)
 	where
-		T: StmtLike + VisitMutWith<Self>, {
+		T: StmtLike + VisitMutWith<Self>,
+	{
 		for item in &mut *orig {
 			item.visit_mut_with(self);
 		}
@@ -30,24 +32,20 @@ impl Jest {
 
 		items.into_iter().for_each(|item| {
 			match item.try_into_stmt() {
-				Ok(stmt) => {
-					match &stmt {
-						Stmt::Expr(ExprStmt { expr, .. }) => {
-							match &**expr {
-								Expr::Call(CallExpr { callee: Callee::Expr(callee), .. }) => {
-									if self.should_hoist(callee) {
-										hoisted.push(T::from(stmt))
-									} else {
-										new.push(T::from(stmt))
-									}
-								},
-
-								_ => new.push(T::from(stmt)),
+				Ok(stmt) => match &stmt {
+					Stmt::Expr(ExprStmt { expr, .. }) => match &**expr {
+						Expr::Call(CallExpr { callee: Callee::Expr(callee), .. }) => {
+							if self.should_hoist(callee) {
+								hoisted.push(T::from(stmt))
+							} else {
+								new.push(T::from(stmt))
 							}
 						},
 
 						_ => new.push(T::from(stmt)),
-					}
+					},
+
+					_ => new.push(T::from(stmt)),
 				},
 				Err(node) => new.push(node),
 			};
@@ -58,7 +56,7 @@ impl Jest {
 		*orig = new;
 	}
 
-	fn should_hoist(&self, e:&Expr) -> bool {
+	fn should_hoist(&self, e: &Expr) -> bool {
 		match e {
 			Expr::Ident(i) => self.imported.iter().any(|imported| *imported == i.to_id()),
 
@@ -74,12 +72,9 @@ impl Jest {
 impl VisitMut for Jest {
 	noop_visit_mut_type!();
 
-	fn visit_mut_module_items(&mut self, items:&mut Vec<ModuleItem>) {
+	fn visit_mut_module_items(&mut self, items: &mut Vec<ModuleItem>) {
 		for item in items.iter() {
-			if let ModuleItem::ModuleDecl(ModuleDecl::Import(ImportDecl {
-				specifiers, src, ..
-			})) = item
-			{
+			if let ModuleItem::ModuleDecl(ModuleDecl::Import(ImportDecl { specifiers, src, .. })) = item {
 				if src.value == "@jest/globals" {
 					for s in specifiers {
 						match s {
@@ -115,10 +110,12 @@ impl VisitMut for Jest {
 		self.visit_mut_stmt_like(items)
 	}
 
-	fn visit_mut_stmts(&mut self, stmts:&mut Vec<Stmt>) { self.visit_mut_stmt_like(stmts) }
+	fn visit_mut_stmts(&mut self, stmts: &mut Vec<Stmt>) {
+		self.visit_mut_stmt_like(stmts)
+	}
 }
 
-fn is_global_jest(e:&Expr) -> bool {
+fn is_global_jest(e: &Expr) -> bool {
 	match e {
 		Expr::Ident(i) => i.sym == *"jest",
 		Expr::Member(MemberExpr { obj, .. }) => is_global_jest(obj),

@@ -38,22 +38,26 @@ use swc_trace_macro::swc_trace;
 ///   }
 /// };
 /// ```
-pub fn shorthand() -> impl Pass { visit_mut_pass(Shorthand) }
+pub fn shorthand() -> impl Pass {
+	visit_mut_pass(Shorthand)
+}
 
 #[derive(Clone, Copy)]
 struct Shorthand;
 
 impl Parallel for Shorthand {
-	fn create(&self) -> Self { *self }
+	fn create(&self) -> Self {
+		*self
+	}
 
-	fn merge(&mut self, _:Self) {}
+	fn merge(&mut self, _: Self) {}
 }
 
 #[swc_trace]
 impl VisitMut for Shorthand {
 	noop_visit_mut_type!(fail);
 
-	fn visit_mut_prop(&mut self, prop:&mut Prop) {
+	fn visit_mut_prop(&mut self, prop: &mut Prop) {
 		prop.visit_mut_children_with(self);
 
 		match prop {
@@ -61,11 +65,8 @@ impl VisitMut for Shorthand {
 				let value = ident.clone().into();
 
 				*prop = Prop::KeyValue(KeyValueProp {
-					key:if ident.sym == "__proto__" {
-						PropName::Computed(ComputedPropName {
-							span:ident.span,
-							expr:ident.sym.clone().into(),
-						})
+					key: if ident.sym == "__proto__" {
+						PropName::Computed(ComputedPropName { span: ident.span, expr: ident.sym.clone().into() })
 					} else {
 						ident.take().into()
 					},
@@ -76,18 +77,18 @@ impl VisitMut for Shorthand {
 			Prop::Method(MethodProp { key, function }) => {
 				let key = match key.take() {
 					PropName::Ident(IdentName { span, sym, .. }) if sym == "__proto__" => {
-						ComputedPropName { span, expr:sym.into() }.into()
+						ComputedPropName { span, expr: sym.into() }.into()
 					},
 
 					PropName::Str(s @ Str { span, .. }) if s.value == "__proto__" => {
-						ComputedPropName { span, expr:s.into() }.into()
+						ComputedPropName { span, expr: s.into() }.into()
 					},
 
 					key => key,
 				};
 				*prop = Prop::KeyValue(KeyValueProp {
 					key,
-					value:FnExpr { ident:None, function:function.take() }.into(),
+					value: FnExpr { ident: None, function: function.take() }.into(),
 				})
 			},
 

@@ -7,52 +7,48 @@ use swc_ecma_utils::{alias_ident_for, prepend_stmt};
 use swc_ecma_visit::{VisitMut, VisitMutWith, noop_visit_mut_type, visit_mut_pass};
 use swc_trace_macro::swc_trace;
 
-pub fn logical_assignments() -> impl Pass { visit_mut_pass(Operators::default()) }
+pub fn logical_assignments() -> impl Pass {
+	visit_mut_pass(Operators::default())
+}
 
 #[derive(Debug, Default)]
 struct Operators {
-	vars:Vec<VarDeclarator>,
+	vars: Vec<VarDeclarator>,
 }
 
 impl Operators {
-	fn memorize_prop(&mut self, c:ComputedPropName) -> (ComputedPropName, ComputedPropName) {
+	fn memorize_prop(&mut self, c: ComputedPropName) -> (ComputedPropName, ComputedPropName) {
 		let alias = alias_ident_for(&c.expr, "_ref");
 
-		self.vars.push(VarDeclarator {
-			span:DUMMY_SP,
-			name:alias.clone().into(),
-			init:None,
-			definite:false,
-		});
+		self.vars
+			.push(VarDeclarator { span: DUMMY_SP, name: alias.clone().into(), init: None, definite: false });
 
 		(
 			ComputedPropName {
-				span:c.span,
-				expr:AssignExpr {
-					span:DUMMY_SP,
-					left:alias.clone().into(),
-					op:op!("="),
-					right:c.expr,
-				}
-				.into(),
+				span: c.span,
+				expr: AssignExpr { span: DUMMY_SP, left: alias.clone().into(), op: op!("="), right: c.expr }.into(),
 			},
-			ComputedPropName { span:c.span, expr:Box::new(alias.into()) },
+			ComputedPropName { span: c.span, expr: Box::new(alias.into()) },
 		)
 	}
 }
 
 #[swc_trace]
 impl Parallel for Operators {
-	fn create(&self) -> Self { Default::default() }
+	fn create(&self) -> Self {
+		Default::default()
+	}
 
-	fn merge(&mut self, other:Self) { self.vars.extend(other.vars); }
+	fn merge(&mut self, other: Self) {
+		self.vars.extend(other.vars);
+	}
 }
 
 #[swc_trace]
 impl VisitMut for Operators {
 	noop_visit_mut_type!(fail);
 
-	fn visit_mut_expr(&mut self, e:&mut Expr) {
+	fn visit_mut_expr(&mut self, e: &mut Expr) {
 		e.visit_mut_children_with(self);
 
 		if let Expr::Assign(AssignExpr {
@@ -63,22 +59,12 @@ impl VisitMut for Operators {
 		}) = e
 		{
 			let (left_expr, r_assign_target) = match &mut *left {
-				SimpleAssignTarget::SuperProp(SuperPropExpr {
-					span,
-					obj,
-					prop: SuperProp::Computed(c),
-				}) => {
+				SimpleAssignTarget::SuperProp(SuperPropExpr { span, obj, prop: SuperProp::Computed(c) }) => {
 					let (left, right) = self.memorize_prop(c.take());
 
 					(
-						Box::new(
-							SuperPropExpr { span:*span, obj:*obj, prop:SuperProp::Computed(left) }
-								.into(),
-						),
-						Box::new(
-							SuperPropExpr { span:*span, obj:*obj, prop:SuperProp::Computed(right) }
-								.into(),
-						),
+						Box::new(SuperPropExpr { span: *span, obj: *obj, prop: SuperProp::Computed(left) }.into()),
+						Box::new(SuperPropExpr { span: *span, obj: *obj, prop: SuperProp::Computed(right) }.into()),
 					)
 				},
 
@@ -90,18 +76,18 @@ impl VisitMut for Operators {
 							let alias = alias_ident_for(&obj, "_ref");
 
 							self.vars.push(VarDeclarator {
-								span:DUMMY_SP,
-								name:alias.clone().into(),
-								init:None,
-								definite:false,
+								span: DUMMY_SP,
+								name: alias.clone().into(),
+								init: None,
+								definite: false,
 							});
 
 							(
 								AssignExpr {
-									span:DUMMY_SP,
-									op:op!("="),
-									left:alias.clone().into(),
-									right:obj.into(),
+									span: DUMMY_SP,
+									op: op!("="),
+									left: alias.clone().into(),
+									right: obj.into(),
 								}
 								.into(),
 								alias.into(),
@@ -119,22 +105,22 @@ impl VisitMut for Operators {
 					};
 
 					(
-						MemberExpr { span:DUMMY_SP, obj:left_obj, prop:left_prop }.into(),
-						MemberExpr { span:DUMMY_SP, obj:right_obj, prop:right_prop }.into(),
+						MemberExpr { span: DUMMY_SP, obj: left_obj, prop: left_prop }.into(),
+						MemberExpr { span: DUMMY_SP, obj: right_obj, prop: right_prop }.into(),
 					)
 				},
 
 				_ => {
-					let expr:Box<Expr> = left.take().into();
+					let expr: Box<Expr> = left.take().into();
 					(expr.clone(), expr)
 				},
 			};
 
 			let right = AssignExpr {
-				span:DUMMY_SP,
-				op:op!("="),
-				left:r_assign_target.try_into().unwrap(),
-				right:right.take(),
+				span: DUMMY_SP,
+				op: op!("="),
+				left: r_assign_target.try_into().unwrap(),
+				right: right.take(),
 			}
 			.into();
 
@@ -145,7 +131,7 @@ impl VisitMut for Operators {
 				_ => unreachable!(),
 			};
 
-			*e = BinExpr { span:*span, op, left:left_expr, right }.into();
+			*e = BinExpr { span: *span, op, left: left_expr, right }.into();
 		}
 	}
 
@@ -155,7 +141,7 @@ impl VisitMut for Operators {
 	///
 	/// [module declarations]: https://github.com/tc39/proposal-module-declarations.
 	/// [module-expressions]: https://github.com/tc39/proposal-module-expressions
-	fn visit_mut_module_items(&mut self, n:&mut Vec<ModuleItem>) {
+	fn visit_mut_module_items(&mut self, n: &mut Vec<ModuleItem>) {
 		let vars = self.vars.take();
 
 		n.visit_mut_children_with(self);
@@ -163,14 +149,11 @@ impl VisitMut for Operators {
 		let vars = mem::replace(&mut self.vars, vars);
 
 		if !vars.is_empty() {
-			prepend_stmt(
-				n,
-				VarDecl { kind:VarDeclKind::Var, decls:vars, ..Default::default() }.into(),
-			)
+			prepend_stmt(n, VarDecl { kind: VarDeclKind::Var, decls: vars, ..Default::default() }.into())
 		}
 	}
 
-	fn visit_mut_stmts(&mut self, n:&mut Vec<Stmt>) {
+	fn visit_mut_stmts(&mut self, n: &mut Vec<Stmt>) {
 		let vars = self.vars.take();
 
 		n.visit_mut_children_with(self);
@@ -178,10 +161,7 @@ impl VisitMut for Operators {
 		let vars = mem::replace(&mut self.vars, vars);
 
 		if !vars.is_empty() {
-			prepend_stmt(
-				n,
-				VarDecl { kind:VarDeclKind::Var, decls:vars, ..Default::default() }.into(),
-			)
+			prepend_stmt(n, VarDecl { kind: VarDeclKind::Var, decls: vars, ..Default::default() }.into())
 		}
 	}
 }

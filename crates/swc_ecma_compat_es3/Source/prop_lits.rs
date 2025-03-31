@@ -30,7 +30,9 @@ use swc_trace_macro::swc_trace;
 ///   foo: 1
 /// };
 /// ```
-pub fn property_literals() -> impl Pass { fold_pass(PropertyLiteral) }
+pub fn property_literals() -> impl Pass {
+	fold_pass(PropertyLiteral)
+}
 
 struct PropertyLiteral;
 
@@ -38,7 +40,7 @@ struct PropertyLiteral;
 impl Fold for PropertyLiteral {
 	standard_only_fold!();
 
-	fn fold_prop_name(&mut self, n:PropName) -> PropName {
+	fn fold_prop_name(&mut self, n: PropName) -> PropName {
 		let n = n.fold_children_with(self);
 
 		match n {
@@ -54,7 +56,7 @@ impl Fold for PropertyLiteral {
 				let IdentName { sym, span, .. } = i;
 
 				if sym.is_reserved() || sym.contains('-') || sym.contains('.') {
-					PropName::Str(Str { span, raw:None, value:sym })
+					PropName::Str(Str { span, raw: None, value: sym })
 				} else {
 					PropName::Ident(IdentName { span, sym })
 				}

@@ -15,68 +15,68 @@ pub mod version;
 /// A map without allocation.
 #[derive(Debug, Default, Deserialize, Clone, Copy, Serialize, StaticMap, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
-pub struct BrowserData<T:Default> {
+pub struct BrowserData<T: Default> {
 	#[serde(default)]
-	pub chrome:T,
+	pub chrome: T,
 	#[serde(default, rename = "chrome-android")]
-	pub chrome_android:T,
+	pub chrome_android: T,
 	#[serde(default, rename = "firefox-android")]
-	pub firerfox_android:T,
+	pub firerfox_android: T,
 	#[serde(default, rename = "opera-android")]
-	pub opera_android:T,
+	pub opera_android: T,
 
 	#[serde(default)]
-	pub quest:T,
+	pub quest: T,
 	#[serde(default, rename = "react-native")]
-	pub react_native:T,
+	pub react_native: T,
 
 	#[serde(default)]
-	pub and_chr:T,
+	pub and_chr: T,
 	#[serde(default)]
-	pub and_ff:T,
+	pub and_ff: T,
 	#[serde(default)]
-	pub op_mob:T,
+	pub op_mob: T,
 	#[serde(default)]
-	pub ie:T,
+	pub ie: T,
 	#[serde(default)]
-	pub edge:T,
+	pub edge: T,
 	#[serde(default)]
-	pub firefox:T,
+	pub firefox: T,
 	#[serde(default)]
-	pub safari:T,
+	pub safari: T,
 	#[serde(default)]
-	pub node:T,
+	pub node: T,
 	#[serde(default)]
-	pub ios:T,
+	pub ios: T,
 	#[serde(default)]
-	pub samsung:T,
+	pub samsung: T,
 	#[serde(default)]
-	pub opera:T,
+	pub opera: T,
 	#[serde(default)]
-	pub android:T,
+	pub android: T,
 	#[serde(default)]
-	pub electron:T,
+	pub electron: T,
 	#[serde(default)]
-	pub phantom:T,
+	pub phantom: T,
 	#[serde(default)]
-	pub opera_mobile:T,
+	pub opera_mobile: T,
 	#[serde(default)]
-	pub rhino:T,
+	pub rhino: T,
 	#[serde(default)]
-	pub deno:T,
+	pub deno: T,
 	#[serde(default)]
-	pub hermes:T,
+	pub hermes: T,
 	#[serde(default)]
-	pub oculus:T,
+	pub oculus: T,
 	#[serde(default)]
-	pub bun:T,
+	pub bun: T,
 }
 
 impl<T> BrowserData<T>
 where
 	T: Default,
 {
-	pub fn insert(&mut self, k:&str, v:T) -> T {
+	pub fn insert(&mut self, k: &str, v: T) -> T {
 		for (key, value) in self.iter_mut() {
 			if k == key {
 				return std::mem::replace(value, v);
@@ -95,11 +95,13 @@ pub type Versions = BrowserData<Option<Version>>;
 
 impl BrowserData<Option<Version>> {
 	/// Returns true if all fields are [None].
-	pub fn is_any_target(&self) -> bool { self.iter().all(|(_, v)| v.is_none()) }
+	pub fn is_any_target(&self) -> bool {
+		self.iter().all(|(_, v)| v.is_none())
+	}
 
 	/// Parses the value returned from `browserslist` as [Versions].
-	pub fn parse_versions(distribs:Vec<browserslist::Distrib>) -> Result<Self, Error> {
-		fn remap(key:&str) -> &str {
+	pub fn parse_versions(distribs: Vec<browserslist::Distrib>) -> Result<Self, Error> {
+		fn remap(key: &str) -> &str {
 			match key {
 				"and_chr" => "chrome",
 				"and_ff" => "firefox",
@@ -110,7 +112,7 @@ impl BrowserData<Option<Version>> {
 			}
 		}
 
-		let mut data:Versions = BrowserData::default();
+		let mut data: Versions = BrowserData::default();
 
 		for dist in distribs {
 			let browser = dist.name();

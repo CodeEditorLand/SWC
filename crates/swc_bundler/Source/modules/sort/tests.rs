@@ -6,9 +6,11 @@ use testing::assert_eq;
 use super::stmt::sort_stmts;
 use crate::{bundler::tests::suite, debug::print_hygiene};
 
-fn assert_sorted(src:&[&str], res:&str) { assert_sorted_with_free(src, "", res) }
+fn assert_sorted(src: &[&str], res: &str) {
+	assert_sorted_with_free(src, "", res)
+}
 
-fn assert_sorted_with_free(src:&[&str], free:&str, res:&str) {
+fn assert_sorted_with_free(src: &[&str], free: &str, res: &str) {
 	let mut s = suite();
 
 	for (i, src) in src.iter().enumerate() {
@@ -20,7 +22,7 @@ fn assert_sorted_with_free(src:&[&str], free:&str, res:&str) {
 
 		let mut entry = None;
 
-		let mut free:Module = drop_span(t.parse(free));
+		let mut free: Module = drop_span(t.parse(free));
 
 		for item in free.body.iter_mut() {
 			mark(item, t.bundler.injected_ctxt);
@@ -35,14 +37,14 @@ fn assert_sorted_with_free(src:&[&str], free:&str, res:&str) {
 				entry = Some(info.id);
 			}
 
-			let actual:Module = drop_span((*info.module).clone());
+			let actual: Module = drop_span((*info.module).clone());
 
 			modules.push(actual.body);
 		}
 
 		let sorted = sort_stmts(t.bundler.injected_ctxt, modules, &t.cm);
 
-		let actual:Module = drop_span(Module { span:DUMMY_SP, body:sorted, shebang:None });
+		let actual: Module = drop_span(Module { span: DUMMY_SP, body: sorted, shebang: None });
 
 		let expected = drop_span(t.parse(res));
 
@@ -608,4 +610,4 @@ fn sort_016() {
 }
 
 #[allow(unused)]
-fn mark(item:&mut ModuleItem, ctxt:SyntaxContext) {}
+fn mark(item: &mut ModuleItem, ctxt: SyntaxContext) {}

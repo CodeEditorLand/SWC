@@ -9,23 +9,19 @@ use swc_ecma_ast::*;
 use swc_ecma_utils::{
 	ExprFactory,
 	function::{FnEnvHoister, init_this},
-	member_expr,
-	prepend_stmt,
-	prepend_stmts,
-	private_ident,
-	quote_ident,
+	member_expr, prepend_stmt, prepend_stmts, private_ident, quote_ident,
 };
 use swc_ecma_visit::{VisitMut, VisitMutWith, noop_visit_mut_type, visit_mut_pass};
 use swc_trace_macro::swc_trace;
 use tracing::trace;
 
-pub fn parameters(c:Config, unresolved_mark:Mark) -> impl 'static + Pass {
+pub fn parameters(c: Config, unresolved_mark: Mark) -> impl 'static + Pass {
 	let unresolved_ctxt = SyntaxContext::empty().apply_mark(unresolved_mark);
 
 	visit_mut_pass(Params {
 		c,
 		unresolved_ctxt,
-		hoister:FnEnvHoister::new(unresolved_ctxt),
+		hoister: FnEnvHoister::new(unresolved_ctxt),
 		..Default::default()
 	})
 }
@@ -34,18 +30,18 @@ pub fn parameters(c:Config, unresolved_mark:Mark) -> impl 'static + Pass {
 struct Params {
 	/// Used to store `this, in case if `arguments` is used and we should
 	/// transform an arrow expression to a function expression.
-	hoister:FnEnvHoister,
-	unresolved_ctxt:SyntaxContext,
-	in_subclass:bool,
-	in_prop:bool,
-	c:Config,
+	hoister: FnEnvHoister,
+	unresolved_ctxt: SyntaxContext,
+	in_subclass: bool,
+	in_prop: bool,
+	c: Config,
 }
 
 #[derive(Debug, Clone, Copy, Default, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Config {
 	#[serde(default)]
-	pub ignore_function_length:bool,
+	pub ignore_function_length: bool,
 }
 
 // impl Parallel for Params {
@@ -77,7 +73,7 @@ pub struct Config {
 
 #[swc_trace]
 impl Params {
-	fn visit_mut_fn_like(&mut self, ps:&mut Vec<Param>, body:&mut BlockStmt, is_setter:bool) {
+	fn visit_mut_fn_like(&mut self, ps: &mut Vec<Param>, body: &mut BlockStmt, is_setter: bool) {
 		let mut params = Vec::new();
 
 		let mut decls = Vec::new();
@@ -98,9 +94,9 @@ impl Params {
 					if after_default && !self.c.ignore_function_length {
 						decls.push(VarDeclarator {
 							span,
-							name:param.pat,
-							init:Some(Box::new(check_arg_len_or_undef(i))),
-							definite:false,
+							name: param.pat,
+							init: Some(Box::new(check_arg_len_or_undef(i))),
+							definite: false,
 						})
 					} else {
 						params.push(param)
@@ -111,29 +107,24 @@ impl Params {
 					if after_default && !self.c.ignore_function_length {
 						decls.push(VarDeclarator {
 							span,
-							name:param.pat,
-							init:Some(Box::new(check_arg_len_or_undef(i))),
-							definite:false,
+							name: param.pat,
+							init: Some(Box::new(check_arg_len_or_undef(i))),
+							definite: false,
 						})
 					} else {
 						let binding = private_ident!(span, "param");
 
-						params.push(Param { pat:binding.clone().into(), ..param });
+						params.push(Param { pat: binding.clone().into(), ..param });
 
-						let decl = VarDeclarator {
-							span,
-							name:param.pat,
-							init:Some(binding.into()),
-							definite:false,
-						};
+						let decl = VarDeclarator { span, name: param.pat, init: Some(binding.into()), definite: false };
 
 						if self.c.ignore_function_length {
 							loose_stmt.push(
 								VarDecl {
 									span,
-									kind:VarDeclKind::Let,
-									decls:vec![decl],
-									declare:false,
+									kind: VarDeclKind::Let,
+									decls: vec![decl],
+									declare: false,
 									..Default::default()
 								}
 								.into(),
@@ -151,59 +142,50 @@ impl Params {
 						// access non-existent element in `arguments` is expensive
 						decls.push(VarDeclarator {
 							span,
-							name:*left,
-							init:Some(
+							name: *left,
+							init: Some(
 								CondExpr {
 									span,
-									test:Box::new(
+									test: Box::new(
 										BinExpr {
-											left:Box::new(check_arg_len(i)),
-											op:op!("&&"),
-											right:Box::new(Expr::Bin(BinExpr {
-												left:make_arg_nth(i).into(),
-												op:op!("!=="),
-												right:Expr::undefined(DUMMY_SP),
-												span:DUMMY_SP,
+											left: Box::new(check_arg_len(i)),
+											op: op!("&&"),
+											right: Box::new(Expr::Bin(BinExpr {
+												left: make_arg_nth(i).into(),
+												op: op!("!=="),
+												right: Expr::undefined(DUMMY_SP),
+												span: DUMMY_SP,
 											})),
 											span,
 										}
 										.into(),
 									),
-									cons:make_arg_nth(i).into(),
-									alt:right,
+									cons: make_arg_nth(i).into(),
+									alt: right,
 								}
 								.into(),
 							),
-							definite:false,
+							definite: false,
 						})
 					} else if let Pat::Ident(ident) = left.as_ref() {
-						params.push(Param {
-							span,
-							pat:ident.clone().into(),
-							decorators:Vec::new(),
-						});
+						params.push(Param { span, pat: ident.clone().into(), decorators: Vec::new() });
 
 						loose_stmt.push(
 							IfStmt {
 								span,
-								test:BinExpr {
-									span:DUMMY_SP,
-									left:Box::new(Ident::from(ident).into()),
-									op:op!("==="),
-									right:Expr::undefined(DUMMY_SP),
+								test: BinExpr {
+									span: DUMMY_SP,
+									left: Box::new(Ident::from(ident).into()),
+									op: op!("==="),
+									right: Expr::undefined(DUMMY_SP),
 								}
 								.into(),
-								cons:Box::new(Stmt::Expr(ExprStmt {
+								cons: Box::new(Stmt::Expr(ExprStmt {
 									span,
-									expr:AssignExpr {
-										span,
-										left:left.try_into().unwrap(),
-										op:op!("="),
-										right,
-									}
-									.into(),
+									expr: AssignExpr { span, left: left.try_into().unwrap(), op: op!("="), right }
+										.into(),
 								})),
-								alt:None,
+								alt: None,
 							}
 							.into(),
 						)
@@ -211,32 +193,32 @@ impl Params {
 						let binding = private_ident!(span, "param");
 
 						params.push(Param {
-							span:DUMMY_SP,
-							decorators:Default::default(),
-							pat:binding.clone().into(),
+							span: DUMMY_SP,
+							decorators: Default::default(),
+							pat: binding.clone().into(),
 						});
 
 						loose_stmt.push(
 							VarDecl {
 								span,
-								kind:VarDeclKind::Let,
-								decls:vec![VarDeclarator {
+								kind: VarDeclKind::Let,
+								decls: vec![VarDeclarator {
 									span,
-									name:*left,
-									init:Some(Box::new(Expr::Cond(CondExpr {
+									name: *left,
+									init: Some(Box::new(Expr::Cond(CondExpr {
 										span,
-										test:Box::new(Expr::Bin(BinExpr {
-											span:DUMMY_SP,
-											left:Box::new(Expr::Ident(binding.clone())),
-											op:op!("==="),
-											right:Expr::undefined(DUMMY_SP),
+										test: Box::new(Expr::Bin(BinExpr {
+											span: DUMMY_SP,
+											left: Box::new(Expr::Ident(binding.clone())),
+											op: op!("==="),
+											right: Expr::undefined(DUMMY_SP),
 										})),
-										cons:right,
-										alt:Box::new(Expr::Ident(binding)),
+										cons: right,
+										alt: Box::new(Expr::Ident(binding)),
 									}))),
-									definite:false,
+									definite: false,
 								}],
-								declare:false,
+								declare: false,
 								..Default::default()
 							}
 							.into(),
@@ -258,40 +240,37 @@ impl Params {
 
 					let mark = Mark::fresh(Mark::root());
 
-					let idx_ident =
-						quote_ident!(SyntaxContext::empty().apply_mark(mark), span, "_key");
+					let idx_ident = quote_ident!(SyntaxContext::empty().apply_mark(mark), span, "_key");
 
-					let len_ident =
-						quote_ident!(SyntaxContext::empty().apply_mark(mark), span, "_len");
+					let len_ident = quote_ident!(SyntaxContext::empty().apply_mark(mark), span, "_len");
 
 					let arg = match *arg {
 						Pat::Ident(ident) => ident.into(),
 						arg => {
-							let tmp_ident =
-								quote_ident!(SyntaxContext::empty().apply_mark(mark), span, "_tmp");
+							let tmp_ident = quote_ident!(SyntaxContext::empty().apply_mark(mark), span, "_tmp");
 
 							decls_after_unpack.push(VarDeclarator {
-								span:DUMMY_SP,
-								name:arg,
-								init:Some(Box::new(tmp_ident.clone().into())),
-								definite:false,
+								span: DUMMY_SP,
+								name: arg,
+								init: Some(Box::new(tmp_ident.clone().into())),
+								definite: false,
 							});
 
 							tmp_ident
 						},
 					};
 
-					let make_minus_i = |ident:&Ident, min_zero:bool| -> Expr {
+					let make_minus_i = |ident: &Ident, min_zero: bool| -> Expr {
 						if i == 0 {
 							// `len`
 							ident.clone().into()
 						} else {
 							// `len - $i`
-							let bin:Expr = BinExpr {
+							let bin: Expr = BinExpr {
 								span,
-								left:ident.clone().into(),
-								op:op!(bin, "-"),
-								right:Lit::Num(Number { span, value:i as f64, raw:None }).into(),
+								left: ident.clone().into(),
+								op: op!(bin, "-"),
+								right: Lit::Num(Number { span, value: i as f64, raw: None }).into(),
 							}
 							.into();
 
@@ -301,18 +280,17 @@ impl Params {
 
 							CondExpr {
 								span,
-								test:Box::new(
+								test: Box::new(
 									BinExpr {
 										span,
-										left:Box::new(len_ident.clone().into()),
-										op:op!(">"),
-										right:Lit::Num(Number { span, value:i as _, raw:None })
-											.into(),
+										left: Box::new(len_ident.clone().into()),
+										op: op!(">"),
+										right: Lit::Num(Number { span, value: i as _, raw: None }).into(),
 									}
 									.into(),
 								),
-								cons:Box::new(bin),
-								alt:0.into(),
+								cons: Box::new(bin),
+								alt: 0.into(),
 							}
 							.into()
 						}
@@ -321,107 +299,87 @@ impl Params {
 					unpack_rest = Some(
 						ForStmt {
 							span,
-							init:Some(
+							init: Some(
 								VarDecl {
-									kind:VarDeclKind::Var,
+									kind: VarDeclKind::Var,
 									span,
-									decls:vec![
+									decls: vec![
 										// _len = arguments.length - i
 										VarDeclarator {
 											span,
-											name:len_ident.clone().into(),
-											init:Some(
-												member_expr!(
-													Default::default(),
-													span,
-													arguments.length
-												)
-												.into(),
-											),
-											definite:false,
+											name: len_ident.clone().into(),
+											init: Some(member_expr!(Default::default(), span, arguments.length).into()),
+											definite: false,
 										},
 										// a1 = new Array(_len - $i)
 										VarDeclarator {
 											span,
-											name:arg.clone().into(),
-											init:Some(Box::new(Expr::New(NewExpr {
+											name: arg.clone().into(),
+											init: Some(Box::new(Expr::New(NewExpr {
 												span,
-												callee:Box::new(
-													quote_ident!(self.unresolved_ctxt, "Array")
-														.into(),
-												),
-												args:Some(vec![{
+												callee: Box::new(quote_ident!(self.unresolved_ctxt, "Array").into()),
+												args: Some(vec![{
 													// `len` or  `len - $i`
 													make_minus_i(&len_ident, true).as_arg()
 												}]),
 												..Default::default()
 											}))),
-											definite:false,
+											definite: false,
 										},
 										// _key = 0
 										VarDeclarator {
 											span,
-											name:idx_ident.clone().into(),
-											init:Some(Box::new(Expr::Lit(Lit::Num(Number {
+											name: idx_ident.clone().into(),
+											init: Some(Box::new(Expr::Lit(Lit::Num(Number {
 												span,
-												value:i as f64,
-												raw:None,
+												value: i as f64,
+												raw: None,
 											})))),
-											definite:false,
+											definite: false,
 										},
 									],
-									declare:false,
+									declare: false,
 									..Default::default()
 								}
 								.into(),
 							),
 							// `_key < _len`
-							test:Some(
+							test: Some(
 								BinExpr {
 									span,
-									left:Box::new(idx_ident.clone().into()),
-									op:op!("<"),
-									right:Box::new(len_ident.clone().into()),
+									left: Box::new(idx_ident.clone().into()),
+									op: op!("<"),
+									right: Box::new(len_ident.clone().into()),
 								}
 								.into(),
 							),
 							// _key++
-							update:Some(
+							update: Some(
 								UpdateExpr {
 									span,
-									op:op!("++"),
-									prefix:false,
-									arg:Box::new(idx_ident.clone().into()),
+									op: op!("++"),
+									prefix: false,
+									arg: Box::new(idx_ident.clone().into()),
 								}
 								.into(),
 							),
-							body:Box::new(Stmt::Block(BlockStmt {
-								span:DUMMY_SP,
-								stmts:vec![{
+							body: Box::new(Stmt::Block(BlockStmt {
+								span: DUMMY_SP,
+								stmts: vec![{
 									let prop = Box::new(Expr::Ident(idx_ident.clone()));
 									// a1[_key - i] = arguments[_key];
 
 									AssignExpr {
 										span,
-										left:arg
-											.computed_member(make_minus_i(&idx_ident, false))
-											.into(),
-										op:op!("="),
-										right:Box::new(
+										left: arg.computed_member(make_minus_i(&idx_ident, false)).into(),
+										op: op!("="),
+										right: Box::new(
 											MemberExpr {
-												span:DUMMY_SP,
-												obj:Box::new(
-													quote_ident!(
-														Default::default(),
-														span,
-														"arguments"
-													)
-													.into(),
+												span: DUMMY_SP,
+												obj: Box::new(
+													quote_ident!(Default::default(), span, "arguments").into(),
 												),
-												prop:MemberProp::Computed(ComputedPropName {
-													span,
-													expr:prop,
-												}),
+												prop: MemberProp::Computed(ComputedPropName { span, expr: prop }),
 											}
 											.into(),
 										),
@@ -439,15 +397,15 @@ impl Params {
 			}
 		}
 
-		let mut iter:ArrayVec<_, 3> = Default::default();
+		let mut iter: ArrayVec<_, 3> = Default::default();
 
 		if !decls.is_empty() {
 			iter.push(
 				VarDecl {
-					span:DUMMY_SP,
-					kind:VarDeclKind::Let,
+					span: DUMMY_SP,
+					kind: VarDeclKind::Let,
 					decls,
-					declare:false,
+					declare: false,
 					..Default::default()
 				}
 				.into(),
@@ -459,10 +417,10 @@ impl Params {
 		if !decls_after_unpack.is_empty() {
 			iter.push(
 				VarDecl {
-					span:DUMMY_SP,
-					kind:VarDeclKind::Let,
-					decls:decls_after_unpack,
-					declare:false,
+					span: DUMMY_SP,
+					kind: VarDeclKind::Let,
+					decls: decls_after_unpack,
+					declare: false,
 					..Default::default()
 				}
 				.into(),
@@ -487,7 +445,7 @@ impl VisitMut for Params {
 
 	// generally speaking, there won't be class field in here, but Safari 14.1
 	// still has bugs in parameters
-	fn visit_mut_class_prop(&mut self, prop:&mut ClassProp) {
+	fn visit_mut_class_prop(&mut self, prop: &mut ClassProp) {
 		prop.key.visit_mut_children_with(self);
 
 		let old_in_prop = self.in_prop;
@@ -499,7 +457,7 @@ impl VisitMut for Params {
 		self.in_prop = old_in_prop;
 	}
 
-	fn visit_mut_class_method(&mut self, m:&mut ClassMethod) {
+	fn visit_mut_class_method(&mut self, m: &mut ClassMethod) {
 		if let MethodKind::Setter = m.kind {
 			let f = &mut m.function;
 
@@ -532,7 +490,7 @@ impl VisitMut for Params {
 	}
 
 	// same for private prop
-	fn visit_mut_private_prop(&mut self, prop:&mut PrivateProp) {
+	fn visit_mut_private_prop(&mut self, prop: &mut PrivateProp) {
 		let old_in_prop = self.in_prop;
 
 		self.in_prop = !prop.is_static;
@@ -542,7 +500,7 @@ impl VisitMut for Params {
 		self.in_prop = old_in_prop;
 	}
 
-	fn visit_mut_block_stmt_or_expr(&mut self, body:&mut BlockStmtOrExpr) {
+	fn visit_mut_block_stmt_or_expr(&mut self, body: &mut BlockStmtOrExpr) {
 		let old_rep = self.hoister.take();
 
 		body.visit_mut_children_with(self);
@@ -555,27 +513,19 @@ impl VisitMut for Params {
 
 				prepend_stmt(&mut stmts, decls);
 
-				stmts.push(ReturnStmt { span:DUMMY_SP, arg:Some(v.take()) }.into());
-				*body = BlockStmtOrExpr::BlockStmt(BlockStmt {
-					span:DUMMY_SP,
-					stmts,
-					..Default::default()
-				});
+				stmts.push(ReturnStmt { span: DUMMY_SP, arg: Some(v.take()) }.into());
+				*body = BlockStmtOrExpr::BlockStmt(BlockStmt { span: DUMMY_SP, stmts, ..Default::default() });
 			}
 		}
 	}
 
-	fn visit_mut_catch_clause(&mut self, f:&mut CatchClause) {
+	fn visit_mut_catch_clause(&mut self, f: &mut CatchClause) {
 		f.visit_mut_children_with(self);
 
 		let mut params = Vec::new();
 
 		if f.param.is_some() {
-			params.push(Param {
-				span:DUMMY_SP,
-				decorators:Vec::new(),
-				pat:f.param.take().unwrap(),
-			});
+			params.push(Param { span: DUMMY_SP, decorators: Vec::new(), pat: f.param.take().unwrap() });
 		}
 
 		self.visit_mut_fn_like(&mut params, &mut f.body, false);
@@ -590,7 +540,7 @@ impl VisitMut for Params {
 		f.param = param.map(|param| param.pat);
 	}
 
-	fn visit_mut_constructor(&mut self, f:&mut Constructor) {
+	fn visit_mut_constructor(&mut self, f: &mut Constructor) {
 		trace!("visit_mut_constructor(parmas.len() = {})", f.params.len());
 
 		f.params.visit_mut_with(self);
@@ -601,8 +551,7 @@ impl VisitMut for Params {
 			stmts.visit_mut_children_with(self);
 
 			if self.in_subclass {
-				let (decl, this_id) =
-					mem::replace(&mut self.hoister, old_rep).to_stmt_in_subclass();
+				let (decl, this_id) = mem::replace(&mut self.hoister, old_rep).to_stmt_in_subclass();
 
 				if let Some(stmt) = decl {
 					if let Some(this_id) = this_id {
@@ -623,19 +572,17 @@ impl VisitMut for Params {
 		trace!("visit_mut_constructor(parmas.len() = {}, after)", f.params.len());
 	}
 
-	fn visit_mut_expr(&mut self, e:&mut Expr) {
+	fn visit_mut_expr(&mut self, e: &mut Expr) {
 		match e {
 			Expr::Arrow(f) => {
 				f.visit_mut_children_with(self);
 
 				let was_expr = f.body.is_expr();
 
-				let need_arrow_to_function = f.params.iter().any(|p| {
-					match p {
-						Pat::Rest(..) => true,
-						Pat::Assign(..) => !self.c.ignore_function_length,
-						_ => false,
-					}
+				let need_arrow_to_function = f.params.iter().any(|p| match p {
+					Pat::Rest(..) => true,
+					Pat::Assign(..) => !self.c.ignore_function_length,
+					_ => false,
 				});
 
 				let mut local_vars = None;
@@ -657,55 +604,48 @@ impl VisitMut for Params {
 					.params
 					.take()
 					.into_iter()
-					.map(|pat| Param { span:DUMMY_SP, decorators:Default::default(), pat })
+					.map(|pat| Param { span: DUMMY_SP, decorators: Default::default(), pat })
 					.collect();
 
 				let mut body = match *f.body.take() {
 					BlockStmtOrExpr::BlockStmt(block) => block,
-					BlockStmtOrExpr::Expr(expr) => {
-						BlockStmt {
-							stmts:vec![Stmt::Return(ReturnStmt { span:DUMMY_SP, arg:Some(expr) })],
-							..Default::default()
-						}
+					BlockStmtOrExpr::Expr(expr) => BlockStmt {
+						stmts: vec![Stmt::Return(ReturnStmt { span: DUMMY_SP, arg: Some(expr) })],
+						..Default::default()
 					},
 				};
 
 				self.visit_mut_fn_like(&mut params, &mut body, false);
 
 				if need_arrow_to_function {
-					let func:Expr = Function {
+					let func: Expr = Function {
 						params,
-						decorators:Default::default(),
-						span:f.span,
-						body:Some(body),
-						is_generator:f.is_generator,
-						is_async:f.is_async,
+						decorators: Default::default(),
+						span: f.span,
+						body: Some(body),
+						is_generator: f.is_generator,
+						is_async: f.is_async,
 						..Default::default()
 					}
 					.into();
 					*e = match (self.in_prop, local_vars) {
-						(true, Some(var_decl)) => {
-							ArrowExpr {
-								span:f.span,
-								params:Vec::new(),
-								is_async:false,
-								is_generator:false,
-								body:Box::new(BlockStmtOrExpr::BlockStmt(BlockStmt {
-									span:f.span,
-									stmts:vec![
-										var_decl,
-										Stmt::Return(ReturnStmt {
-											span:f.span,
-											arg:Some(Box::new(func)),
-										}),
-									],
-									..Default::default()
-								})),
+						(true, Some(var_decl)) => ArrowExpr {
+							span: f.span,
+							params: Vec::new(),
+							is_async: false,
+							is_generator: false,
+							body: Box::new(BlockStmtOrExpr::BlockStmt(BlockStmt {
+								span: f.span,
+								stmts: vec![
+									var_decl,
+									Stmt::Return(ReturnStmt { span: f.span, arg: Some(Box::new(func)) }),
+								],
 								..Default::default()
-							}
-							.as_iife()
-							.into()
-						},
+							})),
+							..Default::default()
+						}
+						.as_iife()
+						.into(),
 						_ => func,
 					};
 
@@ -714,12 +654,10 @@ impl VisitMut for Params {
 
 				let body = if was_expr
 					&& body.stmts.len() == 1
-					&& matches!(body.stmts[0], Stmt::Return(ReturnStmt { arg:Some(..), .. }))
+					&& matches!(body.stmts[0], Stmt::Return(ReturnStmt { arg: Some(..), .. }))
 				{
 					match body.stmts.pop().unwrap() {
-						Stmt::Return(ReturnStmt { arg: Some(arg), .. }) => {
-							Box::new(BlockStmtOrExpr::Expr(arg))
-						},
+						Stmt::Return(ReturnStmt { arg: Some(arg), .. }) => Box::new(BlockStmtOrExpr::Expr(arg)),
 
 						_ => unreachable!(),
 					}
@@ -728,13 +666,13 @@ impl VisitMut for Params {
 				};
 
 				*e = ArrowExpr {
-					params:params.into_iter().map(|param| param.pat).collect(),
+					params: params.into_iter().map(|param| param.pat).collect(),
 					body,
-					span:f.span,
-					is_async:f.is_async,
-					is_generator:f.is_generator,
-					type_params:f.type_params.take(),
-					return_type:f.return_type.take(),
+					span: f.span,
+					is_async: f.is_async,
+					is_generator: f.is_generator,
+					type_params: f.type_params.take(),
+					return_type: f.return_type.take(),
 					..Default::default()
 				}
 				.into();
@@ -744,7 +682,7 @@ impl VisitMut for Params {
 		}
 	}
 
-	fn visit_mut_function(&mut self, f:&mut Function) {
+	fn visit_mut_function(&mut self, f: &mut Function) {
 		if f.body.is_none() {
 			return;
 		}
@@ -770,7 +708,7 @@ impl VisitMut for Params {
 		self.in_prop = old_in_prop;
 	}
 
-	fn visit_mut_getter_prop(&mut self, f:&mut GetterProp) {
+	fn visit_mut_getter_prop(&mut self, f: &mut GetterProp) {
 		if f.body.is_none() {
 			return;
 		}
@@ -788,15 +726,14 @@ impl VisitMut for Params {
 		f.body = Some(body);
 	}
 
-	fn visit_mut_setter_prop(&mut self, f:&mut SetterProp) {
+	fn visit_mut_setter_prop(&mut self, f: &mut SetterProp) {
 		if f.body.is_none() {
 			return;
 		}
 
 		f.visit_mut_children_with(self);
 
-		let mut params =
-			vec![Param { span:DUMMY_SP, decorators:Default::default(), pat:*f.param.take() }];
+		let mut params = vec![Param { span: DUMMY_SP, decorators: Default::default(), pat: *f.param.take() }];
 
 		let mut body = f.body.take().unwrap();
 
@@ -809,7 +746,7 @@ impl VisitMut for Params {
 		f.body = Some(body);
 	}
 
-	fn visit_mut_class(&mut self, c:&mut Class) {
+	fn visit_mut_class(&mut self, c: &mut Class) {
 		let old_in_subclass = self.in_subclass;
 
 		let old_in_prop = self.in_prop;
@@ -825,7 +762,7 @@ impl VisitMut for Params {
 		self.in_prop = old_in_prop;
 	}
 
-	fn visit_mut_module_items(&mut self, stmts:&mut Vec<ModuleItem>) {
+	fn visit_mut_module_items(&mut self, stmts: &mut Vec<ModuleItem>) {
 		stmts.visit_mut_children_with(self);
 
 		let decl = self.hoister.take().to_stmt();
@@ -835,7 +772,7 @@ impl VisitMut for Params {
 		}
 	}
 
-	fn visit_mut_stmts(&mut self, stmts:&mut Vec<Stmt>) {
+	fn visit_mut_stmts(&mut self, stmts: &mut Vec<Stmt>) {
 		let old_rep = self.hoister.take();
 
 		stmts.visit_mut_children_with(self);
@@ -848,28 +785,28 @@ impl VisitMut for Params {
 	}
 }
 
-fn make_arg_nth(n:usize) -> MemberExpr {
+fn make_arg_nth(n: usize) -> MemberExpr {
 	Ident::new_no_ctxt("arguments".into(), DUMMY_SP).computed_member(n)
 }
 
-fn check_arg_len(n:usize) -> Expr {
+fn check_arg_len(n: usize) -> Expr {
 	BinExpr {
-		left:Expr::Ident(Ident::new_no_ctxt("arguments".into(), DUMMY_SP))
+		left: Expr::Ident(Ident::new_no_ctxt("arguments".into(), DUMMY_SP))
 			.make_member(IdentName::new("length".into(), DUMMY_SP))
 			.into(),
-		op:op!(">"),
-		right:n.into(),
-		span:DUMMY_SP,
+		op: op!(">"),
+		right: n.into(),
+		span: DUMMY_SP,
 	}
 	.into()
 }
 
-fn check_arg_len_or_undef(n:usize) -> Expr {
+fn check_arg_len_or_undef(n: usize) -> Expr {
 	CondExpr {
-		test:Box::new(check_arg_len(n)),
-		cons:make_arg_nth(n).into(),
-		alt:Expr::undefined(DUMMY_SP),
-		span:DUMMY_SP,
+		test: Box::new(check_arg_len(n)),
+		cons: make_arg_nth(n).into(),
+		alt: Expr::undefined(DUMMY_SP),
+		span: DUMMY_SP,
 	}
 	.into()
 }
