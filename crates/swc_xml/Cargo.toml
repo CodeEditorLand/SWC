@@ -1,8 +1,8 @@
 [dependencies]
-swc_xml_ast = { version = "6.0.0", path = "../swc_xml_ast" }
-swc_xml_codegen = { version = "6.0.0", path = "../swc_xml_codegen" }
-swc_xml_parser = { version = "6.0.0", path = "../swc_xml_parser" }
-swc_xml_visit = { version = "6.0.0", path = "../swc_xml_visit" }
+swc_xml_ast = { version = "8.0.0", path = "../swc_xml_ast" }
+swc_xml_codegen = { version = "8.0.0", path = "../swc_xml_codegen" }
+swc_xml_parser = { version = "8.0.0", path = "../swc_xml_parser" }
+swc_xml_visit = { version = "8.0.0", path = "../swc_xml_visit" }
 
 [lib]
 bench = false
@@ -15,7 +15,7 @@ authors = [
 ]
 description = "XML apis for rust"
 documentation = "https://rustdoc.swc.rs/swc_xml/"
-edition = "2024"
+edition = "2021"
 license-file = { workspace = true }
 name = "swc_xml"
 repository = "https://github.com/swc-project/swc.git"
@@ -25,8 +25,6 @@ version = "8.0.0"
 
 [package.metadata.docs]
 
-[dependencies]
-swc_xml_ast     = { version = "8.0.0", path = "../swc_xml_ast" }
-swc_xml_codegen = { version = "8.0.0", path = "../swc_xml_codegen" }
-swc_xml_parser  = { version = "8.0.0", path = "../swc_xml_parser" }
-swc_xml_visit   = { version = "8.0.0", path = "../swc_xml_visit" }
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

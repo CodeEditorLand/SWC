@@ -1,49 +1,52 @@
-[package]
-authors       = ["강동윤 <kdy1997.dev@gmail.com>"]
-description   = "Utilities for swc ecmascript ast nodes"
-documentation = "https://rustdoc.swc.rs/swc_ecma_utils/"
-edition       = { workspace = true }
-license       = { workspace = true }
-name          = "swc_ecma_utils"
-repository    = { workspace = true }
-version       = "12.0.0"
+[dependencies]
+indexmap = { workspace = true }
+num_cpus = { workspace = true }
+once_cell = { workspace = true }
+par-core = { workspace = true }
+par-iter = { workspace = true }
+rayon = { workspace = true, optional = true }
+rustc-hash = { workspace = true }
+ryu-js = { workspace = true }
+swc_atoms = { version = "5.0.0", path = "../swc_atoms" }
+swc_common = { version = "8.0.1", path = "../swc_common" }
+swc_ecma_ast = { version = "8.1.0", path = "../swc_ecma_ast" }
+swc_ecma_visit = { version = "8.0.0", path = "../swc_ecma_visit" }
+tracing = { workspace = true }
+unicode-id = { workspace = true }
 
 [dev-dependencies]
-swc_ecma_parser = { version = "8.0.2", path = "../swc_ecma_parser" }
-testing = { version = "6.0.0", path = "../testing" }
+par-core = { workspace = true, features = ["chili"] }
+swc_ecma_parser = { version = "11.0.0", path = "../swc_ecma_parser" }
+testing = { version = "8.0.0", path = "../testing" }
 
 [features]
-concurrent = ["swc_common/concurrent", "swc_parallel/parallel", "rayon"]
+concurrent = ["swc_common/concurrent", "par-core/parallel", "rayon"]
 
 [lib]
 bench = false
 path = "Source/lib.rs"
 
-[features]
-# Process in parallel.
-concurrent = ["swc_common/concurrent", "par-core/parallel", "rayon"]
+[package]
+authors = ["강동윤 <kdy1997.dev@gmail.com>"]
+description = "Utilities for swc ecmascript ast nodes"
+documentation = "https://rustdoc.swc.rs/swc_ecma_utils/"
+edition = { workspace = true }
+license-file = { workspace = true }
+name = "swc_ecma_utils"
+repository = { workspace = true }
+version = "12.0.0"
 
-[dependencies]
-indexmap   = { workspace = true }
-num_cpus   = { workspace = true }
-once_cell  = { workspace = true }
-par-core   = { workspace = true }
-par-iter   = { workspace = true }
-rayon      = { workspace = true, optional = true }
-rustc-hash = { workspace = true }
-ryu-js     = { workspace = true }
-tracing    = { workspace = true }
-unicode-id = { workspace = true }
+[package.metadata]
 
-swc_atoms      = { version = "5.0.0", path = "../swc_atoms" }
-swc_common     = { version = "8.0.1", path = "../swc_common" }
-swc_ecma_ast   = { version = "8.1.0", path = "../swc_ecma_ast" }
-swc_ecma_visit = { version = "8.0.0", path = "../swc_ecma_visit" }
+[package.metadata.docs]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[target]
+
+[target.'cfg(not(any(target_arch = "wasm32", target_arch = "arm")))']
 
 [target.'cfg(not(any(target_arch = "wasm32", target_arch = "arm")))'.dependencies]
 stacker = { version = "0.1.15", optional = true }
-
-[dev-dependencies]
-par-core        = { workspace = true, features = ["chili"] }
-swc_ecma_parser = { version = "11.0.0", path = "../swc_ecma_parser" }
-testing         = { version = "8.0.0", path = "../testing" }

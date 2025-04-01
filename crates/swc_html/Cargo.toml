@@ -1,9 +1,9 @@
 [dependencies]
-swc_html_ast = { version = "6.0.0", path = "../swc_html_ast" }
-swc_html_codegen = { version = "6.0.0", path = "../swc_html_codegen" }
-swc_html_minifier = { version = "10.0.0", path = "../swc_html_minifier", optional = true, default-features = false }
-swc_html_parser = { version = "6.0.0", path = "../swc_html_parser" }
-swc_html_visit = { version = "6.0.0", path = "../swc_html_visit" }
+swc_html_ast = { version = "8.0.0", path = "../swc_html_ast" }
+swc_html_codegen = { version = "8.0.0", path = "../swc_html_codegen" }
+swc_html_minifier = { version = "13.0.0", path = "../swc_html_minifier", optional = true, default-features = false }
+swc_html_parser = { version = "8.0.0", path = "../swc_html_parser" }
+swc_html_visit = { version = "8.0.0", path = "../swc_html_visit" }
 
 [features]
 minifier = ["swc_html_minifier"]
@@ -19,7 +19,7 @@ authors = [
 ]
 description = "HTML apis for rust"
 documentation = "https://rustdoc.swc.rs/swc_html/"
-edition = "2024"
+edition = "2021"
 license-file = { workspace = true }
 name = "swc_html"
 repository = "https://github.com/swc-project/swc.git"
@@ -29,12 +29,6 @@ version = "13.0.0"
 
 [package.metadata.docs]
 
-[features]
-minifier = ["swc_html_minifier"]
-
-[dependencies]
-swc_html_ast      = { version = "8.0.0", path = "../swc_html_ast" }
-swc_html_codegen  = { version = "8.0.0", path = "../swc_html_codegen" }
-swc_html_minifier = { version = "13.0.0", path = "../swc_html_minifier", optional = true, default-features = false }
-swc_html_parser   = { version = "8.0.0", path = "../swc_html_parser" }
-swc_html_visit    = { version = "8.0.0", path = "../swc_html_visit" }
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

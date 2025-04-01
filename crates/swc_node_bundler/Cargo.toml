@@ -1,31 +1,11 @@
-[package]
-authors       = ["강동윤 <kdy1997.dev@gmail.com>"]
-build         = "build.rs"
-description   = "Speedy web compiler"
-documentation = "https://rustdoc.swc.rs/swc/"
-edition       = { workspace = true }
-license       = { workspace = true }
-name          = "swc_node_bundler"
-repository    = { workspace = true }
-version       = "17.0.0"
-
-[lib]
-bench = false
-
-[features]
-default    = ["swc_v1"]
-serde-impl = ["serde"]
-swc_v1     = ["serde-impl"]
-swc_v2     = ["serde-impl"]
-
 [dependencies]
-anyhow     = { workspace = true }
-dashmap    = { workspace = true }
-is-macro   = { workspace = true }
-once_cell  = { workspace = true }
-regex      = { workspace = true }
+anyhow = { workspace = true }
+dashmap = { workspace = true }
+is-macro = { workspace = true }
+once_cell = { workspace = true }
+regex = { workspace = true }
 rustc-hash = { workspace = true }
-serde      = { workspace = true, features = ["derive"], optional = true }
+serde = { workspace = true, features = ["derive"], optional = true }
 serde_json = { workspace = true }
 string_enum = { version = "1.0.0", path = "../string_enum" }
 swc = { version = "17.0.0", path = "../swc" }
@@ -44,9 +24,29 @@ swc_ecma_transforms = { version = "15.0.0", path = "../swc_ecma_transforms" }
 swc_ecma_utils = { version = "12.0.0", path = "../swc_ecma_utils" }
 swc_ecma_visit = { version = "8.0.0", path = "../swc_ecma_visit" }
 swc_malloc = { version = "1.2.2", path = "../swc_malloc" }
+tracing = { workspace = true }
 
 [dev-dependencies]
 pretty_assertions = { workspace = true }
-testing = { version = "6.0.0", path = "../testing" }
-
 testing = { version = "8.0.0", path = "../testing" }
+
+[features]
+default = ["swc_v1"]
+serde-impl = ["serde"]
+swc_v1 = ["serde-impl"]
+swc_v2 = ["serde-impl"]
+
+[lib]
+bench = false
+path = "Source/lib.rs"
+
+[package]
+authors = ["강동윤 <kdy1997.dev@gmail.com>"]
+build = "build.rs"
+description = "Speedy web compiler"
+documentation = "https://rustdoc.swc.rs/swc/"
+edition = { workspace = true }
+license-file = { workspace = true }
+name = "swc_node_bundler"
+repository = { workspace = true }
+version = "17.0.0"

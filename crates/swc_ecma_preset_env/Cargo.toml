@@ -1,31 +1,12 @@
-[package]
-authors       = ["강동윤 <kdy1997.dev@gmail.com>"]
-description   = "preset-env for the swc"
-documentation = "https://rustdoc.swc.rs/swc_ecma_preset_env/"
-edition       = { workspace = true }
-include       = ["Cargo.toml", "src/**/*.rs", "src/**/*.json", "data/**/*.json"]
-license       = { workspace = true }
-name          = "swc_ecma_preset_env"
-repository    = { workspace = true }
-version       = "15.0.0"
-
-[lib]
-bench = false
-
-[features]
-default    = ["serde-impl"]
-serde-impl = ["serde"]
+[[bench]]
+harness = false
+name = "polyfills"
 
 [dependencies]
-anyhow     = { workspace = true }
-dashmap    = { workspace = true }
-indexmap   = { workspace = true }
-once_cell  = { workspace = true }
-semver     = { workspace = true, features = ["serde"] }
-serde      = { workspace = true, features = ["derive"], optional = true }
-serde_json = { workspace = true }
-st-map     = { workspace = true }
-
+anyhow = { workspace = true }
+dashmap = { workspace = true }
+indexmap = { workspace = true }
+once_cell = { workspace = true }
 preset_env_base = { version = "2.0.1", path = "../preset_env_base" }
 rustc-hash = { workspace = true }
 semver = { workspace = true, features = ["serde"] }
@@ -47,13 +28,13 @@ swc_ecma_visit = { version = "8.0.0", path = "../swc_ecma_visit" }
 codspeed-criterion-compat = { workspace = true }
 criterion = { workspace = true }
 pretty_assertions = { workspace = true }
-swc_ecma_codegen = { version = "6.1.0", path = "../swc_ecma_codegen" }
-swc_ecma_parser = { version = "8.0.2", path = "../swc_ecma_parser" }
-testing = { version = "6.0.0", path = "../testing" }
-
 swc_ecma_codegen = { version = "8.0.2", path = "../swc_ecma_codegen" }
-swc_ecma_parser  = { version = "11.0.0", path = "../swc_ecma_parser" }
-testing          = { version = "8.0.0", path = "../testing" }
+swc_ecma_parser = { version = "11.0.0", path = "../swc_ecma_parser" }
+testing = { version = "8.0.0", path = "../testing" }
+
+[features]
+default = ["serde-impl"]
+serde-impl = ["serde"]
 
 [lib]
 bench = false
@@ -68,4 +49,4 @@ include = ["Cargo.toml", "src/**/*.rs", "src/**/*.json", "data/**/*.json"]
 license-file = { workspace = true }
 name = "swc_ecma_preset_env"
 repository = { workspace = true }
-version = "11.0.0"
+version = "15.0.0"

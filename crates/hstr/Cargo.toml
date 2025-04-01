@@ -1,11 +1,6 @@
-[package]
-authors     = ["강동윤 <kdy1997.dev@gmail.com>"]
-description = "A string type which is optimized for hash operations."
-edition     = { workspace = true }
-license     = { workspace = true }
-name        = "hstr"
-repository  = { workspace = true }
-version     = "1.0.0"
+[[bench]]
+harness = false
+name = "libs"
 
 [dependencies]
 hashbrown = { workspace = true }
@@ -27,7 +22,7 @@ rayon = { workspace = true }
 smartstring = { workspace = true }
 smol_str = { workspace = true }
 string_cache = { workspace = true }
-swc_malloc = { version = "1.0.0", path = "../swc_malloc" }
+swc_malloc = { version = "1.2.2", path = "../swc_malloc" }
 
 [features]
 atom_size_128 = []
@@ -39,20 +34,11 @@ serde = ["dep:serde"]
 bench = false
 path = "Source/lib.rs"
 
-
-[dev-dependencies]
-compact_str  = { workspace = true }
-criterion    = { workspace = true }
-kstring      = { workspace = true }
-num_cpus     = { workspace = true }
-rand         = { workspace = true }
-rayon        = { workspace = true }
-smartstring  = { workspace = true }
-smol_str     = { workspace = true }
-string_cache = { workspace = true }
-
-swc_malloc = { version = "1.2.2", path = "../swc_malloc" }
-
-[[bench]]
-harness = false
-name    = "libs"
+[package]
+authors = ["강동윤 <kdy1997.dev@gmail.com>"]
+description = "A string type which is optimized for hash operations."
+edition = { workspace = true }
+license-file = { workspace = true }
+name = "hstr"
+repository = { workspace = true }
+version = "1.0.0"

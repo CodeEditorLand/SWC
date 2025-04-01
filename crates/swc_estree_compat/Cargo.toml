@@ -1,29 +1,13 @@
-[package]
-authors       = ["강동윤 <kdy1997.dev@gmail.com>"]
-description   = "Compatibility layer between estree and swc"
-documentation = "https://rustdoc.swc.rs/swc_estree_compat/"
-edition       = { workspace = true }
-include       = ["Cargo.toml", "src/**/*.rs"]
-license       = { workspace = true }
-name          = "swc_estree_compat"
-repository    = { workspace = true }
-version       = "12.0.0"
-
-  [package.metadata.docs.rs]
-  all-features = true
-
-[lib]
-bench = false
-
-[features]
+[[bench]]
+harness = false
+name = "babelify"
 
 [dependencies]
-anyhow     = { workspace = true }
-copyless   = { workspace = true }
+anyhow = { workspace = true }
+copyless = { workspace = true }
 rustc-hash = { workspace = true }
-serde      = { workspace = true, features = ["derive"] }
+serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-
 swc_atoms = { version = "5.0.0", path = "../swc_atoms" }
 swc_common = { version = "8.0.1", path = "../swc_common", features = [
   "sourcemap",
@@ -40,19 +24,14 @@ swc_node_comments = { version = "8.0.0", path = "../swc_node_comments/" }
 codspeed-criterion-compat = { workspace = true }
 criterion = { workspace = true }
 pretty_assertions = { workspace = true }
-swc = { version = "13.0.1", path = "../swc" }
-swc_ecma_ast = { version = "6.1.0", path = "../swc_ecma_ast" }
-swc_ecma_parser = { version = "8.0.2", path = "../swc_ecma_parser" }
-swc_ecma_transforms = { version = "11.0.0", path = "../swc_ecma_transforms/" }
-testing = { version = "6.0.0", path = "../testing" }
+swc = { version = "17.0.0", path = "../swc" }
+swc_ecma_ast = { version = "8.1.0", path = "../swc_ecma_ast" }
+swc_ecma_parser = { version = "11.0.0", path = "../swc_ecma_parser" }
+swc_ecma_transforms = { version = "15.0.0", path = "../swc_ecma_transforms/" }
+testing = { version = "8.0.0", path = "../testing" }
 walkdir = { workspace = true }
 
-swc                 = { version = "17.0.0", path = "../swc" }
-swc_ecma_ast        = { version = "8.1.0", path = "../swc_ecma_ast" }
-swc_ecma_parser     = { version = "11.0.0", path = "../swc_ecma_parser" }
-swc_ecma_transforms = { version = "15.0.0", path = "../swc_ecma_transforms/" }
-testing             = { version = "8.0.0", path = "../testing" }
-walkdir             = { workspace = true }
+[features]
 
 [lib]
 bench = false
@@ -67,7 +46,7 @@ include = ["Cargo.toml", "src/**/*.rs"]
 license-file = { workspace = true }
 name = "swc_estree_compat"
 repository = { workspace = true }
-version = "9.0.0"
+version = "12.0.0"
 
 [package.metadata]
 
