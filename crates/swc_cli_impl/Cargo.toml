@@ -1,6 +1,6 @@
 [[bin]]
 name = "swc"
-path = "src/main.rs"
+path = "Source/main.rs"
 
 [dependencies]
 anyhow = { workspace = true }
