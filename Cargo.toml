@@ -157,6 +157,6 @@ wasmer-wasix = { version = "0.35.0", default-features = false }
 wide = "0.7.32"
 
 [workspace.package]
-edition = "2021"
+edition = "2024"
 license = "Apache-2.0"
 repository = "https://github.com/swc-project/swc.git"

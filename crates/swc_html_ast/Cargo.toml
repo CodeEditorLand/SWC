@@ -29,7 +29,7 @@ authors = [
 ]
 description = "AST definitions of html"
 documentation = "https://rustdoc.swc.rs/swc_html_ast/"
-edition = "2021"
+edition = "2024"
 license-file = { workspace = true }
 name = "swc_html_ast"
 repository = "https://github.com/swc-project/swc.git"
