@@ -469,7 +469,7 @@
 		"@playform/build": "0.2.1",
 		"dprint": "0.49.1",
 		"magic-string": "0.30.17",
-		"zx": "8.4.1"
+		"zx": "8.5.0"
 	},
 	"publishConfig": {
 		"access": "public"
