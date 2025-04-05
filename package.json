@@ -74,7 +74,7 @@
 		"@codeeditorland/helpers": "workspace:^",
 		"@codeeditorland/plugin-coverage-instrument": "0.0.26",
 		"@codeeditorland/plugin-jest": "1.5.117",
-		"@playform/build": "0.2.1",
+		"@playform/build": "0.2.2",
 		"@taplo/cli": "0.7.0",
 		"@types/node": "22.14.0",
 		"@types/terser": "3.12.0",
