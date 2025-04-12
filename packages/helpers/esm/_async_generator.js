@@ -1,4 +1,4 @@
-import { _ as _await_value } from "./_await_value.js";
+import { _ as _overload_yield } from "./_overload_yield.js";
 
 function _async_generator(gen) {
 	var front, back;
@@ -98,12 +98,12 @@ _async_generator.prototype.return = function (arg) {
         try {
             var result = gen[key](arg);
             var value = result.value;
-            var wrappedAwait = value instanceof _await_value;
-            Promise.resolve(wrappedAwait ? value.wrapped : value).then(function(arg) {
-                if (wrappedAwait) {
-                    resume("next", arg);
-
-                    return;
+            var overloaded = value instanceof _overload_yield;
+            Promise.resolve(overloaded ? value.v : value).then(function(arg) {
+                if (overloaded) {
+                    var nextKey = key === "return" ? "return" : "next";
+                    if (!value.k || arg.done) return resume(nextKey, arg);
+                    else arg = gen[nextKey](arg).value;
                 }
                 settle(result.done ? "return" : "normal", arg);
             }, function(err) {
@@ -136,11 +136,9 @@ _async_generator.prototype.return = function (arg) {
     if (typeof gen.return !== "function") this.return = undefined;
 }
 
-if (typeof Symbol === "function" && Symbol.asyncIterator) {
-    _async_generator.prototype[Symbol.asyncIterator] = function() {
-        return this;
-    };
-}
+_async_generator.prototype[(typeof Symbol === "function" && Symbol.asyncIterator) || "@@asyncIterator"] = function() {
+    return this;
+};
 
 _async_generator.prototype.next = function(arg) {
     return this._invoke("next", arg);

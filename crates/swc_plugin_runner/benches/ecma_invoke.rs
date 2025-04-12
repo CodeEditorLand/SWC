@@ -14,6 +14,7 @@ use std::{
 };
 
 use codspeed_criterion_compat::{black_box, criterion_group, criterion_main, Bencher, Criterion};
+use rustc_hash::FxHashMap;
 #[cfg(feature = "__rkyv")]
 use swc_common::plugin::serialized::{PluginSerializedBytes, VersionedSerializable};
 use swc_common::{
@@ -206,6 +207,7 @@ fn bench_transform(b: &mut Bencher, plugin_dir: &Path) {
                             "development".to_string(),
                             None,
                         )),
+                        None,
                         Box::new(plugin_module.clone()),
                         None,
                         None,

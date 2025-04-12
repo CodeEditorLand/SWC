@@ -98,6 +98,8 @@ export interface TransformOutput {
 }
 export type JsCompiler = Compiler
 
+export declare function analyze(src: string, options: Buffer, signal?: AbortSignal | undefined | null): Promise<string>
+
 export declare function bundle(confItems: Buffer, signal?: AbortSignal | undefined | null): Promise<{ [index: string]: { code: string, map?: string } }>
 
 export declare function getTargetTriple(): string
@@ -136,6 +138,7 @@ export interface TransformOutput {
   code: string
   map?: string
   output?: string
+  diagnostics: Array<string>
 }
 
 /** Hack for `Type Generation` */

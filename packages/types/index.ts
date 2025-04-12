@@ -1452,7 +1452,7 @@ export interface JscConfig {
          *
          * Second parameter of tuple is JSON based configuration for the plugin.
          */
-        plugins?: Array<[string, Record<string, any>]>;
+        plugins?: WasmPlugin[];
 
         /**
          * Run Wasm plugins before stripping TypeScript or decorators.
@@ -1780,27 +1780,27 @@ export interface ReactConfig {
      * Enable fast refresh feature for React app
      */
     refresh?:
-        | boolean
-        | {
-              /**
-               * Identifier for the `react-refresh` register function.
-               *
-               * Defaults to `$RefreshReg$`
-               */
-              refreshReg?: string;
-              /**
-               * Identifier for the `react-refresh` signature function.
-               *
-               * Defaults to `$RefreshSig$`
-               */
-              refreshSig?: string;
-              /**
-               * Flag to emit full signatures.
-               *
-               * Defaults to `false`
-               */
-              emitFullSignatures?: boolean;
-          };
+    | boolean
+    | {
+        /**
+         * Identifier for the `react-refresh` register function.
+         *
+         * Defaults to `$RefreshReg$`
+         */
+        refreshReg?: string;
+        /**
+         * Identifier for the `react-refresh` signature function.
+         *
+         * Defaults to `$RefreshSig$`
+         */
+        refreshSig?: string;
+        /**
+         * Flag to emit full signatures.
+         *
+         * Defaults to `false`
+         */
+        emitFullSignatures?: boolean;
+    };
 
     /**
      * jsx runtime
@@ -5842,3 +5842,20 @@ export interface Invalid extends Node, HasSpan {
 
     type: "Invalid";
 }
+
+
+export type WasmAnalysisOptions = {
+    parser?: ParserConfig,
+
+    module?: true | false | 'unknown'
+
+    filename?: string;
+
+    errorFormat?: 'json' | 'normal'
+
+    cacheRoot?: string;
+
+    plugins: WasmPlugin[]
+}
+
+export type WasmPlugin = [wasmPackage: string, config: Record<string, any>]

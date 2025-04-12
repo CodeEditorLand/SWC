@@ -2,7 +2,4 @@
 tracing = { workspace = true }
 
 [dev-dependencies]
-testing = { version = "8.0.0", path = "../testing" }
-
-[lib]
-path = "Source/lib.rs"
+testing = { version = "9.0.0", path = "../testing" }

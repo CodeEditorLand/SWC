@@ -58,6 +58,11 @@ where
 	F: FnOnce(&Handler) -> Result<Ret, Error>,
 {
 	GLOBALS.set(&Default::default(), || swc::try_with_handler(cm, config, op))
+    GLOBALS
+        .set(&Default::default(), || {
+            swc::try_with_handler(cm, config, op)
+        })
+        .map_err(|e| e.to_pretty_error())
 }
 
 /// Get global sourcemap

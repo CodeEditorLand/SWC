@@ -1,22 +1,8 @@
 [dependencies]
-swc_atoms = { version = "5.0.0", path = "../swc_atoms" }
-swc_common = { version = "8.0.1", path = "../swc_common" }
-swc_ecma_ast = { version = "8.1.0", path = "../swc_ecma_ast" }
+swc_atoms             = { version = "5.0.0", path = "../swc_atoms" }
+swc_common            = { version = "8.1.0", path = "../swc_common" }
+swc_ecma_ast          = { version = "8.1.1", path = "../swc_ecma_ast" }
 swc_ecma_quote_macros = { version = "11.0.0", path = "../swc_ecma_quote_macros" }
 
 [dev-dependencies]
-testing = { version = "8.0.0", path = "../testing" }
-
-[lib]
-bench = false
-path = "Source/lib.rs"
-
-[package]
-authors = ["강동윤 <kdy1997.dev@gmail.com>"]
-description = "Quasi quotation system for ecmascript"
-documentation = "https://rustdoc.swc.rs/swc_ecma_quote/"
-edition = { workspace = true }
-license-file = { workspace = true }
-name = "swc_ecma_quote"
-repository = { workspace = true }
-version = "11.0.0"
+testing = { version = "9.0.0", path = "../testing" }

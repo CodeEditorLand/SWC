@@ -7,6 +7,14 @@ use std::{
 
 use swc_common::{BytePos, FileName, SourceFile, SourceMap, Span, errors::Handler, sync::Lrc};
 use swc_error_reporters::{GraphicalReportHandler, PrettyEmitter, PrettyEmitterConfig};
+use std::sync::{Arc, Mutex};
+
+use swc_common::{
+    errors::{Diagnostic, Emitter, Handler},
+    sync::Lrc,
+    BytePos, FileName, SourceFile, SourceMap, Span,
+};
+use swc_error_reporters::{GraphicalReportHandler, ToPrettyDiagnostic};
 
 fn main() {
 	let cm = Lrc::<SourceMap>::default();
@@ -21,6 +29,13 @@ fn main() {
 	);
 	// let e_wr = EmitterWriter::new(wr.clone(), Some(cm), false,
 	// true).skip_filename(skip_filename);
+    let mut diagnostics = ThreadSafetyDiagnostic::default();
+
+    let emitter = ErrorEmitter {
+        diagnostics: diagnostics.clone(),
+    };
+
+    let handler = Handler::with_emitter(true, false, Box::new(emitter));
 
 	let handler = Handler::with_emitter(true, false, Box::new(emitter));
 
@@ -44,6 +59,23 @@ fn main() {
 	let s = &**wr.0.lock().unwrap();
 
 	println!("{}", s);
+    // We can show other file.
+    // This can be used to show configurable error with the config.
+    handler
+        .struct_span_err(span(&fm1, 6, 9), "constraint violation")
+        .span_note(span(&fm2, 0, 1), "this is your config")
+        .emit();
+
+    let report_handler = GraphicalReportHandler::default();
+    let diagnostics = diagnostics.take();
+    let diagnostics_pretty_message = diagnostics
+        .iter()
+        .map(|d| d.to_pretty_diagnostic(&cm, false))
+        .map(|d| d.to_pretty_string(&report_handler))
+        .collect::<Vec<String>>()
+        .join("");
+
+    println!("{}", diagnostics_pretty_message);
 }
 
 /// Don't do this in your real app. You should use [Span] created by parser
@@ -100,8 +132,8 @@ fn span(base:&SourceFile, lo:u32, hi:u32) -> Span {
 	Span::new(BytePos(lo), BytePos(hi))
 }
 
-#[derive(Clone, Default)]
-struct LockedWriter(Arc<Mutex<String>>);
+#[derive(Default, Clone)]
+struct ThreadSafetyDiagnostic(Arc<Mutex<Vec<Diagnostic>>>);
 
 impl fmt::Write for LockedWriter {
 	fn write_str(&mut self, s:&str) -> fmt::Result {
@@ -115,4 +147,31 @@ impl fmt::Write for LockedWriter {
 
 		Ok(())
 	}
+impl ThreadSafetyDiagnostic {
+    pub fn push(&self, d: Diagnostic) {
+        self.0
+            .lock()
+            .expect("Should get Diagnostics Vec key")
+            .push(d);
+    }
+
+    pub fn take(&mut self) -> Vec<Diagnostic> {
+        std::mem::take(
+            &mut *self
+                .0
+                .lock()
+                .expect("Failed to access the diagnostics lock"),
+        )
+    }
+}
+
+struct ErrorEmitter {
+    diagnostics: ThreadSafetyDiagnostic,
+}
+
+impl Emitter for ErrorEmitter {
+    fn emit(&mut self, db: &mut swc_common::errors::DiagnosticBuilder<'_>) {
+        let d = db.take();
+        self.diagnostics.push(d);
+    }
 }

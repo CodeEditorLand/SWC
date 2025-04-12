@@ -1,3 +1,16 @@
+[package]
+authors       = ["강동윤 <kdy1997.dev@gmail.com>"]
+description   = "Error reporter implementations for the swc project"
+documentation = "https://rustdoc.swc.rs/swc_error_reporters/"
+edition       = { workspace = true }
+license       = { workspace = true }
+name          = "swc_error_reporters"
+repository    = { workspace = true }
+version       = "10.0.0"
+
+[lib]
+bench = false
+
 [dependencies]
 anyhow = { workspace = true }
 miette = { workspace = true, features = ["fancy-no-syscall"] }
@@ -5,8 +18,9 @@ once_cell = { workspace = true }
 parking_lot = { workspace = true }
 serde = { workspace = true }
 serde_derive = { workspace = true }
-serde_json = { workspace = true }
-swc_common = { version = "8.0.1", path = "../swc_common", features = [
+serde_json   = { workspace = true }
+
+swc_common = { version = "8.1.0", path = "../swc_common", features = [
   "concurrent",
 ] }
 

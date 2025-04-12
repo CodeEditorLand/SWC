@@ -1,6 +1,13 @@
-[[bench]]
-harness = false
-name = "bench"
+[package]
+authors       = ["강동윤 <kdy1997.dev@gmail.com>"]
+description   = "Ecmascript code generator for the swc project."
+documentation = "https://rustdoc.swc.rs/swc_ecma_codegen/"
+edition       = { workspace = true }
+include       = ["Cargo.toml", "src/**/*.rs"]
+license       = { workspace = true }
+name          = "swc_ecma_codegen"
+repository    = { workspace = true }
+version       = "10.0.0"
 
 [[bench]]
 harness = false
@@ -20,10 +27,9 @@ swc_allocator = { version = "4.0.0", path = "../swc_allocator", default-features
   "hashbrown",
 ] }
 swc_atoms = { version = "5.0.0", path = "../swc_atoms" }
-swc_common = { version = "8.0.1", path = "../swc_common" }
-swc_ecma_ast = { version = "8.1.0", path = "../swc_ecma_ast" }
-swc_ecma_codegen_macros = { version = "1.0.1", path = "../swc_ecma_codegen_macros" }
-tracing = { workspace = true }
+swc_common = { version = "8.1.0", path = "../swc_common" }
+swc_ecma_ast = { version = "8.1.1", path = "../swc_ecma_ast" }
+swc_ecma_codegen_macros = { version = "2.0.0", path = "../swc_ecma_codegen_macros" }
 
 [dev-dependencies]
 base64 = { workspace = true }
@@ -31,13 +37,13 @@ codspeed-criterion-compat = { workspace = true }
 criterion = { workspace = true }
 serde_json = { workspace = true }
 swc_allocator = { version = "4.0.0", path = "../swc_allocator" }
-swc_common = { version = "8.0.1", path = "../swc_common", features = [
+swc_common = { version = "8.1.0", path = "../swc_common", features = [
   "sourcemap",
 ] }
-swc_ecma_parser = { version = "11.0.0", path = "../swc_ecma_parser" }
-swc_ecma_testing = { version = "8.0.0", path = "../swc_ecma_testing" }
+swc_ecma_parser = { version = "11.0.1", path = "../swc_ecma_parser" }
+swc_ecma_testing = { version = "9.0.0", path = "../swc_ecma_testing" }
 swc_malloc = { version = "1.2.2", path = "../swc_malloc" }
-testing = { version = "8.0.0", path = "../testing" }
+testing = { version = "9.0.0", path = "../testing" }
 
 [features]
 serde-impl = ["swc_ecma_ast/serde"]

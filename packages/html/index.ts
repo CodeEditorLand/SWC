@@ -114,6 +114,12 @@ function toBuffer(t: any): Buffer {
         | "advanced-conservative"
         | "only-metadata";
 
+    | "none"
+    | "all"
+    | "smart"
+    | "conservative"
+    | "advanced-conservative"
+    | "only-metadata";
     removeEmptyMetadataElements?: boolean;
 
     removeComments?: boolean;
@@ -139,6 +145,9 @@ function toBuffer(t: any): Buffer {
         | { lib: "lightningcss" }
         | { lib: "swc"; parser?: any; minifier?: any; codegen?: any };
 
+    | boolean
+    | { lib: "lightningcss" }
+    | { lib: "swc"; parser?: any; minifier?: any; codegen?: any };
     minifyAdditionalScriptsContent?: [string, MinifierType][];
 
     minifyAdditionalAttributes?: [string, MinifierType][];
@@ -186,7 +195,7 @@ export function minifySync(
 export function minifyFragmentSync(
     content: string | Buffer,
     options?: FragmentOptions
-): Promise<binding.TransformOutput> {
+): binding.TransformOutput {
     return binding.minifyFragmentSync(content, toBuffer(options ?? {}));
 }
 

@@ -18,13 +18,22 @@ testing = { version = "8.0.0", path = "../testing" }
 bench = false
 path = "Source/lib.rs"
 
-[package]
-authors = ["강동윤 <kdy1997.dev@gmail.com>"]
-description = "CSS modules"
-documentation = "https://rustdoc.swc.rs/swc_css_modules/"
-edition = { workspace = true }
-include = ["Cargo.toml", "src/**/*.rs"]
-license-file = { workspace = true }
-name = "swc_css_modules"
-repository = { workspace = true }
-version = "8.0.0"
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rustc-hash = { workspace = true }
+serde      = { workspace = true, features = ["derive"] }
+
+swc_atoms       = { version = "5.0.0", path = "../swc_atoms" }
+swc_common      = { version = "8.1.0", path = "../swc_common" }
+swc_css_ast     = { version = "8.0.0", path = "../swc_css_ast" }
+swc_css_codegen = { version = "8.0.0", path = "../swc_css_codegen" }
+swc_css_parser  = { version = "8.0.0", path = "../swc_css_parser" }
+swc_css_visit   = { version = "8.0.0", path = "../swc_css_visit" }
+
+[dev-dependencies]
+indexmap   = { workspace = true, features = ["serde"] }
+serde_json = { workspace = true }
+
+swc_css_compat = { version = "8.0.0", path = "../swc_css_compat" }
+testing        = { version = "9.0.0", path = "../testing" }

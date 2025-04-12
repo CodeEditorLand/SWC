@@ -92,7 +92,7 @@ pub static PLUGIN_MODULE_CACHE: Lazy<swc_plugin_runner::cache::PluginModuleCache
 #[cfg(feature = "plugin")]
 pub fn init_plugin_module_cache_once(
     enable_fs_cache_store: bool,
-    fs_cache_store_root: &Option<String>,
+    fs_cache_store_root: Option<&str>,
 ) {
     PLUGIN_MODULE_CACHE.inner.get_or_init(|| {
         parking_lot::Mutex::new(swc_plugin_runner::cache::PluginModuleCache::create_inner(
@@ -620,17 +620,6 @@ impl Options {
             // 2. embedded runtime can compiles & execute wasm
             #[cfg(all(feature = "plugin", not(target_arch = "wasm32")))]
             {
-                use swc_ecma_loader::resolve::Resolve;
-
-                let plugin_resolver = CachingResolver::new(
-                    40,
-                    NodeModulesResolver::new(
-                        swc_ecma_loader::TargetEnv::Node,
-                        Default::default(),
-                        true,
-                    ),
-                );
-
                 if let Some(plugins) = &experimental.plugins {
                     // Currently swc enables filesystemcache by default on Embedded runtime plugin
                     // target.
@@ -663,10 +652,16 @@ impl Options {
                             tracing::debug!("Initialized WASM plugin {plugin_name}");
                         }
                     }
+                    crate::plugin::compile_wasm_plugins(
+                        experimental.cache_root.as_deref(),
+                        plugins,
+                    )
+                    .context("Failed to compile wasm plugins")?;
                 }
 
                 Box::new(crate::plugin::plugins(
                     experimental.plugins,
+                    experimental.plugin_env_vars,
                     transform_metadata_context,
                     comments.cloned(),
                     cm.clone(),
@@ -826,7 +821,7 @@ impl Options {
             output: JscOutputConfig {
                 charset,
                 preamble,
-                preserve_annotations: cfg.jsc.output.preserve_annotations,
+                ..cfg.jsc.output
             },
             emit_assert_for_import_attributes: experimental
                 .emit_assert_for_import_attributes
@@ -1246,6 +1241,9 @@ pub struct JscOutputConfig {
 
     #[serde(default)]
     pub preserve_annotations: BoolConfig<false>,
+
+    #[serde(default)]
+    pub source_map_url: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -1265,6 +1263,8 @@ pub struct JscExperimental {
     /// This requires cargo feature `plugin`.
     #[serde(default)]
     pub plugins: Option<Vec<PluginConfig>>,
+    #[serde(default)]
+    pub plugin_env_vars: Option<Vec<Atom>>,
     /// If true, keeps import assertions in the output.
     #[serde(default, alias = "keepImportAssertions")]
     pub keep_import_attributes: BoolConfig<false>,
@@ -1799,7 +1799,7 @@ impl GlobalPassOption {
     }
 }
 
-fn default_env_name() -> String {
+pub(crate) fn default_env_name() -> String {
     if let Ok(v) = env::var("SWC_ENV") {
         return v;
     }

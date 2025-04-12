@@ -23,3 +23,15 @@ license-file = { workspace = true }
 name = "swc_html_utils"
 repository = "https://github.com/swc-project/swc.git"
 version = "8.0.0"
+
+[lib]
+bench = false
+
+[dependencies]
+once_cell  = { workspace = true }
+rustc-hash = { workspace = true }
+serde      = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+
+swc_atoms  = { version = "5.0.0", path = "../swc_atoms" }
+swc_common = { version = "8.1.0", path = "../swc_common" }

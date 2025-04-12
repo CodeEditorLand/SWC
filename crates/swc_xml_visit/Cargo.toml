@@ -31,6 +31,15 @@ version = "8.0.0"
 
 [package.metadata.docs]
 
-[package.metadata.docs.rs]
-all-features = true
-rustdoc-args = ["--cfg", "docsrs"]
+[features]
+default    = ["serde"]
+path       = []
+serde-impl = ["serde"]
+
+[dependencies]
+serde = { workspace = true, optional = true, features = ["derive"] }
+
+swc_atoms   = { version = "5.0.0", path = "../swc_atoms" }
+swc_common  = { version = "8.1.0", path = "../swc_common" }
+swc_visit   = { version = "2.0.0", path = "../swc_visit" }
+swc_xml_ast = { version = "8.0.0", path = "../swc_xml_ast" }

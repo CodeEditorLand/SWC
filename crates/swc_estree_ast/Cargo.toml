@@ -30,5 +30,14 @@ version = "8.0.0"
 
 [package.metadata.docs]
 
-[package.metadata.docs.rs]
-all-features = true
+[features]
+default    = ["serde-impl"]
+serde-impl = ["serde"]
+
+[dependencies]
+serde      = { workspace = true, features = ["derive"], optional = true }
+serde_json = { workspace = true }
+
+better_scoped_tls = { version = "1.0.0", path = "../better_scoped_tls" }
+swc_atoms         = { version = "5.0.0", path = "../swc_atoms" }
+swc_common        = { version = "8.1.0", path = "../swc_common" }

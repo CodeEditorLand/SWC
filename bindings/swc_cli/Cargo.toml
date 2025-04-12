@@ -1,3 +1,13 @@
+[package]
+authors     = ["강동윤 <kdy1997.dev@gmail.com>", "OJ Kwon <kwon.ohjoong@gmail.com>"]
+description = "Commandline for SWC"
+edition     = { workspace = true }
+include     = ["Cargo.toml", "src/**/*.rs"]
+license     = { workspace = true }
+name        = "swc_cli"
+repository  = { workspace = true }
+version     = "0.91.530"
+
 [[bin]]
 bench = false
 name = "swc"
