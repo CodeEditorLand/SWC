@@ -1,8 +1,0 @@
-{
-    "sourceMaps": true,
-    "jsc": {
-        "output": {
-            "sourceMapUrl": "input.js.map"
-        }
-    }
-}

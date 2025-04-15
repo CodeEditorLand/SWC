@@ -1,218 +1,237 @@
 use swc_common::{SourceMapper, Spanned};
 use swc_ecma_ast::*;
-use swc_ecma_codegen_macros::emitter;
+use swc_ecma_codegen_macros::node_impl;
 
 use super::{Emitter, Result};
 use crate::text_writer::WriteJs;
 
 impl<W, S: SourceMapper> Emitter<'_, W, S>
 where
-	W: WriteJs,
-	S: SourceMapperExt,
+    W: WriteJs,
+    S: SourceMapperExt,
 {
-	#[emitter]
-	fn emit_decl(&mut self, node: &Decl) -> Result {
-		match node {
-			Decl::Class(ref n) => emit!(n),
-			Decl::Fn(ref n) => emit!(n),
+    pub(super) fn emit_class_decl_inner(
+        &mut self,
+        node: &ClassDecl,
+        skip_decorators: bool,
+    ) -> Result {
+        self.emit_leading_comments_of_span(node.span(), false)?;
 
-			Decl::Var(ref n) => {
-				self.emit_var_decl_inner(n)?;
+        srcmap!(self, node, true);
 
-				formatting_semi!();
+        if node.declare {
+            keyword!(self, "declare");
+            space!(self);
+        }
 
-				srcmap!(n, false);
-			},
+        if !skip_decorators {
+            for dec in &node.class.decorators {
+                emit!(self, dec);
+            }
+        }
 
-			Decl::Using(n) => emit!(n),
-			Decl::TsEnum(ref n) => emit!(n),
-			Decl::TsInterface(ref n) => emit!(n),
-			Decl::TsModule(ref n) => emit!(n),
-			Decl::TsTypeAlias(ref n) => emit!(n),
-		}
-	}
+        if node.class.is_abstract {
+            keyword!(self, "abstract");
+            space!(self);
+        }
 
-	#[emitter]
-	fn emit_class_decl(&mut self, node: &ClassDecl) -> Result {
-		self.emit_class_decl_inner(node, false)?;
-	}
+        keyword!(self, "class");
+        space!(self);
+        emit!(self, node.ident);
+        emit!(self, node.class.type_params);
 
-	#[emitter]
-	fn emit_using_decl(&mut self, node: &UsingDecl) -> Result {
-		self.emit_leading_comments_of_span(node.span(), false)?;
+        self.emit_class_trailing(&node.class)?;
 
-		if node.is_await {
-			keyword!("await");
+        Ok(())
+    }
 
-			space!();
-		}
+    fn emit_var_decl_inner(&mut self, node: &VarDecl) -> Result {
+        self.emit_leading_comments_of_span(node.span, false)?;
 
-		keyword!("using");
+        self.wr.commit_pending_semi()?;
 
-		space!();
+        srcmap!(self, node, true);
 
-		self.emit_list(node.span, Some(&node.decls), ListFormat::VariableDeclarationList)?;
-	}
+        if node.declare {
+            keyword!(self, "declare");
+            space!(self);
+        }
 
-	pub(super) fn emit_class_decl_inner(&mut self, node: &ClassDecl, skip_decorators: bool) -> Result {
-		self.emit_leading_comments_of_span(node.span(), false)?;
+        keyword!(self, node.kind.as_str());
 
-		srcmap!(self, node, true);
+        let starts_with_ident = match node.decls.first() {
+            Some(VarDeclarator {
+                name: Pat::Array(..) | Pat::Rest(..) | Pat::Object(..),
+                ..
+            }) => false,
+            _ => true,
+        };
+        if starts_with_ident {
+            space!(self);
+        } else {
+            formatting_space!(self);
+        }
 
-		if node.declare {
-			keyword!(self, "declare");
+        self.emit_list(
+            node.span(),
+            Some(&node.decls),
+            ListFormat::VariableDeclarationList,
+        )?;
 
-			space!(self);
-		}
+        Ok(())
+    }
+}
 
-		if !skip_decorators {
-			for dec in &node.class.decorators {
-				emit!(self, dec);
-			}
-		}
+#[node_impl]
+impl MacroNode for Decl {
+    fn emit(&mut self, emitter: &mut Macro) -> Result {
+        match self {
+            Decl::Class(n) => emit!(n),
+            Decl::Fn(n) => emit!(n),
+            Decl::Var(n) => {
+                emitter.emit_var_decl_inner(n)?;
+                formatting_semi!(emitter);
+                srcmap!(emitter, self, false);
+            }
+            Decl::Using(n) => emit!(n),
+            Decl::TsEnum(n) => emit!(n),
+            Decl::TsInterface(n) => emit!(n),
+            Decl::TsModule(n) => emit!(n),
+            Decl::TsTypeAlias(n) => emit!(n),
+        }
 
-		if node.class.is_abstract {
-			keyword!(self, "abstract");
+        Ok(())
+    }
+}
 
-			space!(self);
-		}
+#[node_impl]
+impl MacroNode for ClassDecl {
+    fn emit(&mut self, emitter: &mut Macro) -> Result {
+        emitter.emit_class_decl_inner(self, false)?;
+        Ok(())
+    }
+}
 
-		keyword!(self, "class");
+#[node_impl]
+impl MacroNode for UsingDecl {
+    fn emit(&mut self, emitter: &mut Macro) -> Result {
+        emitter.emit_leading_comments_of_span(self.span(), false)?;
 
-		space!(self);
+        if self.is_await {
+            keyword!(emitter, "await");
+            space!(emitter);
+        }
 
-		emit!(self, node.ident);
+        keyword!(emitter, "using");
+        space!(emitter);
 
-		emit!(self, node.class.type_params);
+        emitter.emit_list(
+            self.span,
+            Some(&self.decls),
+            ListFormat::VariableDeclarationList,
+        )?;
 
-		self.emit_class_trailing(&node.class)?;
+        Ok(())
+    }
+}
 
-		Ok(())
-	}
+#[node_impl]
+impl MacroNode for FnDecl {
+    fn emit(&mut self, emitter: &mut Macro) -> Result {
+        emitter.emit_leading_comments_of_span(self.span(), false)?;
 
-	#[emitter]
-	fn emit_fn_decl(&mut self, node: &FnDecl) -> Result {
-		self.emit_leading_comments_of_span(node.span(), false)?;
+        emitter.wr.commit_pending_semi()?;
 
-		self.wr.commit_pending_semi()?;
+        srcmap!(emitter, self, true);
 
-		srcmap!(node, true);
+        if self.declare {
+            keyword!(emitter, "declare");
+            space!(emitter);
+        }
 
-		if node.declare {
-			keyword!("declare");
+        if self.function.is_async {
+            keyword!(emitter, "async");
+            space!(emitter);
+        }
 
-			space!();
-		}
+        keyword!(emitter, "function");
+        if self.function.is_generator {
+            punct!(emitter, "*");
+            formatting_space!(emitter);
+        } else {
+            space!(emitter);
+        }
 
-		if node.function.is_async {
-			keyword!("async");
+        emit!(self.ident);
 
-			space!();
-		}
+        emitter.emit_fn_trailing(&self.function)?;
 
-		keyword!("function");
+        Ok(())
+    }
+}
 
-		if node.function.is_generator {
-			punct!("*");
+#[node_impl]
+impl MacroNode for VarDecl {
+    fn emit(&mut self, emitter: &mut Macro) -> Result {
+        emitter.emit_var_decl_inner(self)?;
+        Ok(())
+    }
+}
 
-			formatting_space!();
-		} else {
-			space!();
-		}
+#[node_impl]
+impl MacroNode for VarDeclarator {
+    fn emit(&mut self, emitter: &mut Macro) -> Result {
+        emitter.emit_leading_comments_of_span(self.span(), false)?;
 
-		emit!(node.ident);
+        srcmap!(emitter, self, true);
 
-		self.emit_fn_trailing(&node.function)?;
-	}
+        emit!(self.name);
 
-	#[emitter]
-	fn emit_var_decl(&mut self, node: &VarDecl) -> Result {
-		self.emit_var_decl_inner(node)?;
-	}
+        if let Some(ref init) = self.init {
+            formatting_space!(emitter);
+            punct!(emitter, "=");
+            formatting_space!(emitter);
+            emit!(init);
+        }
 
-	fn emit_var_decl_inner(&mut self, node: &VarDecl) -> Result {
-		self.emit_leading_comments_of_span(node.span, false)?;
-
-		self.wr.commit_pending_semi()?;
-
-		srcmap!(self, node, true);
-
-		if node.declare {
-			keyword!(self, "declare");
-
-			space!(self);
-		}
-
-		keyword!(self, node.kind.as_str());
-
-		let starts_with_ident = match node.decls.first() {
-			Some(VarDeclarator { name: Pat::Array(..) | Pat::Rest(..) | Pat::Object(..), .. }) => false,
-			_ => true,
-		};
-
-		if starts_with_ident {
-			space!(self);
-		} else {
-			formatting_space!(self);
-		}
-
-		self.emit_list(node.span(), Some(&node.decls), ListFormat::VariableDeclarationList)?;
-
-		Ok(())
-	}
-
-	#[emitter]
-	fn emit_var_declarator(&mut self, node: &VarDeclarator) -> Result {
-		self.emit_leading_comments_of_span(node.span(), false)?;
-
-		srcmap!(node, true);
-
-		emit!(node.name);
-
-		if let Some(ref init) = node.init {
-			formatting_space!();
-
-			punct!("=");
-
-			formatting_space!();
-
-			emit!(init);
-		}
-	}
+        Ok(())
+    }
 }
 
 #[cfg(test)]
 mod tests {
-	use crate::tests::assert_min;
+    use crate::tests::assert_min;
 
-	#[test]
-	fn issue_275() {
-		assert_min(
-			"function* foo(){
+    #[test]
+    fn issue_275() {
+        assert_min(
+            "function* foo(){
             yield getServiceHosts()
         }",
-			"function*foo(){yield getServiceHosts()}",
-		);
-	}
+            "function*foo(){yield getServiceHosts()}",
+        );
+    }
 
-	#[test]
-	fn issue_1764() {
-		assert_min(
-			"class Hoge {};
+    #[test]
+    fn issue_1764() {
+        assert_min(
+            "class Hoge {};
 class HogeFuga extends Hoge {};",
-			"class Hoge{};class HogeFuga extends Hoge{};",
-		);
-	}
+            "class Hoge{};class HogeFuga extends Hoge{};",
+        );
+    }
 
-	#[test]
-	fn single_argument_arrow_expression() {
-		assert_min("function* f(){ yield x => x}", "function*f(){yield x=>x}");
+    #[test]
+    fn single_argument_arrow_expression() {
+        assert_min("function* f(){ yield x => x}", "function*f(){yield x=>x}");
+        assert_min(
+            "function* f(){ yield ({x}) => x}",
+            "function*f(){yield({x})=>x}",
+        );
+    }
 
-		assert_min("function* f(){ yield ({x}) => x}", "function*f(){yield({x})=>x}");
-	}
-
-	#[test]
-	fn class_static_block() {
-		assert_min("class Foo { static { 1 + 1; }}", "class Foo{static{1+1}}");
-	}
+    #[test]
+    fn class_static_block() {
+        assert_min("class Foo { static { 1 + 1; }}", "class Foo{static{1+1}}");
+    }
 }
