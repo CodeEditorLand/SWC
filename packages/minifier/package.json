@@ -62,7 +62,7 @@
     },
     "devDependencies": {
         "@napi-rs/cli": "3.0.0-alpha.22",
-        "@types/node": "22.14.1",
+        "@types/node": "22.15.2",
         "cross-env": "7.0.3",
         "typescript": "5.8.3"
     }
