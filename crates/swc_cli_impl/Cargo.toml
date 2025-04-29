@@ -49,7 +49,7 @@ plugin = [
 crate-type = ["rlib"]
 path = "Source/lib.rs"
 
-swc_core = { version = "22.2.1", features = [
+swc_core = { version = "22.5.4", features = [
   "trace_macro",
   "common_concurrent",
   "base_concurrent",

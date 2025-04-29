@@ -36,7 +36,10 @@ impl<I: Tokens> Parser<I> {
     }
 
     ///`parseMaybeAssign` (overridden)
-    #[cfg_attr(feature = "tracing-spans", tracing::instrument(skip_all))]
+    #[cfg_attr(
+        feature = "tracing-spans",
+        tracing::instrument(level = "debug", skip_all)
+    )]
     pub(super) fn parse_assignment_expr(&mut self) -> PResult<Box<Expr>> {
         trace_cur!(self, parse_assignment_expr);
 
@@ -76,7 +79,10 @@ impl<I: Tokens> Parser<I> {
     /// operators like `+=`.
     ///
     /// `parseMaybeAssign`
-    #[cfg_attr(feature = "tracing-spans", tracing::instrument(skip_all))]
+    #[cfg_attr(
+        feature = "tracing-spans",
+        tracing::instrument(level = "debug", skip_all)
+    )]
     fn parse_assignment_expr_base(&mut self) -> PResult<Box<Expr>> {
         trace_cur!(self, parse_assignment_expr_base);
         let start = self.input.cur_span();
@@ -85,10 +91,7 @@ impl<I: Tokens> Parser<I> {
             && (is_one_of!(self, '<', JSXTagStart))
             && (peeked_is!(self, IdentName) || peeked_is!(self, JSXName))
         {
-            let ctx = Context {
-                will_expect_colon_for_cond: false,
-                ..self.ctx()
-            };
+            let ctx = self.ctx() & !Context::WillExpectColonForCond;
             let res = self.with_ctx(ctx).try_parse_ts(|p| {
                 if is!(p, JSXTagStart) {
                     if let Some(TokenContext::JSXOpeningTag) = p.input.token_context().current() {
@@ -125,12 +128,12 @@ impl<I: Tokens> Parser<I> {
             }
         }
 
-        if self.ctx().in_generator && is!(self, "yield") {
+        if self.ctx().contains(Context::InGenerator) && is!(self, "yield") {
             return self.parse_yield_expr();
         }
 
         self.state.potential_arrow_start = match *cur!(self, true) {
-            Word(Word::Ident(..)) | tok!('(') | tok!("yield") => Some(cur_pos!(self)),
+            Token::Word(Word::Ident(..)) | tok!('(') | tok!("yield") => Some(cur_pos!(self)),
             _ => None,
         };
 
@@ -168,7 +171,8 @@ impl<I: Tokens> Parser<I> {
                 } else {
                     // It is an early Reference Error if IsValidSimpleAssignmentTarget of
                     // LeftHandSideExpression is false.
-                    if !cond.is_valid_simple_assignment_target(self.ctx().strict) {
+                    if !cond.is_valid_simple_assignment_target(self.ctx().contains(Context::Strict))
+                    {
                         if self.input.syntax().typescript() {
                             self.emit_err(cond.span(), SyntaxError::TS2406);
                         } else {
@@ -209,7 +213,10 @@ impl<I: Tokens> Parser<I> {
     }
 
     /// Spec: 'ConditionalExpression'
-    #[cfg_attr(feature = "tracing-spans", tracing::instrument(skip_all))]
+    #[cfg_attr(
+        feature = "tracing-spans",
+        tracing::instrument(level = "debug", skip_all)
+    )]
     fn parse_cond_expr(&mut self) -> PResult<Box<Expr>> {
         trace_cur!(self, parse_cond_expr);
 
@@ -219,19 +226,13 @@ impl<I: Tokens> Parser<I> {
         return_if_arrow!(self, test);
 
         if eat!(self, '?') {
-            let ctx = Context {
-                in_cond_expr: true,
-                will_expect_colon_for_cond: true,
-                include_in_expr: true,
-                ..self.ctx()
-            };
+            let ctx = self.ctx()
+                | Context::InCondExpr
+                | Context::WillExpectColonForCond
+                | Context::IncludeInExpr;
             let cons = self.with_ctx(ctx).parse_assignment_expr()?;
             expect!(self, ':');
-            let ctx = Context {
-                in_cond_expr: true,
-                will_expect_colon_for_cond: false,
-                ..self.ctx()
-            };
+            let ctx = (self.ctx() | Context::InCondExpr) & !Context::WillExpectColonForCond;
             let alt = self.with_ctx(ctx).parse_assignment_expr()?;
             let span = Span::new(start, alt.span_hi());
             Ok(CondExpr {
@@ -247,7 +248,10 @@ impl<I: Tokens> Parser<I> {
     }
 
     /// Parse a primary expression or arrow function
-    #[cfg_attr(feature = "tracing-spans", tracing::instrument(skip_all))]
+    #[cfg_attr(
+        feature = "tracing-spans",
+        tracing::instrument(level = "debug", skip_all)
+    )]
     pub(super) fn parse_primary_expr(&mut self) -> PResult<Box<Expr>> {
         trace_cur!(self, parse_primary_expr);
 
@@ -300,10 +304,7 @@ impl<I: Tokens> Parser<I> {
                 }
 
                 tok!('[') => {
-                    let ctx = Context {
-                        will_expect_colon_for_cond: false,
-                        ..self.ctx()
-                    };
+                    let ctx = self.ctx() & !Context::WillExpectColonForCond;
                     return self.with_ctx(ctx).parse_array_lit();
                 }
 
@@ -370,10 +371,7 @@ impl<I: Tokens> Parser<I> {
                 }
 
                 tok!('`') => {
-                    let ctx = Context {
-                        will_expect_colon_for_cond: false,
-                        ..self.ctx()
-                    };
+                    let ctx = self.ctx() & !Context::WillExpectColonForCond;
 
                     // parse template literal
                     return Ok(self.with_ctx(ctx).parse_tpl(false)?.into());
@@ -398,8 +396,13 @@ impl<I: Tokens> Parser<I> {
             || is!(self, IdentRef)
         {
             let ctx = self.ctx();
-            let id = self.parse_ident(!ctx.in_generator, !ctx.in_async)?;
-            if id.is_reserved_in_strict_mode(self.ctx().module && !self.ctx().in_declare) {
+            let id = self.parse_ident(
+                !ctx.contains(Context::InGenerator),
+                !ctx.contains(Context::InAsync),
+            )?;
+            if id.is_reserved_in_strict_mode(
+                self.ctx().contains(Context::Module) && !self.ctx().contains(Context::InDeclare),
+            ) {
                 self.emit_strict_mode_err(
                     self.input.prev_span(),
                     SyntaxError::InvalidIdentInStrict(id.sym.clone()),
@@ -417,13 +420,14 @@ impl<I: Tokens> Parser<I> {
                 // for(async of x);
                 // for(async of =>{};;);
                 // ```
-                if ctx.expr_ctx.for_loop_init && is!(self, "of") && !peeked_is!(self, "=>") {
+                if ctx.contains(Context::ForLoopInit) && is!(self, "of") && !peeked_is!(self, "=>")
+                {
                     // ```spec https://tc39.es/ecma262/#prod-ForInOfStatement
                     // for ( [lookahead ∉ { let, async of }] LeftHandSideExpression[?Yield, ?Await] of AssignmentExpression[+In, ?Yield, ?Await] ) Statement[?Yield, ?Await, ?Return]
                     // [+Await] for await ( [lookahead ≠ let] LeftHandSideExpression[?Yield, ?Await] of AssignmentExpression[+In, ?Yield, ?Await] ) Statement[?Yield, ?Await, ?Return]
                     // ```
 
-                    if !ctx.expr_ctx.for_await_loop_init {
+                    if !ctx.contains(Context::ForAwaitLoopInit) {
                         self.emit_err(self.input.prev_span(), SyntaxError::TS1106);
                     }
 
@@ -459,7 +463,7 @@ impl<I: Tokens> Parser<I> {
                 }
                 .into());
             } else if can_be_arrow && !self.input.had_line_break_before_cur() && eat!(self, "=>") {
-                if self.ctx().strict && id.is_reserved_in_strict_bind() {
+                if self.ctx().contains(Context::Strict) && id.is_reserved_in_strict_bind() {
                     self.emit_strict_mode_err(id.span, SyntaxError::EvalAndArgumentsInStrict)
                 }
                 let params = vec![id.into()];
@@ -492,14 +496,17 @@ impl<I: Tokens> Parser<I> {
         syntax_error!(self, self.input.cur_span(), SyntaxError::TS1109)
     }
 
-    #[cfg_attr(feature = "tracing-spans", tracing::instrument(skip_all))]
+    #[cfg_attr(
+        feature = "tracing-spans",
+        tracing::instrument(level = "debug", skip_all)
+    )]
     fn parse_array_lit(&mut self) -> PResult<Box<Expr>> {
         trace_cur!(self, parse_array_lit);
 
         let start = cur_pos!(self);
 
         assert_and_bump!(self, '[');
-        let mut elems = Vec::new();
+        let mut elems = Vec::with_capacity(8);
 
         while !eof!(self) && !is!(self, ']') {
             if is!(self, ',') {
@@ -534,12 +541,12 @@ impl<I: Tokens> Parser<I> {
     }
 
     /// `is_new_expr`: true iff we are parsing production 'NewExpression'.
-    #[cfg_attr(feature = "tracing-spans", tracing::instrument(skip_all))]
+    #[cfg_attr(
+        feature = "tracing-spans",
+        tracing::instrument(level = "debug", skip_all)
+    )]
     fn parse_member_expr_or_new_expr(&mut self, is_new_expr: bool) -> PResult<Box<Expr>> {
-        let ctx = Context {
-            should_not_lex_lt_or_gt_as_type: true,
-            ..self.ctx()
-        };
+        let ctx = self.ctx() | Context::ShouldNotLexLtOrGtAsType;
         self.with_ctx(ctx)
             .parse_member_expr_or_new_expr_inner(is_new_expr)
     }
@@ -559,7 +566,9 @@ impl<I: Tokens> Parser<I> {
                     .into();
 
                     let ctx = self.ctx();
-                    if (!ctx.inside_non_arrow_function_scope) && !ctx.in_parameters && !ctx.in_class
+                    if !ctx.contains(Context::InsideNonArrowFunctionScope)
+                        && !ctx.contains(Context::InParameters)
+                        && !ctx.contains(Context::InClass)
                     {
                         self.emit_err(span, SyntaxError::InvalidNewTarget);
                     }
@@ -603,10 +612,7 @@ impl<I: Tokens> Parser<I> {
 
             let type_args = if self.input.syntax().typescript() && is_one_of!(self, '<', "<<") {
                 self.try_parse_ts(|p| {
-                    let ctx = Context {
-                        should_not_lex_lt_or_gt_as_type: false,
-                        ..p.ctx()
-                    };
+                    let ctx = p.ctx() & !Context::ShouldNotLexLtOrGtAsType;
 
                     let args = p.with_ctx(ctx).parse_ts_type_args()?;
                     if !is!(p, '(') {
@@ -685,7 +691,10 @@ impl<I: Tokens> Parser<I> {
 
     /// Parse `NewExpression`.
     /// This includes `MemberExpression`.
-    #[cfg_attr(feature = "tracing-spans", tracing::instrument(skip_all))]
+    #[cfg_attr(
+        feature = "tracing-spans",
+        tracing::instrument(level = "debug", skip_all)
+    )]
     pub(super) fn parse_new_expr(&mut self) -> PResult<Box<Expr>> {
         trace_cur!(self, parse_new_expr);
 
@@ -693,14 +702,14 @@ impl<I: Tokens> Parser<I> {
     }
 
     /// Parse `Arguments[Yield, Await]`
-    #[cfg_attr(feature = "tracing-spans", tracing::instrument(skip_all))]
+    #[cfg_attr(
+        feature = "tracing-spans",
+        tracing::instrument(level = "debug", skip_all)
+    )]
     pub(super) fn parse_args(&mut self, is_dynamic_import: bool) -> PResult<Vec<ExprOrSpread>> {
         trace_cur!(self, parse_args);
 
-        let ctx = Context {
-            will_expect_colon_for_cond: false,
-            ..self.ctx()
-        };
+        let ctx = self.ctx() & !Context::WillExpectColonForCond;
 
         self.with_ctx(ctx).parse_with(|p| {
             let start = cur_pos!(p);
@@ -766,7 +775,10 @@ impl<I: Tokens> Parser<I> {
     }
 
     /// Parse paren expression or arrow function expression.
-    #[cfg_attr(feature = "tracing-spans", tracing::instrument(skip_all))]
+    #[cfg_attr(
+        feature = "tracing-spans",
+        tracing::instrument(level = "debug", skip_all)
+    )]
     fn parse_paren_expr_or_arrow_fn(
         &mut self,
         can_be_arrow: bool,
@@ -781,10 +793,7 @@ impl<I: Tokens> Parser<I> {
         // But as all patterns of javascript is subset of
         // expressions, we can parse both as expression.
 
-        let ctx = Context {
-            will_expect_colon_for_cond: false,
-            ..self.ctx()
-        };
+        let ctx = self.ctx() & !Context::WillExpectColonForCond;
 
         let (paren_items, trailing_comma) = self
             .with_ctx(ctx)
@@ -795,9 +804,10 @@ impl<I: Tokens> Parser<I> {
             .iter()
             .any(|item| matches!(item, AssignTargetOrSpread::Pat(..)));
 
-        let will_expect_colon_for_cond = self.ctx().will_expect_colon_for_cond;
+        let will_expect_colon_for_cond = self.ctx().contains(Context::WillExpectColonForCond);
         // This is slow path. We handle arrow in conditional expression.
-        if self.syntax().typescript() && self.ctx().in_cond_expr && is!(self, ':') {
+        if self.syntax().typescript() && self.ctx().contains(Context::InCondExpr) && is!(self, ':')
+        {
             // TODO: Remove clone
             let items_ref = &paren_items;
             if let Some(expr) = self.try_parse_ts(|p| {
@@ -839,7 +849,7 @@ impl<I: Tokens> Parser<I> {
             }
         }
 
-        let return_type = if !self.ctx().will_expect_colon_for_cond
+        let return_type = if !self.ctx().contains(Context::WillExpectColonForCond)
             && self.input.syntax().typescript()
             && is!(self, ':')
         {
@@ -1104,7 +1114,10 @@ impl<I: Tokens> Parser<I> {
         })
     }
 
-    #[cfg_attr(feature = "tracing-spans", tracing::instrument(skip_all))]
+    #[cfg_attr(
+        feature = "tracing-spans",
+        tracing::instrument(level = "debug", skip_all)
+    )]
     pub(super) fn parse_subscripts(
         &mut self,
         mut obj: Callee,
@@ -1121,7 +1134,10 @@ impl<I: Tokens> Parser<I> {
     }
 
     /// returned bool is true if this method should be called again.
-    #[cfg_attr(feature = "tracing-spans", tracing::instrument(skip_all))]
+    #[cfg_attr(
+        feature = "tracing-spans",
+        tracing::instrument(level = "debug", skip_all)
+    )]
     fn parse_subscript(
         &mut self,
         start: BytePos,
@@ -1175,10 +1191,7 @@ impl<I: Tokens> Parser<I> {
 
                 let mut_obj_opt = &mut obj_opt;
 
-                let ctx: Context = Context {
-                    should_not_lex_lt_or_gt_as_type: true,
-                    ..self.ctx()
-                };
+                let ctx = self.ctx() | Context::ShouldNotLexLtOrGtAsType;
                 let result = self.with_ctx(ctx).try_parse_ts(|p| {
                     if !no_call
                         && p.at_possible_async(match &mut_obj_opt {
@@ -1318,7 +1331,7 @@ impl<I: Tokens> Parser<I> {
                 Box::new(match obj {
                     Callee::Import(..) => unreachable!(),
                     Callee::Super(obj) => {
-                        if !self.ctx().allow_direct_super
+                        if !self.ctx().contains(Context::AllowDirectSuper)
                             && !self.input.syntax().allow_super_outside_method()
                         {
                             syntax_error!(self, self.input.cur_span(), SyntaxError::InvalidSuper);
@@ -1447,7 +1460,7 @@ impl<I: Tokens> Parser<I> {
                 Box::new(match obj {
                     callee @ Callee::Import(_) => match prop {
                         MemberProp::Ident(IdentName { sym, .. }) => {
-                            if !self.ctx().can_be_module {
+                            if !self.ctx().contains(Context::CanBeModule) {
                                 let span = span!(self, start);
                                 self.emit_err(span, SyntaxError::ImportMetaInScript);
                             }
@@ -1476,7 +1489,7 @@ impl<I: Tokens> Parser<I> {
                         }
                     },
                     Callee::Super(obj) => {
-                        if !self.ctx().allow_direct_super
+                        if !self.ctx().contains(Context::AllowDirectSuper)
                             && !self.input.syntax().allow_super_outside_method()
                         {
                             syntax_error!(self, self.input.cur_span(), SyntaxError::InvalidSuper);
@@ -1551,10 +1564,7 @@ impl<I: Tokens> Parser<I> {
 
                 // MemberExpression[?Yield, ?Await] TemplateLiteral[?Yield, ?Await, +Tagged]
                 if is!(self, '`') {
-                    let ctx = Context {
-                        will_expect_colon_for_cond: false,
-                        ..self.ctx()
-                    };
+                    let ctx = self.ctx() & !Context::WillExpectColonForCond;
 
                     let tpl = self.with_ctx(ctx).parse_tagged_tpl(expr, None)?;
                     return Ok((tpl.into(), true));
@@ -1575,7 +1585,10 @@ impl<I: Tokens> Parser<I> {
     }
 
     /// Parse call, dot, and `[]`-subscript expressions.
-    #[cfg_attr(feature = "tracing-spans", tracing::instrument(skip_all))]
+    #[cfg_attr(
+        feature = "tracing-spans",
+        tracing::instrument(level = "debug", skip_all)
+    )]
     pub(super) fn parse_lhs_expr(&mut self) -> PResult<Box<Expr>> {
         trace_cur!(self, parse_lhs_expr);
 
@@ -1714,15 +1727,15 @@ impl<I: Tokens> Parser<I> {
     }
 
     // Returns (args_or_pats, trailing_comma)
-    #[cfg_attr(feature = "tracing-spans", tracing::instrument(skip_all))]
+    #[cfg_attr(
+        feature = "tracing-spans",
+        tracing::instrument(level = "debug", skip_all)
+    )]
     pub(super) fn parse_args_or_pats(
         &mut self,
     ) -> PResult<(Vec<AssignTargetOrSpread>, Option<Span>)> {
-        self.with_ctx(Context {
-            will_expect_colon_for_cond: false,
-            ..self.ctx()
-        })
-        .parse_args_or_pats_inner()
+        self.with_ctx(self.ctx() & !Context::WillExpectColonForCond)
+            .parse_args_or_pats_inner()
     }
 
     fn parse_args_or_pats_inner(&mut self) -> PResult<(Vec<AssignTargetOrSpread>, Option<Span>)> {
@@ -1806,19 +1819,14 @@ impl<I: Tokens> Parser<I> {
                     } else if matches!(arg, ExprOrSpread { spread: None, .. }) {
                         expect!(self, '?');
                         let test = arg.expr;
-                        let ctx = Context {
-                            in_cond_expr: true,
-                            will_expect_colon_for_cond: true,
-                            include_in_expr: true,
-                            ..self.ctx()
-                        };
+                        let ctx = self.ctx()
+                            | Context::InCondExpr
+                            | Context::WillExpectColonForCond
+                            | Context::IncludeInExpr;
                         let cons = self.with_ctx(ctx).parse_assignment_expr()?;
                         expect!(self, ':');
-                        let ctx = Context {
-                            in_cond_expr: true,
-                            will_expect_colon_for_cond: false,
-                            ..self.ctx()
-                        };
+                        let ctx =
+                            (self.ctx() | Context::InCondExpr) & !Context::WillExpectColonForCond;
                         let alt = self.with_ctx(ctx).parse_assignment_expr()?;
 
                         arg = ExprOrSpread {
@@ -1992,13 +2000,13 @@ impl<I: Tokens> Parser<I> {
         let start = cur_pos!(self);
 
         assert_and_bump!(self, "yield");
-        debug_assert!(self.ctx().in_generator);
+        debug_assert!(self.ctx().contains(Context::InGenerator));
 
         // Spec says
         // YieldExpression cannot be used within the FormalParameters of a generator
         // function because any expressions that are part of FormalParameters are
         // evaluated before the resulting generator object is in a resumable state.
-        if self.ctx().in_parameters && !self.ctx().in_function {
+        if self.ctx().contains(Context::InParameters) && !self.ctx().contains(Context::InFunction) {
             syntax_error!(self, self.input.prev_span(), SyntaxError::YieldParamInGen)
         }
 
@@ -2053,12 +2061,12 @@ impl<I: Tokens> Parser<I> {
         let start = cur_pos!(self);
 
         let v = match cur!(self, true) {
-            Word(Word::Null) => {
+            Token::Word(Word::Null) => {
                 bump!(self);
                 let span = span!(self, start);
                 Lit::Null(Null { span })
             }
-            Word(Word::True) | Word(Word::False) => {
+            Token::Word(Word::True) | Token::Word(Word::False) => {
                 let value = is!(self, "true");
                 bump!(self);
                 let span = span!(self, start);
@@ -2100,14 +2108,14 @@ impl<I: Tokens> Parser<I> {
         no_call: bool,
     ) -> PResult<Box<Expr>> {
         if eat!(self, '.') {
-            self.state.found_module_item = true;
+            self.found_module_item = true;
 
             let ident = self.parse_ident_name()?;
 
             match &*ident.sym {
                 "meta" => {
                     let span = span!(self, start);
-                    if !self.ctx().can_be_module {
+                    if !self.ctx().contains(Context::CanBeModule) {
                         self.emit_err(span, SyntaxError::ImportMetaInScript);
                     }
                     let expr = MetaPropExpr {
@@ -2142,7 +2150,7 @@ impl<I: Tokens> Parser<I> {
     }
 
     pub(super) fn check_assign_target(&mut self, expr: &Expr, deny_call: bool) {
-        if !expr.is_valid_simple_assignment_target(self.ctx().strict) {
+        if !expr.is_valid_simple_assignment_target(self.ctx().contains(Context::Strict)) {
             self.emit_err(expr.span(), SyntaxError::TS2406);
         }
 
@@ -2172,7 +2180,7 @@ impl<I: Tokens> Parser<I> {
             // an ObjectLiteral nor an ArrayLiteral and
             // IsValidSimpleAssignmentTarget of LeftHandSideExpression is false.
             if !is_eval_or_arguments
-                && !expr.is_valid_simple_assignment_target(self.ctx().strict)
+                && !expr.is_valid_simple_assignment_target(self.ctx().contains(Context::Strict))
                 && should_deny(expr, deny_call)
             {
                 self.emit_err(expr.span(), SyntaxError::TS2406);

@@ -7,25 +7,32 @@ include       = ["Cargo.toml", "src/**/*.rs", "examples/**/*.rs"]
 license       = { workspace = true }
 name          = "swc_ecma_parser"
 repository    = { workspace = true }
-version       = "11.0.1"
+version       = "11.1.4"
 
 [[bench]]
 harness = false
 name = "lexer"
 
-[[bench]]
-harness = false
-name = "parser"
+[lib]
+bench = false
+
+[features]
+# Used for debugging
+debug         = ["tracing-spans"]
+default       = ["typescript", "stacker"]
+tracing-spans = []
+typescript    = []
+verify        = ["swc_ecma_visit", "swc_ecma_lexer/verify"]
 
 [dependencies]
-either = { workspace = true }
-new_debug_unreachable = { workspace = true }
-num-bigint = { workspace = true }
-num-traits = { workspace = true }
-phf = { workspace = true, features = ["macros"] }
-rustc-hash = { workspace = true }
-serde = { workspace = true, features = ["derive"] }
-smallvec = { workspace = true }
+arrayvec    = { workspace = true }
+bitflags    = { workspace = true }
+either      = { workspace = true }
+num-bigint  = { workspace = true }
+num-traits  = { workspace = true }
+rustc-hash  = { workspace = true }
+serde       = { workspace = true, features = ["derive"] }
+smallvec    = { workspace = true }
 smartstring = { workspace = true }
 swc_atoms = { version = "5.0.0", path = "../swc_atoms" }
 swc_common = { version = "8.0.1", path = "../swc_common" }
@@ -37,8 +44,9 @@ typed-arena = { workspace = true }
 new_debug_unreachable = { workspace = true }
 phf                   = { workspace = true, features = ["macros"] }
 swc_atoms             = { version = "5.0.0", path = "../swc_atoms" }
-swc_common            = { version = "8.1.0", path = "../swc_common" }
-swc_ecma_ast          = { version = "8.1.1", path = "../swc_ecma_ast" }
+swc_common            = { version = "8.1.1", path = "../swc_common" }
+swc_ecma_ast          = { version = "8.1.2", path = "../swc_ecma_ast" }
+swc_ecma_lexer        = { version = "11.1.3", path = "../swc_ecma_lexer" }
 swc_ecma_visit        = { version = "8.0.0", path = "../swc_ecma_visit", optional = true }
 
 [target.'cfg(not(any(target_arch = "wasm32", target_arch = "arm")))'.dependencies]
@@ -46,7 +54,7 @@ stacker = { version = "0.1.15", optional = true }
 
 [dev-dependencies]
 codspeed-criterion-compat = { workspace = true }
-swc_ecma_ast = { version = "8.1.1", path = "../swc_ecma_ast", features = [
+swc_ecma_ast = { version = "8.1.2", path = "../swc_ecma_ast", features = [
   "serde-impl",
 ] }
 swc_ecma_visit = { version = "8.0.0", path = "../swc_ecma_visit" }
@@ -66,9 +74,6 @@ tracing-spans = []
 typescript = []
 verify = ["swc_ecma_visit"]
 
-[lib]
-bench = false
-path = "Source/lib.rs"
 
 [package]
 authors = ["강동윤 <kdy1997.dev@gmail.com>"]

@@ -161,10 +161,10 @@ wasm-bindgen-futures = "0.4.42"
   swc_atoms            = "5.0.0"
   swc_cached           = "2.0.0"
   swc_cli_impl         = "22.0.0"
-  swc_common           = "8.1.0"
+  swc_common           = "8.1.1"
   swc_compiler_base    = "18.0.0"
   swc_config           = "2.0.0"
-  swc_core             = "22.2.1"
+  swc_core             = "22.5.4"
   swc_css_ast          = "8.0.0"
   swc_css_codegen      = "8.0.0"
   swc_css_minifier     = "8.0.0"
@@ -187,7 +187,7 @@ wasm-bindgen-futures = "0.4.42"
 # lto = true
 
 # We use CARGO_PROFILE_RELEASE_LTO for production builds
-# lto = "fat"
+lto = "fat"
 
 # debug = true
 # opt-level = 'z'
@@ -196,9 +196,6 @@ wasm-bindgen-futures = "0.4.42"
 strip = "symbols"
 
   [profile.release.package]
-
-    [profile.release.package.std]
-    opt-level = 3
 
     [profile.release.package.wasmer-wasix]
     opt-level = "s"

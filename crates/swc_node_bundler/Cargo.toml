@@ -33,15 +33,15 @@ swc_atoms = { version = "5.0.0", path = "../swc_atoms" }
 swc_bundler = { version = "15.0.0", path = "../swc_bundler", features = [
   "concurrent",
 ] }
-swc_common = { version = "8.1.0", path = "../swc_common", features = [
+swc_common = { version = "8.1.1", path = "../swc_common", features = [
   "concurrent",
 ] }
-swc_ecma_ast = { version = "8.1.1", path = "../swc_ecma_ast" }
-swc_ecma_codegen = { version = "10.0.0", path = "../swc_ecma_codegen" }
+swc_ecma_ast = { version = "8.1.2", path = "../swc_ecma_ast" }
+swc_ecma_codegen = { version = "10.0.1", path = "../swc_ecma_codegen" }
 swc_ecma_loader = { version = "8.0.0", path = "../swc_ecma_loader" }
-swc_ecma_parser = { version = "11.0.1", path = "../swc_ecma_parser" }
+swc_ecma_parser = { version = "11.1.4", path = "../swc_ecma_parser" }
 swc_ecma_transforms = { version = "15.0.0", path = "../swc_ecma_transforms" }
-swc_ecma_utils = { version = "12.0.0", path = "../swc_ecma_utils" }
+swc_ecma_utils = { version = "12.0.1", path = "../swc_ecma_utils" }
 swc_ecma_visit = { version = "8.0.0", path = "../swc_ecma_visit" }
 swc_malloc = { version = "1.2.2", path = "../swc_malloc" }
 tracing = { workspace = true }
