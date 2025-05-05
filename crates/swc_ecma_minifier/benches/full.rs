@@ -70,6 +70,8 @@ pub fn bench_files(c: &mut Criterion) {
 fn bench_libs(c: &mut Criterion) {
     let mut group = c.benchmark_group("es/minifier/libs");
 
+fn bench_libs(c: &mut Criterion) {
+    let mut group = c.benchmark_group("es/minifier/libs");
     group.sample_size(10);
 
     let mut bench_file = |name: &str| {
@@ -109,6 +111,16 @@ fn bench_libs(c: &mut Criterion) {
 
     bench_file("victory");
 
+    bench_file("d3");
+    bench_file("echarts");
+    bench_file("jquery");
+    bench_file("lodash");
+    bench_file("moment");
+    bench_file("react");
+    bench_file("terser");
+    bench_file("three");
+    bench_file("typescript");
+    bench_file("victory");
     bench_file("vue");
 }
 

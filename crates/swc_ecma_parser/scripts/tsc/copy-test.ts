@@ -88,6 +88,8 @@ async function check(f: string) {
 
     let program = ts.createProgram(fileNames, options);
 
+    options.jsx = ts.JsxEmit.Preserve;
+    let program = ts.createProgram(fileNames, options);
     let emitResult = program.emit();
 
     let allDiagnostics = ts
@@ -101,6 +103,7 @@ async function check(f: string) {
 
         if (2000 <= d.code && d.code < 3000) continue;
 
+        if (2000 <= d.code && d.code < 3000) continue;
         if (10000 <= d.code) return false;
 
         let { line, character } = d.file.getLineAndCharacterOfPosition(
@@ -109,6 +112,7 @@ async function check(f: string) {
 
         let message = ts.flattenDiagnosticMessageText(d.messageText, "\n");
 
+        let message = ts.flattenDiagnosticMessageText(d.messageText, "\n");
         console.log(
             `${d.code} ${d.file.fileName} (${line + 1},${
                 character + 1

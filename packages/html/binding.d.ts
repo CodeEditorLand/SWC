@@ -50,6 +50,9 @@ export declare function minifyFragmentSync(
 
     name: string;
 
+    namespace?: string;
+    prefix?: string;
+    name: string;
     value?: string;
 }
 
@@ -58,6 +61,7 @@ export interface Diagnostic {
 
     message: string;
 
+    message: string;
     span: any;
 }
 
@@ -68,6 +72,8 @@ export interface Element {
 
     attributes: Array<Attribute>;
 
+    namespace: string;
+    attributes: Array<Attribute>;
     isSelfClosing: boolean;
 }
 
@@ -100,5 +106,6 @@ export interface TransformOutput {
 
     code: string;
 
+    code: string;
     errors?: Array<Diagnostic>;
 }

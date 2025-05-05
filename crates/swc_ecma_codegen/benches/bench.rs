@@ -59,6 +59,7 @@ function intToHex( int )
 
     const hex = int.toString( 16 );
 
+    const hex = int.toString( 16 );
     return mask.substring( 0, 7 - hex.length ) + hex;
 }
 /**
@@ -158,6 +159,7 @@ fn bench_emitter(b: &mut Bencher, s: &str) {
 
             let mut src_map_buf = Vec::new();
 
+            let mut src_map_buf = Vec::new();
             let mut buf = Vec::new();
             {
                 let mut emitter = Emitter {
@@ -182,6 +184,10 @@ fn bench_emitter(b: &mut Bencher, s: &str) {
             black_box(srcmap);
         });
 
+            black_box(buf);
+            let srcmap = cm.build_source_map(&src_map_buf);
+            black_box(srcmap);
+        });
         Ok(())
     });
 }

@@ -1,14 +1,3 @@
-[dependencies]
-proc-macro2 = { workspace = true }
-quote = { workspace = true }
-swc_macros_common = { version = "1.0.0", path = "../swc_macros_common" }
-syn = { workspace = true, features = ["fold"] }
-
-[lib]
-bench = false
-path = "Source/lib.rs"
-proc-macro = true
-
 [package]
 authors = [
   "강동윤 <kdy1997.dev@gmail.com>",
@@ -16,8 +5,19 @@ authors = [
 ]
 description = "Internal macro for the xml code generator"
 documentation = "https://rustdoc.swc.rs/swc_xml_codegen_macros/"
-edition = "2024"
-license-file = { workspace = true }
+edition = "2021"
+license = { workspace = true }
 name = "swc_xml_codegen_macros"
 repository = "https://github.com/swc-project/swc.git"
 version = "1.0.0"
+
+[lib]
+bench      = false
+proc-macro = true
+
+[dependencies]
+proc-macro2 = { workspace = true }
+quote       = { workspace = true }
+syn         = { workspace = true, features = ["fold"] }
+
+swc_macros_common = { version = "1.0.0", path = "../swc_macros_common" }

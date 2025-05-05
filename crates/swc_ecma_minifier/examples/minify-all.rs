@@ -231,6 +231,11 @@ fn print<N:swc_ecma_codegen::Node>(cm:Lrc<SourceMap>, nodes:&[N], minify:bool) -
     })
     .unwrap();
 
+    let dirs = env::args().skip(1).collect::<Vec<_>>();
+    let files = expand_dirs(dirs);
+    eprintln!("Using {} files", files.len());
+
+    let start = Instant::now();
     minify_all(&files);
     eprintln!("Took {:?}", start.elapsed());
 }

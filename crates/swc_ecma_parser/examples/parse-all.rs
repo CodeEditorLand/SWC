@@ -83,6 +83,11 @@ fn expand_dirs(dirs:Vec<String>) -> Vec<PathBuf> {
 
     let start = Instant::now();
 
+    let dirs = env::args().skip(1).collect::<Vec<_>>();
+    let files = expand_dirs(dirs);
+    eprintln!("Using {} files", files.len());
+
+    let start = Instant::now();
     testing::run_test2(false, |cm, handler| {
         GLOBALS.with(|globals| {
             HANDLER.set(&handler, || {

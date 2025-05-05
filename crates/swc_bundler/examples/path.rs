@@ -87,6 +87,12 @@ impl Load for PathLoader {
     // This example does not use core modules.
     let external_modules = Vec::new();
 
+    let _log = testing::init();
+
+    let globals = Globals::new();
+    let cm = Lrc::new(SourceMap::new(FilePathMapping::empty()));
+    // This example does not use core modules.
+    let external_modules = Vec::new();
     let mut bundler = Bundler::new(
         &globals,
         cm.clone(),
@@ -106,6 +112,10 @@ impl Load for PathLoader {
 
     let mut bundles = bundler.bundle(entries).expect("failed to bundle");
 
+    let mut entries = HashMap::default();
+    entries.insert("main".to_string(), FileName::Real("assets/main.js".into()));
+
+    let mut bundles = bundler.bundle(entries).expect("failed to bundle");
     assert_eq!(
         bundles.len(),
         1,
@@ -114,6 +124,7 @@ impl Load for PathLoader {
 
     let bundle = bundles.pop().unwrap();
 
+    let bundle = bundles.pop().unwrap();
     assert_eq!(
         bundle.kind,
         BundleKind::Named {

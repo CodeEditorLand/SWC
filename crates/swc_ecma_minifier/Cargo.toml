@@ -7,7 +7,7 @@ include       = ["Cargo.toml", "src/**/*.rs", "src/lists/*.json"]
 license       = { workspace = true }
 name          = "swc_ecma_minifier"
 repository    = { workspace = true }
-version       = "16.1.1"
+version       = "17.0.0"
 
   [package.metadata.docs.rs]
   all-features = true
@@ -43,34 +43,36 @@ par-iter          = { workspace = true }
 parking_lot       = { workspace = true }
 phf               = { workspace = true }
 pretty_assertions = { workspace = true, optional = true }
-radix_fmt = { workspace = true }
-regex = { workspace = true }
-rustc-hash = { workspace = true }
-ryu-js = { workspace = true }
-serde = { workspace = true, features = ["derive"] }
-serde_json = { workspace = true }
+radix_fmt         = { workspace = true }
+regex             = { workspace = true }
+rustc-hash        = { workspace = true }
+ryu-js            = { workspace = true }
+serde             = { workspace = true, features = ["derive"] }
+serde_json        = { workspace = true }
+tracing           = { workspace = true }
+
+
 swc_allocator = { version = "4.0.0", path = "../swc_allocator", default-features = false }
 swc_atoms = { version = "5.0.0", path = "../swc_atoms" }
-swc_common = { version = "8.1.1", path = "../swc_common" }
+swc_common = { version = "9.0.0", path = "../swc_common" }
 swc_config = { version = "2.0.0", path = "../swc_config", features = [
   "sourcemap",
 ] }
-swc_ecma_ast = { version = "8.1.2", path = "../swc_ecma_ast", features = [
+swc_ecma_ast = { version = "9.0.0", path = "../swc_ecma_ast", features = [
   "serde",
 ] }
-swc_ecma_codegen = { version = "10.0.1", path = "../swc_ecma_codegen" }
-swc_ecma_parser = { version = "11.1.4", path = "../swc_ecma_parser" }
-swc_ecma_transforms_base = { version = "12.2.0", path = "../swc_ecma_transforms_base" }
-swc_ecma_transforms_optimization = { version = "12.0.1", path = "../swc_ecma_transforms_optimization" }
-swc_ecma_usage_analyzer = { version = "13.1.1", path = "../swc_ecma_usage_analyzer" }
-swc_ecma_utils = { version = "12.0.1", path = "../swc_ecma_utils" }
-swc_ecma_visit = { version = "8.0.0", path = "../swc_ecma_visit" }
+swc_ecma_codegen = { version = "11.0.0", path = "../swc_ecma_codegen" }
+swc_ecma_parser = { version = "12.0.0", path = "../swc_ecma_parser" }
+swc_ecma_transforms_base = { version = "13.0.0", path = "../swc_ecma_transforms_base" }
+swc_ecma_transforms_optimization = { version = "13.0.0", path = "../swc_ecma_transforms_optimization" }
+swc_ecma_usage_analyzer = { version = "14.0.0", path = "../swc_ecma_usage_analyzer" }
+swc_ecma_utils = { version = "13.0.0", path = "../swc_ecma_utils" }
+swc_ecma_visit = { version = "9.0.0", path = "../swc_ecma_visit" }
 swc_timer = { version = "1.0.0", path = "../swc_timer" }
-tracing = { workspace = true }
 
 [dev-dependencies]
-ansi_term = { workspace = true }
-anyhow = { workspace = true }
+ansi_term                 = { workspace = true }
+anyhow                    = { workspace = true }
 codspeed-criterion-compat = { workspace = true }
 criterion                 = { workspace = true }
 flate2                    = { workspace = true }
@@ -80,41 +82,10 @@ pretty_assertions         = { workspace = true }
 walkdir                   = { workspace = true }
 
 swc_allocator    = { version = "4.0.0", path = "../swc_allocator" }
-swc_ecma_testing = { version = "9.0.0", path = "../swc_ecma_testing" }
+swc_ecma_testing = { version = "10.0.0", path = "../swc_ecma_testing" }
 swc_malloc       = { version = "1.2.2", path = "../swc_malloc" }
-testing          = { version = "9.0.0", path = "../testing" }
+testing          = { version = "10.0.0", path = "../testing" }
 
-[features]
-concurrent = [
-  "swc_common/concurrent",
-  "swc_ecma_transforms_base/concurrent-renamer",
-  "swc_ecma_transforms_optimization/concurrent",
-]
-debug = ["backtrace", "swc_ecma_transforms_optimization/debug"]
-default = ["serde-impl"]
-extra-serde = ["swc_ecma_ast/serde-impl", "serde-impl"]
-serde-impl = []
-trace-ast = []
-
-[lib]
-bench = false
-path = "Source/lib.rs"
-
-[package]
-authors = ["강동윤 <kdy1997.dev@gmail.com>"]
-description = "EcmaScript code minifier."
-documentation = "https://rustdoc.swc.rs/swc_ecma_minifier/"
-edition = { workspace = true }
-include = ["Cargo.toml", "src/**/*.rs", "src/lists/*.json"]
-license-file = { workspace = true }
-name = "swc_ecma_minifier"
-repository = { workspace = true }
-version = "13.0.0"
-
-[package.metadata]
-
-[package.metadata.docs]
-
-[package.metadata.docs.rs]
-all-features = true
-rustdoc-args = ["--cfg", "docsrs"]
+[[bench]]
+harness = false
+name    = "full"

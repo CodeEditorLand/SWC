@@ -101,6 +101,12 @@ where
             black_box(module)
         });
 
+        let module = parser.parse_module().map_err(|_| ()).unwrap();
+        b.iter(|| {
+            let module = module.clone();
+            let module = op(module);
+            black_box(module)
+        });
         Ok(())
     });
 }

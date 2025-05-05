@@ -328,6 +328,7 @@ fn do_test(_entry: &Path, entries: HashMap<String, FileName>, inline: bool, mini
 
                         b.module.visit_mut_with(&mut fixer(None));
 
+                        b.module.visit_mut_with(&mut fixer(None));
                         b
                     })
                 })
@@ -372,6 +373,12 @@ fn main() -> Result<(), Error> {
 
     let dur = start.elapsed();
 
+    let mut entries = HashMap::default();
+    entries.insert("main".to_string(), FileName::Real(main_file.clone().into()));
+
+    let start = Instant::now();
+    do_test(Path::new(&main_file), entries, false, minify);
+    let dur = start.elapsed();
     println!("Took {}", to_ms(dur));
 
     Ok(())
@@ -500,6 +507,7 @@ impl Load for Loader {
 
             err.into_diagnostic(&handler).emit();
 
+            err.into_diagnostic(&handler).emit();
             panic!("failed to parse")
         });
 

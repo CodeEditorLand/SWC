@@ -29,6 +29,8 @@ fn main() {
 	);
 	// let e_wr = EmitterWriter::new(wr.clone(), Some(cm), false,
 	// true).skip_filename(skip_filename);
+    let cm = Lrc::<SourceMap>::default();
+
     let mut diagnostics = ThreadSafetyDiagnostic::default();
 
     let emitter = ErrorEmitter {
@@ -59,6 +61,20 @@ fn main() {
 	let s = &**wr.0.lock().unwrap();
 
 	println!("{}", s);
+    let fm1 = cm.new_source_file(
+        Lrc::new(FileName::Custom("foo.js".into())),
+        "13579\n12345\n13579".into(),
+    );
+    let fm2 = cm.new_source_file(
+        Lrc::new(FileName::Custom("bar.js".into())),
+        "02468\n12345\n02468".into(),
+    );
+
+    // This is a simple example.
+    handler
+        .struct_span_err(span(&fm1, 0, 3), "simple message")
+        .emit();
+
     // We can show other file.
     // This can be used to show configurable error with the config.
     handler
@@ -130,6 +146,11 @@ fn span(base:&SourceFile, lo:u32, hi:u32) -> Span {
 	let hi = base.start_pos.0 + hi;
 
 	Span::new(BytePos(lo), BytePos(hi))
+fn span(base: &SourceFile, lo: u32, hi: u32) -> Span {
+    let lo = base.start_pos.0 + lo;
+    let hi = base.start_pos.0 + hi;
+
+    Span::new(BytePos(lo), BytePos(hi))
 }
 
 #[derive(Default, Clone)]

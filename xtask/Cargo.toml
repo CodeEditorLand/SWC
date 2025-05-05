@@ -1,25 +1,23 @@
-[[bin]]
-name = "xtask"
-path = "Source/main.rs"
+[package]
+authors     = ["강동윤 <kdy1997.dev@gmail.com>"]
+description = "Tasks for the swc project"
+edition     = { workspace = true }
+license     = { workspace = true }
+name        = "xtask"
+publish     = false
+repository  = { workspace = true }
+version     = "0.1.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = { workspace = true }
+anyhow         = { workspace = true }
 cargo_metadata = { workspace = true }
-chrono = { workspace = true }
-clap = { version = "4.5.30", features = ["derive"] }
-semver = { workspace = true }
-serde = { workspace = true }
-serde_derive = { workspace = true }
-serde_json = { workspace = true }
-toml = { workspace = true }
-walkdir = { workspace = true }
-
-[package]
-authors = ["강동윤 <kdy1997.dev@gmail.com>"]
-description = "Tasks for the swc project"
-edition = { workspace = true }
-license-file = { workspace = true }
-name = "xtask"
-publish = false
-repository = { workspace = true }
-version = "0.1.0"
+chrono         = { workspace = true }
+clap           = { version = "4.4.6", features = ["derive"] }
+semver         = { workspace = true }
+serde          = { workspace = true }
+serde_derive   = { workspace = true }
+serde_json     = { workspace = true }
+toml           = { workspace = true }
+walkdir        = { workspace = true }

@@ -75,6 +75,7 @@ fn parse_and_gen(entry: &Path) {
 
         let mut parser = Parser::new_from(lexer);
 
+        let mut parser = Parser::new_from(lexer);
         let m = parser
             .parse_module()
             .expect("failed to parse input as a module");
@@ -102,6 +103,7 @@ fn parse_and_gen(entry: &Path) {
 
         let srcmap_wr = BufWriter::new(srcmap_file);
 
+        let srcmap_wr = BufWriter::new(srcmap_file);
         srcmap.to_writer(srcmap_wr).unwrap();
 
         Ok(())
@@ -129,5 +131,10 @@ fn main() {
 
     let dur = start.elapsed();
 
+    let main_file = env::args().nth(1).unwrap();
+
+    let start = Instant::now();
+    parse_and_gen(Path::new(&main_file));
+    let dur = start.elapsed();
     println!("Took {:?}", dur);
 }

@@ -6,7 +6,7 @@ edition       = { workspace = true }
 license       = { workspace = true }
 name          = "testing"
 repository    = { workspace = true }
-version       = "9.0.0"
+version       = "10.0.0"
 
 [lib]
 bench = false
@@ -24,24 +24,8 @@ serde_json         = { workspace = true }
 tracing            = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
 
-swc_common = { version = "8.1.1", path = "../swc_common", features = [
+swc_common = { version = "9.0.0", path = "../swc_common", features = [
   "tty-emitter",
 ] }
-swc_error_reporters = { version = "10.0.0", path = "../swc_error_reporters" }
+swc_error_reporters = { version = "11.0.0", path = "../swc_error_reporters" }
 testing_macros = { version = "1.0.0", path = "../testing_macros" }
-tracing = { workspace = true }
-tracing-subscriber = { workspace = true, features = ["env-filter"] }
-
-[lib]
-bench = false
-path = "Source/lib.rs"
-
-[package]
-authors = ["강동윤 <kdy1997.dev@gmail.com>"]
-description = "Testing utilities for the swc project."
-documentation = "https://rustdoc.swc.rs/testing/"
-edition = { workspace = true }
-license-file = { workspace = true }
-name = "testing"
-repository = { workspace = true }
-version = "8.0.0"

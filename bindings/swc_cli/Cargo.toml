@@ -10,24 +10,14 @@ version     = "0.91.539"
 
 [[bin]]
 bench = false
-name = "swc"
-path = "./Source/main.rs"
-
-[dependencies]
-anyhow = { workspace = true }
-par-core = { workspace = true, features = ["chili"] }
-swc_cli_impl = { workspace = true }
+name  = "swc"
+path  = "./src/main.rs"
 
 [features]
 default = ["swc_cli_impl/default"]
-plugin = ["swc_cli_impl/plugin"]
+plugin  = ["swc_cli_impl/plugin"]
 
-[package]
-authors = ["강동윤 <kdy1997.dev@gmail.com>", "OJ Kwon <kwon.ohjoong@gmail.com>"]
-description = "Commandline for SWC"
-edition = { workspace = true }
-include = ["Cargo.toml", "src/**/*.rs"]
-license-file = { workspace = true }
-name = "swc_cli"
-repository = { workspace = true }
-version = "0.91.513"
+[dependencies]
+anyhow       = { workspace = true }
+par-core     = { workspace = true, features = ["chili"] }
+swc_cli_impl = { workspace = true }

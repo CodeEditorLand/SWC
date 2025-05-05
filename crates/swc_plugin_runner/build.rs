@@ -22,6 +22,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 	Ok(())
     let build = BuildBuilder::all_build()?;
 
+    let build = BuildBuilder::all_build()?;
     let cargo = CargoBuilder::default()
         .dependencies(true)
         .name_filter("*_ast")

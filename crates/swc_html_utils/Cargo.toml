@@ -1,15 +1,3 @@
-[dependencies]
-once_cell = { workspace = true }
-rustc-hash = { workspace = true }
-serde = { workspace = true, features = ["derive"] }
-serde_json = { workspace = true }
-swc_atoms = { version = "5.0.0", path = "../swc_atoms" }
-swc_common = { version = "8.0.1", path = "../swc_common" }
-
-[lib]
-bench = false
-path = "Source/lib.rs"
-
 [package]
 authors = [
   "강동윤 <kdy1997.dev@gmail.com>",
@@ -17,12 +5,12 @@ authors = [
 ]
 description = "Utils for HTML"
 documentation = "https://rustdoc.swc.rs/swc_html_utils/"
-edition = "2024"
+edition = "2021"
 include = ["Cargo.toml", "src/**/*.rs", "data/**/*.json"]
-license-file = { workspace = true }
+license = { workspace = true }
 name = "swc_html_utils"
 repository = "https://github.com/swc-project/swc.git"
-version = "8.0.0"
+version = "9.0.0"
 
 [lib]
 bench = false
@@ -34,4 +22,4 @@ serde      = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 
 swc_atoms  = { version = "5.0.0", path = "../swc_atoms" }
-swc_common = { version = "8.1.1", path = "../swc_common" }
+swc_common = { version = "9.0.0", path = "../swc_common" }

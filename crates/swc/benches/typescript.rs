@@ -127,6 +127,7 @@ fn as_es(c: &swc::Compiler) -> Program {
 
     let unresolved_mark = Mark::new();
 
+    let unresolved_mark = Mark::new();
     let top_level_mark = Mark::new();
 
     program
@@ -352,6 +353,12 @@ fn codegen_group(c: &mut Criterion) {
 
     codegen!(es2019, EsVersion::Es2019);
 
+    codegen!(es5, EsVersion::Es5);
+    codegen!(es2015, EsVersion::Es2015);
+    codegen!(es2016, EsVersion::Es2016);
+    codegen!(es2017, EsVersion::Es2017);
+    codegen!(es2018, EsVersion::Es2018);
+    codegen!(es2019, EsVersion::Es2019);
     codegen!(es2020, EsVersion::Es2020);
 }
 
@@ -412,6 +419,12 @@ fn full_group(c: &mut Criterion) {
 
     compat!(es2019, EsVersion::Es2019);
 
+    compat!(es5, EsVersion::Es5);
+    compat!(es2015, EsVersion::Es2015);
+    compat!(es2016, EsVersion::Es2016);
+    compat!(es2017, EsVersion::Es2017);
+    compat!(es2018, EsVersion::Es2018);
+    compat!(es2019, EsVersion::Es2019);
     compat!(es2020, EsVersion::Es2020);
 }
 

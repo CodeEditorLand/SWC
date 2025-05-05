@@ -185,6 +185,7 @@ where
 
         let mut parser = Parser::new(lexer, Default::default());
 
+        let mut parser = Parser::new(lexer, Default::default());
         let document: Document = parser.parse_document().unwrap();
 
         b.iter(|| {
@@ -210,6 +211,7 @@ where
 
         let mut parser = Parser::new(lexer, Default::default());
 
+        let mut parser = Parser::new(lexer, Default::default());
         let document_fragment: DocumentFragment = parser
             .parse_document_fragment(
                 Element {

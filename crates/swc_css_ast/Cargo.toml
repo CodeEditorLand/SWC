@@ -1,12 +1,15 @@
-[dependencies]
-bytecheck = { workspace = true, optional = true }
-is-macro = { workspace = true }
-rancor = { workspace = true, optional = true }
-rkyv = { workspace = true, optional = true }
-serde = { workspace = true, features = ["derive"], optional = true }
-string_enum = { version = "1.0.0", path = "../string_enum/" }
-swc_atoms = { version = "5.0.0", path = "../swc_atoms" }
-swc_common = { version = "8.0.1", path = "../swc_common" }
+[package]
+authors       = ["강동윤 <kdy1997.dev@gmail.com>"]
+description   = "AST definitions of css"
+documentation = "https://rustdoc.swc.rs/swc_css_ast/"
+edition       = { workspace = true }
+license       = { workspace = true }
+name          = "swc_css_ast"
+repository    = { workspace = true }
+version       = "9.0.0"
+
+[lib]
+bench = false
 
 [features]
 __rkyv = []
@@ -21,11 +24,14 @@ rkyv-impl = [
 ]
 serde-impl = ["serde"]
 
-[lib]
-bench = false
-path = "Source/lib.rs"
+[dependencies]
+bytecheck   = { workspace = true, optional = true }
+is-macro    = { workspace = true }
+rancor      = { workspace = true, optional = true }
+serde       = { workspace = true, features = ["derive"], optional = true }
+string_enum = { version = "1.0.0", path = "../string_enum/" }
 
 swc_atoms  = { version = "5.0.0", path = "../swc_atoms" }
-swc_common = { version = "8.1.1", path = "../swc_common" }
+swc_common = { version = "9.0.0", path = "../swc_common" }
 
 rkyv = { workspace = true, optional = true }

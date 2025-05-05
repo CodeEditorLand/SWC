@@ -82,6 +82,9 @@ fn bench_module(b: &mut Bencher, syntax: Syntax, src: &'static str) {
     let _ = ::testing::run_test(false, |cm, _| {
         let comments = SingleThreadedComments::default();
 
+fn bench_module(b: &mut Bencher, syntax: Syntax, src: &'static str) {
+    let _ = ::testing::run_test(false, |cm, _| {
+        let comments = SingleThreadedComments::default();
         let fm = cm.new_source_file(FileName::Anon.into(), src.into());
 
         b.iter(|| {
@@ -99,6 +102,10 @@ fn bench_module(b: &mut Bencher, syntax: Syntax, src: &'static str) {
             });
         });
 
+                let mut parser = Parser::new_from(lexer);
+                parser.parse_module()
+            });
+        });
         Ok(())
     });
 }

@@ -640,6 +640,8 @@ export class Observable<T> implements Subscribable<T> {
 
         observable.operator = operator;
 
+        observable.source = this;
+        observable.operator = operator;
         return observable;
     }
 
@@ -821,6 +823,8 @@ export class Observable<T> implements Subscribable<T> {
 
         const { operator } = this;
 
+        localSubscriber._syncErrorHack_isSubscribing = true;
+        const { operator } = this;
         if (operator) {
             // We don't need to try/catch on operators, as they
             // are doing their own try/catching, and will
@@ -977,6 +981,9 @@ export class Observable<T> implements Subscribable<T> {
 
     pipe<A, B, C>(op1: OperatorFunction<T, A>, op2: OperatorFunction<A, B>, op3: OperatorFunction<B, C>): Observable<C>;
 
+    pipe<A>(op1: OperatorFunction<T, A>): Observable<A>;
+    pipe<A, B>(op1: OperatorFunction<T, A>, op2: OperatorFunction<A, B>): Observable<B>;
+    pipe<A, B, C>(op1: OperatorFunction<T, A>, op2: OperatorFunction<A, B>, op3: OperatorFunction<B, C>): Observable<C>;
     pipe<A, B, C, D>(
         op1: OperatorFunction<T, A>,
         op2: OperatorFunction<A, B>,
@@ -1153,3 +1160,4 @@ function isSubscriber<T>(value: any): value is Subscriber<T> {
 }
 }
 
+}

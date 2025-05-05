@@ -119,6 +119,9 @@ fn bench_cases(c: &mut Criterion) {
 
     group.bench_function("resolver/typescript", resolver);
 
+    group.sample_size(10);
+
+    group.bench_function("resolver/typescript", resolver);
     group.bench_function("hygiene/typescript", hygiene);
 }
 

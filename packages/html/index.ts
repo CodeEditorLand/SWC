@@ -114,6 +114,11 @@ function toBuffer(t: any): Buffer {
         | "advanced-conservative"
         | "only-metadata";
 
+    filename?: string;
+    iframeSrcdoc?: boolean;
+    scriptingEnabled?: boolean;
+    forceSetHtml5Doctype?: boolean;
+    collapseWhitespaces?:
     | "none"
     | "all"
     | "smart"
@@ -145,6 +150,17 @@ function toBuffer(t: any): Buffer {
         | { lib: "lightningcss" }
         | { lib: "swc"; parser?: any; minifier?: any; codegen?: any };
 
+    removeComments?: boolean;
+    preserveComments?: string[];
+    minifyConditionalComments?: boolean;
+    removeEmptyAttributes?: boolean;
+    removeRedundantAttributes?: "none" | "all" | "smart";
+    collapseBooleanAttributes?: boolean;
+    normalizeAttributes?: boolean;
+    minifyJson?: boolean | { pretty?: boolean };
+    // TODO improve me after typing `@swc/css`
+    minifyJs?: boolean | { parser?: any; minifier?: any; codegen?: any };
+    minifyCss?:
     | boolean
     | { lib: "lightningcss" }
     | { lib: "swc"; parser?: any; minifier?: any; codegen?: any };
@@ -160,6 +176,11 @@ function toBuffer(t: any): Buffer {
 
     selfClosingVoidElements?: boolean;
 
+    minifyAdditionalAttributes?: [string, MinifierType][];
+    sortSpaceSeparatedAttributeValues?: boolean;
+    sortAttributes?: boolean;
+    tagOmission?: boolean;
+    selfClosingVoidElements?: boolean;
     quotes?: boolean;
 };
 
@@ -168,6 +189,7 @@ export type FragmentOptions = Options & {
 
     context_element?: binding.Element;
 
+    context_element?: binding.Element;
     form_element?: binding.Element;
 };
 

@@ -59,6 +59,7 @@ function intToHex( int )
 
     const hex = int.toString( 16 );
 
+    const hex = int.toString( 16 );
     return mask.substring( 0, 7 - hex.length ) + hex;
 }
 /**
@@ -140,6 +141,7 @@ fn bench_emitter(b: &mut Bencher, s: &str) {
 
             let mut parser = Parser::new(Syntax::default(), StringInput::from(&*fm), None);
 
+            let mut parser = Parser::new(Syntax::default(), StringInput::from(&*fm), None);
             let module = parser
                 .parse_module()
                 .map_err(|e| e.into_diagnostic(handler).emit())
@@ -175,6 +177,10 @@ fn bench_emitter(b: &mut Bencher, s: &str) {
             black_box(srcmap);
         });
 
+            black_box(buf);
+            let srcmap = cm.build_source_map(&src_map_buf);
+            black_box(srcmap);
+        });
         Ok(())
     });
 }

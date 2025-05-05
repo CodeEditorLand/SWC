@@ -17,6 +17,7 @@ export type ParseOptions = ParserConfig & {
 
     comments?: boolean;
 
+    comments?: boolean;
     script?: boolean;
     /**
      * Defaults to es3.
@@ -1085,6 +1086,9 @@ export interface Config {
 
     module?: ModuleConfig;
 
+    env?: EnvConfig;
+    jsc?: JscConfig;
+    module?: ModuleConfig;
     minify?: boolean;
 
     /**
@@ -1355,6 +1359,8 @@ export interface EsParserConfig {
 
     debug?: boolean;
 
+    mode?: "usage" | "entry";
+    debug?: boolean;
     dynamicImport?: boolean;
 
     loose?: boolean;
@@ -1738,6 +1744,11 @@ export interface ReactConfig {
      * https://www.typescriptlang.org/tsconfig#verbatimModuleSyntax
      */
     verbatimModuleSyntax?: boolean;
+
+    /**
+     * Native class properties support
+     */
+    nativeClassProperties?: boolean;
 }
 
 export interface ReactConfig {
@@ -1801,6 +1812,27 @@ export interface ReactConfig {
          */
         emitFullSignatures?: boolean;
     };
+        | boolean
+        | {
+              /**
+               * Identifier for the `react-refresh` register function.
+               *
+               * Defaults to `$RefreshReg$`
+               */
+              refreshReg?: string;
+              /**
+               * Identifier for the `react-refresh` signature function.
+               *
+               * Defaults to `$RefreshSig$`
+               */
+              refreshSig?: string;
+              /**
+               * Flag to emit full signatures.
+               *
+               * Defaults to `false`
+               */
+              emitFullSignatures?: boolean;
+          };
 
     /**
      * jsx runtime
@@ -2284,6 +2316,7 @@ export interface BaseModuleConfig {
     /**
      * Output extension for generated files.
      * 
+     *
      * Defaults to `js`.
      */
     outFileExtension?: "js" | "mjs" | "cjs";
@@ -2303,6 +2336,12 @@ export interface BaseModuleConfig {
     allowTopLevelThis?: boolean;
 
     preserveImportMeta?: boolean;
+    allowTopLevelThis?: boolean;
+    preserveImportMeta?: boolean;
+    /**
+     * If set to true, This will resolve top .mjs
+     */
+    resolveFully?: boolean;
 }
 
 export interface Es6Config extends BaseModuleConfig {
@@ -2492,6 +2531,8 @@ export interface Decorator extends Node, HasSpan {
 
     end: number;
 
+    start: number;
+    end: number;
     ctxt: number;
 }
 
@@ -3099,6 +3140,8 @@ export interface OptionalChainingCall extends ExpressionBase {
 
     arguments: ExprOrSpread[];
 
+    callee: Expression;
+    arguments: ExprOrSpread[];
     typeArguments?: TsTypeParameterInstantiation;
 }
 
@@ -3309,6 +3352,7 @@ export interface TemplateElement extends ExpressionBase {
 
     cooked?: string;
 
+    cooked?: string;
     raw: string;
 }
 
@@ -3355,6 +3399,9 @@ export interface JSXMemberExpression extends Node {
 
     object: JSXObject;
 
+    type: "JSXMemberExpression";
+
+    object: JSXObject;
     property: Identifier;
 }
 
@@ -3382,6 +3429,9 @@ export interface JSXExpressionContainer extends Node, HasSpan {
 
     namespace: Identifier;
 
+    type: "JSXNamespacedName";
+
+    namespace: Identifier;
     name: Identifier;
 }
 
@@ -3632,6 +3682,7 @@ export interface JSXElement extends Node, HasSpan {
 
     children: JSXElementChild[];
 
+    children: JSXElementChild[];
     closing?: JSXClosingElement;
 }
 
@@ -3823,6 +3874,7 @@ export interface ImportDefaultSpecifier extends Node, HasSpan {
 
     type: "ImportDefaultSpecifier";
 
+    type: "ImportDefaultSpecifier";
     local: Identifier;
 }
 
@@ -3863,6 +3915,9 @@ export interface NamedImportSpecifier extends Node, HasSpan {
 
     imported?: ModuleExportName;
 
+    type: "ImportSpecifier";
+    local: Identifier;
+    imported?: ModuleExportName;
     isTypeOnly: boolean;
 }
 
@@ -4139,6 +4194,7 @@ export interface BindingIdentifier extends PatternBase {
 
     value: string;
 
+    value: string;
     optional: boolean;
 }
 
@@ -4193,6 +4249,9 @@ export interface KeyValuePatternProperty extends Node {
 
     key: PropertyName;
 
+    type: "KeyValuePatternProperty";
+
+    key: PropertyName;
     value: Pattern;
 }
 
@@ -4210,6 +4269,9 @@ export interface AssignmentPatternProperty extends Node, HasSpan {
 
     key: Identifier;
 
+    type: "AssignmentPatternProperty";
+
+    key: Identifier;
     value?: Expression;
 }
 
@@ -4653,6 +4715,7 @@ export interface IfStatement extends Node, HasSpan {
 
     consequent: Statement;
 
+    consequent: Statement;
     alternate?: Statement;
 }
 
@@ -4677,6 +4740,7 @@ export interface TryStatement extends Node, HasSpan {
 
     handler?: CatchClause;
 
+    handler?: CatchClause;
     finalizer?: BlockStatement;
 }
 
@@ -4705,6 +4769,8 @@ export interface ForStatement extends Node, HasSpan {
 
     update?: Expression;
 
+    test?: Expression;
+    update?: Expression;
     body: Statement;
 }
 
@@ -4715,6 +4781,7 @@ export interface ForInStatement extends Node, HasSpan {
 
     right: Expression;
 
+    right: Expression;
     body: Statement;
 }
 
@@ -4732,6 +4799,8 @@ export interface ForOfStatement extends Node, HasSpan {
 
     right: Expression;
 
+    left: VariableDeclaration | Pattern;
+    right: Expression;
     body: Statement;
 }
 
@@ -4780,6 +4849,9 @@ export interface TsTypeParameter extends Node, HasSpan {
 
     constraint?: TsType;
 
+    in: boolean;
+    out: boolean;
+    constraint?: TsType;
     default?: TsType;
 }
 
@@ -4798,6 +4870,8 @@ export interface TsParameterProperty extends Node, HasSpan, HasDecorator {
 
     readonly: boolean;
 
+    override: boolean;
+    readonly: boolean;
     param: TsParameterPropertyParameter;
 }
 
@@ -4958,6 +5032,7 @@ export interface TsCallSignatureDeclaration extends Node, HasSpan {
 
     typeAnnotation?: TsTypeAnnotation;
 
+    typeAnnotation?: TsTypeAnnotation;
     typeParams?: TsTypeParameterDeclaration;
 }
 
@@ -4968,6 +5043,7 @@ export interface TsConstructSignatureDeclaration extends Node, HasSpan {
 
     typeAnnotation?: TsTypeAnnotation;
 
+    typeAnnotation?: TsTypeAnnotation;
     typeParams?: TsTypeParameterDeclaration;
 }
 
@@ -4980,6 +5056,8 @@ export interface TsPropertySignature extends Node, HasSpan {
 
     computed: boolean;
 
+    key: Expression;
+    computed: boolean;
     optional: boolean;
 
     typeAnnotation?: TsTypeAnnotation;
@@ -4996,6 +5074,9 @@ export interface TsGetterSignature extends Node, HasSpan {
 
     optional: boolean;
 
+    key: Expression;
+    computed: boolean;
+    optional: boolean;
     typeAnnotation?: TsTypeAnnotation;
 }
 
@@ -5010,6 +5091,9 @@ export interface TsSetterSignature extends Node, HasSpan {
 
     optional: boolean;
 
+    key: Expression;
+    computed: boolean;
+    optional: boolean;
     param: TsFnParameter;
 }
 
@@ -5028,6 +5112,12 @@ export interface TsMethodSignature extends Node, HasSpan {
 
     typeAnn?: TsTypeAnnotation;
 
+    key: Expression;
+    computed: boolean;
+    optional: boolean;
+    params: TsFnParameter[];
+
+    typeAnn?: TsTypeAnnotation;
     typeParams?: TsTypeParameterDeclaration;
 }
 
@@ -5186,6 +5276,7 @@ export interface TsConstructorType extends Node, HasSpan {
 
     typeAnnotation: TsTypeAnnotation;
 
+    typeAnnotation: TsTypeAnnotation;
     isAbstract: boolean;
 }
 
@@ -5224,6 +5315,10 @@ export interface TsImportType extends Node, HasSpan {
 
     qualifier?: TsEntityName;
 
+    type: "TsImportType";
+
+    argument: StringLiteral;
+    qualifier?: TsEntityName;
     typeArguments?: TsTypeParameterInstantiation;
 }
 
@@ -5241,6 +5336,9 @@ export interface TsTypeQuery extends Node, HasSpan {
 
     exprName: TsTypeQueryExpr;
 
+    type: "TsTypeQuery";
+
+    exprName: TsTypeQueryExpr;
     typeArguments?: TsTypeParameterInstantiation;
 }
 
@@ -5385,6 +5483,8 @@ export interface TsConditionalType extends Node, HasSpan {
 
     trueType: TsType;
 
+    extendsType: TsType;
+    trueType: TsType;
     falseType: TsType;
 }
 
@@ -5425,6 +5525,10 @@ export interface TsIndexedAccessType extends Node, HasSpan {
 
     objectType: TsType;
 
+    type: "TsIndexedAccessType";
+
+    readonly: boolean;
+    objectType: TsType;
     indexType: TsType;
 }
 
@@ -5474,6 +5578,12 @@ export interface TsTemplateLiteralType extends Node, HasSpan {
 
     optional?: TruePlusMinus;
 
+    type: "TsMappedType";
+
+    readonly?: TruePlusMinus;
+    typeParam: TsTypeParameter;
+    nameType?: TsType;
+    optional?: TruePlusMinus;
     typeAnnotation?: TsType;
 }
 
@@ -5495,6 +5605,7 @@ export interface TsTemplateLiteralType extends Node, HasSpan {
 
     types: TsType[];
 
+    types: TsType[];
     quasis: TemplateElement[];
 }
 
@@ -5571,6 +5682,12 @@ export interface TsEnumMember extends Node, HasSpan {
 
     extends: TsExpressionWithTypeArguments[];
 
+    type: "TsInterfaceDeclaration";
+
+    id: Identifier;
+    declare: boolean;
+    typeParams?: TsTypeParameterDeclaration;
+    extends: TsExpressionWithTypeArguments[];
     body: TsInterfaceBody;
 }
 
@@ -5597,6 +5714,8 @@ export interface TsTypeAliasDeclaration extends Node, HasSpan {
 
     typeParams?: TsTypeParameterDeclaration;
 
+    id: Identifier;
+    typeParams?: TsTypeParameterDeclaration;
     typeAnnotation: TsType;
 }
 
@@ -5609,6 +5728,8 @@ export interface TsEnumDeclaration extends Node, HasSpan {
 
     id: Identifier;
 
+    isConst: boolean;
+    id: Identifier;
     members: TsEnumMember[];
 }
 
@@ -5641,6 +5762,11 @@ export interface TsModuleDeclaration extends Node, HasSpan {
 
     id: TsModuleName;
 
+    type: "TsModuleDeclaration";
+
+    declare: boolean;
+    global: boolean;
+    id: TsModuleName;
     body?: TsNamespaceBody;
 }
 
@@ -5680,6 +5806,8 @@ export interface TsNamespaceDeclaration extends Node, HasSpan {
 
     id: Identifier;
 
+    global: boolean;
+    id: Identifier;
     body: TsNamespaceBody;
 }
 
@@ -5708,6 +5836,12 @@ export interface TsImportEqualsDeclaration extends Node, HasSpan {
 
     id: Identifier;
 
+    type: "TsImportEqualsDeclaration";
+
+    declare: boolean;
+    isExport: boolean;
+    isTypeOnly: boolean;
+    id: Identifier;
     moduleRef: TsModuleReference;
 }
 
@@ -5859,3 +5993,21 @@ export type WasmAnalysisOptions = {
 }
 
 export type WasmPlugin = [wasmPackage: string, config: Record<string, any>]
+    type: "Invalid";
+}
+
+export type WasmAnalysisOptions = {
+    parser?: ParserConfig;
+
+    module?: true | false | "unknown";
+
+    filename?: string;
+
+    errorFormat?: "json" | "normal";
+
+    cacheRoot?: string;
+
+    plugins: WasmPlugin[];
+};
+
+export type WasmPlugin = [wasmPackage: string, config: Record<string, any>];

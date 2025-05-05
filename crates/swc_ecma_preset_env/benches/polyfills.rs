@@ -76,6 +76,7 @@ fn bench_cases(c: &mut Criterion) {
 
         float32[0] = 42;
 
+        float32[0] = 42;
         console.log(float32[0]); // 42
         console.log(float32.length); // 2
         console.log(float32.BYTES_PER_ELEMENT); // 4
@@ -90,6 +91,7 @@ fn bench_cases(c: &mut Criterion) {
 
         var y = new Float32Array(x);
 
+        var y = new Float32Array(x);
         console.log(y[0]); // 21
         
         // From an ArrayBuffer

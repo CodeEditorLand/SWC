@@ -3608,6 +3608,9 @@ function baseCreateRenderer(
       invokeDirectiveHook(n2, n1, parentComponent, 'beforeUpdate')
     }
 
+    if (dirs) {
+      invokeDirectiveHook(n2, n1, parentComponent, 'beforeUpdate')
+    }
     parentComponent && toggleRecurse(parentComponent, true)
 
     if (__DEV__ && isHmrUpdating) {
@@ -4111,6 +4114,9 @@ function baseCreateRenderer(
               startMeasure(instance, `hydrate`)
             }
 
+            if (__DEV__) {
+              startMeasure(instance, `hydrate`)
+            }
             hydrateNode!(
               el as Node,
               instance.subTree,
@@ -5150,6 +5156,9 @@ function baseCreateRenderer(
       return vnode.suspense!.next()
     }
 
+    if (__FEATURE_SUSPENSE__ && vnode.shapeFlag & ShapeFlags.SUSPENSE) {
+      return vnode.suspense!.next()
+    }
     const el = hostNextSibling((vnode.anchor || vnode.el)!)
     // #9071, #9313
     // teleported content can mess up nextSibling searches during patch so

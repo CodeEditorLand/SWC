@@ -99,6 +99,7 @@ where
 
         let mut parser = Parser::new(lexer, Default::default());
 
+        let mut parser = Parser::new(lexer, Default::default());
         let stylesheet: Stylesheet = parser.parse_all().unwrap();
 
         b.iter(|| {

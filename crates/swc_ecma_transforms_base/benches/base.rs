@@ -94,6 +94,12 @@ macro_rules! tr {
                         black_box(module.apply($tr()))
                     });
 
+                let module = parser.parse_module().map_err(|_| ()).unwrap();
+                helpers::HELPERS.set(&Default::default(), || {
+                    $b.iter(|| {
+                        let module = Program::Module(module.clone());
+                        black_box(module.apply($tr()))
+                    });
                     Ok(())
                 })
             })
@@ -131,6 +137,8 @@ fn bench_cases(c: &mut Criterion) {
 
     c.bench_function("es/hygiene/typescript", hygiene);
 
+    c.bench_function("es/fixer/typescript", fixer);
+    c.bench_function("es/hygiene/typescript", hygiene);
     c.bench_function("es/resolver_with_hygiene/typescript", resolver_with_hygiene);
 }
 

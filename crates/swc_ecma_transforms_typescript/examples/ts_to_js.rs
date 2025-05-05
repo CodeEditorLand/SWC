@@ -82,6 +82,7 @@ fn main() {
 	})
     let cm: Lrc<SourceMap> = Default::default();
 
+    let cm: Lrc<SourceMap> = Default::default();
     let handler = Handler::with_tty_emitter(ColorConfig::Auto, true, false, Some(cm.clone()));
 
     // Real usage
@@ -125,6 +126,8 @@ fn main() {
     GLOBALS.set(&globals, || {
         let unresolved_mark = Mark::new();
 
+    GLOBALS.set(&globals, || {
+        let unresolved_mark = Mark::new();
         let top_level_mark = Mark::new();
 
         // Optionally transforms decorators here before the resolver pass

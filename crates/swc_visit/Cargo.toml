@@ -1,19 +1,18 @@
-[dependencies]
-either = { workspace = true }
-new_debug_unreachable = { workspace = true }
+[package]
+authors     = ["강동윤 <kdy1997.dev@gmail.com>"]
+description = "Visitor generator for stable rustc"
+edition     = { workspace = true }
+license     = { workspace = true }
+name        = "swc_visit"
+repository  = { workspace = true }
+version     = "2.0.0"
+
+[lib]
+bench = false
 
 [features]
 path = []
 
-[lib]
-bench = false
-path = "Source/lib.rs"
-
-[package]
-authors = ["강동윤 <kdy1997.dev@gmail.com>"]
-description = "Visitor generator for stable rustc"
-edition = { workspace = true }
-license-file = { workspace = true }
-name = "swc_visit"
-repository = { workspace = true }
-version = "2.0.0"
+[dependencies]
+either                = { workspace = true }
+new_debug_unreachable = { workspace = true }

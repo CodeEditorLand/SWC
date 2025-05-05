@@ -1,30 +1,31 @@
-[dependencies]
-nom = { workspace = true }
-serde = { workspace = true, features = ["derive"], optional = true }
-swc_atoms = { version = "5.0.0", path = "../swc_atoms" }
-swc_common = { version = "8.0.1", path = "../swc_common" }
+[package]
+authors       = ["강동윤 <kdy1997.dev@gmail.com>"]
+description   = "JsDoc parser writen in rust"
+documentation = "https://rustdoc.swc.rs/jsdoc/"
+edition       = { workspace = true }
+include       = ["Cargo.toml", "src/**/*.rs"]
+license       = { workspace = true }
+name          = "jsdoc"
+repository    = { workspace = true }
+version       = "9.0.0"
 
-[dev-dependencies]
-anyhow = { workspace = true }
-dashmap = { workspace = true }
-swc_ecma_ast = { version = "8.1.0", path = "../swc_ecma_ast" }
-swc_ecma_parser = { version = "11.0.0", path = "../swc_ecma_parser" }
-testing = { version = "8.0.0", path = "../testing" }
+[lib]
+bench = false
 
 [features]
 serde-impl = ["serde"]
 
-[lib]
-bench = false
-path = "Source/lib.rs"
+[dependencies]
+nom   = { workspace = true }
+serde = { workspace = true, features = ["derive"], optional = true }
 
 swc_atoms  = { version = "5.0.0", path = "../swc_atoms" }
-swc_common = { version = "8.1.1", path = "../swc_common" }
+swc_common = { version = "9.0.0", path = "../swc_common" }
 
 [dev-dependencies]
 anyhow  = { workspace = true }
 dashmap = { workspace = true }
 
-swc_ecma_ast    = { version = "8.1.2", path = "../swc_ecma_ast" }
-swc_ecma_parser = { version = "11.1.4", path = "../swc_ecma_parser" }
-testing         = { version = "9.0.0", path = "../testing" }
+swc_ecma_ast    = { version = "9.0.0", path = "../swc_ecma_ast" }
+swc_ecma_parser = { version = "12.0.0", path = "../swc_ecma_parser" }
+testing         = { version = "10.0.0", path = "../testing" }

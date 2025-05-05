@@ -163,6 +163,9 @@ fn bench_transform(b: &mut Bencher, plugin_dir: &Path) {
 
     let store = wasmer::Store::default();
 
+    let raw_module_bytes = std::fs::read(path).expect("Should able to read plugin bytes");
+
+    let store = wasmer::Store::default();
     let module = wasmer::Module::new(&store, raw_module_bytes).unwrap();
 
     let plugin_module = swc_plugin_runner::plugin_module_bytes::CompiledPluginModuleBytes::new(

@@ -68,6 +68,8 @@ pub fn bench_files_document_fragment(c:&mut Criterion) {
 pub fn bench_files_document(c: &mut Criterion) {
     let mut group = c.benchmark_group("html/minify/document");
 
+pub fn bench_files_document(c: &mut Criterion) {
+    let mut group = c.benchmark_group("html/minify/document");
     group.sample_size(10);
 
     let mut bench_file = |name: &str, path: &Path| {
@@ -274,6 +276,8 @@ fn run_document_fragment(src: &str) {
 
             let context_element_tag_name = "template";
 
+            let context_element_namespace = Namespace::HTML;
+            let context_element_tag_name = "template";
             let context_element = Element {
                 span: Default::default(),
                 namespace: context_element_namespace,

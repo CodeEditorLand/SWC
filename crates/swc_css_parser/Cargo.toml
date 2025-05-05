@@ -1,48 +1,48 @@
-[[bench]]
-harness = false
-name = "compare"
+[package]
+authors       = ["강동윤 <kdy1997.dev@gmail.com>"]
+description   = "CSS parser"
+documentation = "https://rustdoc.swc.rs/swc_css_parser/"
+edition       = { workspace = true }
+include       = ["Cargo.toml", "src/**/*.rs"]
+license       = { workspace = true }
+name          = "swc_css_parser"
+repository    = { workspace = true }
+version       = "9.0.0"
 
-[[bench]]
-harness = false
-name = "lexer"
+[lib]
+bench = false
 
-[[bench]]
-harness = false
-name = "parser"
+[features]
+debug = []
 
 [dependencies]
 lexical = { workspace = true }
 serde   = { workspace = true }
 
 swc_atoms   = { version = "5.0.0", path = "../swc_atoms" }
-swc_common  = { version = "8.1.1", path = "../swc_common" }
-swc_css_ast = { version = "8.0.0", path = "../swc_css_ast" }
+swc_common  = { version = "9.0.0", path = "../swc_common" }
+swc_css_ast = { version = "9.0.0", path = "../swc_css_ast" }
 
 [dev-dependencies]
 codspeed-criterion-compat = { workspace = true }
-criterion = { workspace = true }
-serde_json = { workspace = true }
-swc_css_ast = { version = "8.0.0", path = "../swc_css_ast", features = [
+criterion                 = { workspace = true }
+serde_json                = { workspace = true }
+
+swc_css_ast = { version = "9.0.0", path = "../swc_css_ast", features = [
   "serde-impl",
 ] }
-swc_css_visit = { version = "8.0.0", path = "../swc_css_visit" }
+swc_css_visit = { version = "9.0.0", path = "../swc_css_visit" }
 swc_malloc = { version = "1.2.2", path = "../swc_malloc" }
-testing = { version = "9.0.0", path = "../testing" }
+testing = { version = "10.0.0", path = "../testing" }
 
-[features]
-debug = []
+[[bench]]
+harness = false
+name    = "compare"
 
-[lib]
-bench = false
-path = "Source/lib.rs"
+[[bench]]
+harness = false
+name    = "lexer"
 
-[package]
-authors = ["강동윤 <kdy1997.dev@gmail.com>"]
-description = "CSS parser"
-documentation = "https://rustdoc.swc.rs/swc_css_parser/"
-edition = { workspace = true }
-include = ["Cargo.toml", "src/**/*.rs"]
-license-file = { workspace = true }
-name = "swc_css_parser"
-repository = { workspace = true }
-version = "8.0.0"
+[[bench]]
+harness = false
+name    = "parser"

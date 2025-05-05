@@ -99,6 +99,8 @@ fn bench_alloc(c: &mut Criterion) {
             for i in 0..times {
                 let item: std::boxed::Box<usize> = black_box(std::boxed::Box::new(black_box(i)));
 
+            for i in 0..times {
+                let item: std::boxed::Box<usize> = black_box(std::boxed::Box::new(black_box(i)));
                 buf.push(item);
             }
         })
@@ -111,6 +113,8 @@ fn bench_alloc(c: &mut Criterion) {
             for i in 0..times {
                 let item: SwcBox<usize> = black_box(SwcBox::new(black_box(i)));
 
+            for i in 0..times {
+                let item: SwcBox<usize> = black_box(SwcBox::new(black_box(i)));
                 vec.push(item);
             }
         })
@@ -125,6 +129,8 @@ fn bench_alloc(c: &mut Criterion) {
             for i in 0..times {
                 let item: SwcBox<usize> = black_box(SwcBox::new_in(black_box(i), alloc));
 
+            for i in 0..times {
+                let item: SwcBox<usize> = black_box(SwcBox::new_in(black_box(i), alloc));
                 vec.push(item);
             }
         })
@@ -172,6 +178,9 @@ fn bench_alloc(c: &mut Criterion) {
         direct_alloc_no_scope(b, 1000000)
     });
 
+    c.bench_function("common/allocator/alloc/no-scope/1000000", |b| {
+        direct_alloc_no_scope(b, 1000000)
+    });
     c.bench_function("common/allocator/alloc/scoped/1000000", |b| {
         direct_alloc_scoped(b, 1000000)
     });

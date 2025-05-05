@@ -86,6 +86,11 @@ fn main() {
         File::create(dest_path).expect("Failed to create swc_core version constant"),
     );
 
+    let out_dir = env::var("OUT_DIR").expect("Outdir should exist");
+    let dest_path = Path::new(&out_dir).join("core_pkg_version.txt");
+    let mut f = BufWriter::new(
+        File::create(dest_path).expect("Failed to create swc_core version constant"),
+    );
     write!(f, "{}", pkg_version).expect("Failed to write swc_core version constant");
 
     // Attempt to collect some build time env values but will skip if there are any

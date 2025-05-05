@@ -1,16 +1,15 @@
-[dependencies]
-quote = { workspace = true }
-
-[lib]
-bench = false
-path = "Source/lib.rs"
-proc-macro = true
-
 [package]
 authors = ["강동윤 <kdy1997.dev@gmail.com>"]
-edition = "2024"
+edition = "2021"
 exclude = ["artifacts.json", "index.node"]
-license-file = "LICENSE"
-name = "node_macro_deps"
+license = "Apache-2.0"
+name    = "node_macro_deps"
 publish = false
 version = "0.1.0"
+
+[lib]
+bench      = false
+proc-macro = true
+
+[dependencies]
+quote = { workspace = true }

@@ -54373,6 +54373,7 @@
 			return this._fromTexture(equirectangular);
 		};
 		;
+		}
 			/**
 			 * Generates a PMREM from an equirectangular texture, which can be either LDR
 			 * (RGBFormat) or HDR (RGBEFormat). The ideal input image size is 1k (1024 x 512),
@@ -54431,6 +54432,7 @@
 				}
 			};
 		;
+		}
 			/**
 			 * Pre-compiles the equirectangular shader. You can get faster start-up by invoking this method during
 			 * your texture's network fetch for increased concurrency.
@@ -54723,6 +54725,7 @@
 			} // Number of standard deviations at which to cut off the discrete approximation.
 
 		;
+		}
 			/**
 			 * This is a two-pass Gaussian blur for a cubemap. Normally this is done
 			 * vertically and horizontally, but this breaks down on a cube. Here we apply

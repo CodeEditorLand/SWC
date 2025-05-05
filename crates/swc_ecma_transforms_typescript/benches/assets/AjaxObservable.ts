@@ -399,6 +399,8 @@ export class AjaxSubscriber<T> extends Subscriber<Event> {
 
     let result: AjaxResponse;
 
+    const destination = this.destination as Subscriber<any>;
+    let result: AjaxResponse;
     try {
       result = new AjaxResponse(e, this.xhr, this.request);
     } catch (err) {
@@ -536,6 +538,11 @@ export class AjaxSubscriber<T> extends Subscriber<Event> {
 
         let error;
 
+        this.next(e);
+        this.complete();
+      } else {
+        progressSubscriber?.error?.(e);
+        let error;
         try {
           error = new AjaxError('ajax error ' + xhr.status, xhr, request);
         } catch (err) {
@@ -554,6 +561,9 @@ export class AjaxSubscriber<T> extends Subscriber<Event> {
       xhr.abort();
     }
 
+    if (!done && xhr && xhr.readyState !== 4 && typeof xhr.abort === 'function') {
+      xhr.abort();
+    }
     super.unsubscribe();
   }
 }
@@ -611,6 +621,7 @@ export type AjaxErrorNames = "AjaxError" | "AjaxTimeoutError";
 
     this.responseType = xhr.responseType || request.responseType!;
 
+    this.responseType = xhr.responseType || request.responseType!;
     this.response = getXHRResponse(xhr);
   }
 }
@@ -748,6 +759,13 @@ const AjaxErrorImpl = (() => {
 
     let response: any;
 
+    this.message = message;
+    this.name = 'AjaxError';
+    this.xhr = xhr;
+    this.request = request;
+    this.status = xhr.status;
+    this.responseType = xhr.responseType;
+    let response: any;
     try {
       response = getXHRResponse(xhr);
     } catch (err) {
@@ -756,6 +774,7 @@ const AjaxErrorImpl = (() => {
 
     this.response = response;
 
+    this.response = response;
     return this;
   }
   AjaxErrorImpl.prototype = Object.create(Error.prototype);
@@ -844,6 +863,11 @@ const AjaxTimeoutErrorImpl = (() => {
     case 'document':
       return xhr.responseXML;
 
+        return JSON.parse(ieXHR.responseText);
+      }
+    }
+    case 'document':
+      return xhr.responseXML;
     case 'text':
     default: {
       if ('response' in xhr) {
@@ -874,6 +898,7 @@ const AjaxTimeoutErrorImpl = (() => {
 
     this.name = 'AjaxTimeoutError';
 
+    this.name = 'AjaxTimeoutError';
     return this;
   }
   AjaxTimeoutErrorImpl.prototype = Object.create(AjaxError.prototype);
