@@ -1,47 +1,47 @@
 {
-	"name": "@codeeditorland/minifier-linux-arm-gnueabihf",
-	"version": "0.0.1",
-	"private": false,
+	"author": {
+		"email": "Source/Open@Editor.Land",
+		"name": "Source 🖋️ Open 👐🏻",
+		"url": "HTTPS://Editor.Land"
+	},
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/SWC/issues"
+	},
+	"cpu": [
+		"arm"
+	],
+	"dependencies": {},
 	"description": "Super-fast alternative for terser",
+	"devDependencies": {
+		"@playform/build": "0.2.3"
+	},
+	"files": [
+		"minifier.linux-arm-gnueabihf.node",
+		"swc"
+	],
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/SWC#readme",
 	"keywords": [
 		"codeeditorland",
 		"land",
 		"playform"
 	],
-	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/SWC#readme",
-	"bugs": {
-		"url": "HTTPS://GitHub.Com/CodeEditorLand/SWC/issues"
+	"license": "SEE LICENSE IN LICENSE",
+	"main": "minifier.linux-arm-gnueabihf.node",
+	"name": "@codeeditorland/minifier-linux-arm-gnueabihf",
+	"os": [
+		"linux"
+	],
+	"private": false,
+	"publishConfig": {
+		"access": "public"
 	},
 	"repository": {
 		"type": "git",
 		"url": "git+HTTPS://github.com/CodeEditorLand/SWC.git"
 	},
-	"license": "SEE LICENSE IN LICENSE",
-	"author": {
-		"name": "Source 🖋️ Open 👐🏻",
-		"email": "Source/Open@Editor.Land",
-		"url": "HTTPS://Editor.Land"
-	},
-	"type": "module",
-	"main": "minifier.linux-arm-gnueabihf.node",
-	"files": [
-		"minifier.linux-arm-gnueabihf.node",
-		"swc"
-	],
 	"scripts": {
 		"prepublishOnly": "Build 'Source/**/*.ts'"
 	},
-	"dependencies": {},
-	"devDependencies": {
-		"@playform/build": "0.2.3"
-	},
-	"os": [
-		"linux"
-	],
-	"cpu": [
-		"arm"
-	],
-	"publishConfig": {
-		"access": "public"
-	}
+	"type": "module",
+	"version": "0.0.1"
 }

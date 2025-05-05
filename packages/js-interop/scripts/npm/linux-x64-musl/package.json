@@ -1,49 +1,49 @@
 {
-	"name": "@codeeditorland/experimental-js-interop-linux-x64-musl",
-	"version": "0.0.1",
-	"private": false,
+	"author": {
+		"email": "Source/Open@Editor.Land",
+		"name": "Source 🖋️ Open 👐🏻",
+		"url": "HTTPS://Editor.Land"
+	},
+	"bugs": {
+		"url": "HTTPS://GitHub.Com/CodeEditorLand/SWC/issues"
+	},
+	"cpu": [
+		"x64"
+	],
+	"dependencies": {},
 	"description": "Super-fast HTML minifier",
+	"devDependencies": {
+		"@playform/build": "0.2.3"
+	},
+	"files": [
+		"swc-experimental-js-interop.linux-x64-musl.node"
+	],
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/SWC#readme",
 	"keywords": [
 		"codeeditorland",
 		"land",
 		"playform"
 	],
-	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/SWC#readme",
-	"bugs": {
-		"url": "HTTPS://GitHub.Com/CodeEditorLand/SWC/issues"
+	"libc": [
+		"musl"
+	],
+	"license": "SEE LICENSE IN LICENSE",
+	"main": "swc-experimental-js-interop.linux-x64-musl.node",
+	"name": "@codeeditorland/experimental-js-interop-linux-x64-musl",
+	"os": [
+		"linux"
+	],
+	"private": false,
+	"publishConfig": {
+		"access": "public"
 	},
 	"repository": {
 		"type": "git",
 		"url": "git+HTTPS://github.com/CodeEditorLand/SWC.git"
 	},
-	"license": "SEE LICENSE IN LICENSE",
-	"author": {
-		"name": "Source 🖋️ Open 👐🏻",
-		"email": "Source/Open@Editor.Land",
-		"url": "HTTPS://Editor.Land"
-	},
-	"type": "module",
-	"main": "swc-experimental-js-interop.linux-x64-musl.node",
-	"files": [
-		"swc-experimental-js-interop.linux-x64-musl.node"
-	],
 	"scripts": {
 		"prepublishOnly": "Build 'Source/**/*.ts'"
 	},
-	"dependencies": {},
-	"devDependencies": {
-		"@playform/build": "0.2.3"
-	},
-	"os": [
-		"linux"
-	],
-	"cpu": [
-		"x64"
-	],
-	"publishConfig": {
-		"access": "public"
-	},
-	"libc": [
-		"musl"
-	]
+	"type": "module",
+	"version": "0.0.1"
 }
