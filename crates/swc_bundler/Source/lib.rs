@@ -4,11 +4,11 @@
 #![cfg_attr(not(test), allow(unused))]
 
 pub use self::{
-	bundler::{Bundle, BundleKind, Bundler, Config, ModuleType},
-	hook::{Hook, ModuleRecord},
-	id::ModuleId,
-	load::{Load, ModuleData},
-	resolve::Resolve,
+    bundler::{Bundle, BundleKind, Bundler, Config, ModuleType},
+    hook::{Hook, ModuleRecord},
+    id::ModuleId,
+    load::{Load, ModuleData},
+    resolve::Resolve,
 };
 
 mod bundler;

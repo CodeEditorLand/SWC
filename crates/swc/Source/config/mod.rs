@@ -241,7 +241,6 @@ impl Options {
         let is_module = cfg.is_module.unwrap_or_default();
 
         let mut source_maps = self.source_maps.clone();
-
         source_maps.merge(cfg.source_maps.clone());
 
         let JscConfig {
@@ -260,13 +259,9 @@ impl Options {
             preserve_all_comments,
             ..
         } = cfg.jsc;
-
         let loose = loose.into_bool();
-
         let preserve_all_comments = preserve_all_comments.into_bool();
-
         let keep_class_names = keep_class_names.into_bool();
-
         let external_helpers = external_helpers.into_bool();
 
         let mut assumptions = assumptions.unwrap_or_else(|| {
@@ -278,7 +273,6 @@ impl Options {
         });
 
         let unresolved_mark = self.unresolved_mark.unwrap_or_default();
-
         let top_level_mark = self.top_level_mark.unwrap_or_default();
 
         if target.is_some() && cfg.env.is_some() {
@@ -372,12 +366,10 @@ impl Options {
                     })
                     .map(|mut c| {
                         c.keep_fnames = true;
-
                         c
                     })
                     .map(BoolOrDataConfig::from_obj)
                     .unwrap_or_else(|| BoolOrDataConfig::from_bool(false));
-
                 let mangle = c
                     .mangle
                     .unwrap_as_option(|default| match default {
@@ -386,12 +378,10 @@ impl Options {
                     })
                     .map(|mut c| {
                         c.keep_fn_names = true;
-
                         c
                     })
                     .map(BoolOrDataConfig::from_obj)
                     .unwrap_or_else(|| BoolOrDataConfig::from_bool(false));
-
                 JsMinifyOptions {
                     compress,
                     mangle,
@@ -410,12 +400,10 @@ impl Options {
                     })
                     .map(|mut c| {
                         c.keep_classnames = true;
-
                         c
                     })
                     .map(BoolOrDataConfig::from_obj)
                     .unwrap_or_else(|| BoolOrDataConfig::from_bool(false));
-
                 let mangle = c
                     .mangle
                     .unwrap_as_option(|default| match default {
@@ -424,12 +412,10 @@ impl Options {
                     })
                     .map(|mut c| {
                         c.keep_class_names = true;
-
                         c
                     })
                     .map(BoolOrDataConfig::from_obj)
                     .unwrap_or_else(|| BoolOrDataConfig::from_bool(false));
-
                 JsMinifyOptions {
                     compress,
                     mangle,
@@ -461,16 +447,13 @@ impl Options {
         if syntax.typescript() {
             transform.legacy_decorator = true.into();
         }
-
         let optimizer = transform.optimizer;
 
         let const_modules = {
             let enabled = transform.const_modules.is_some();
-
             let config = transform.const_modules.unwrap_or_default();
 
             let globals = config.globals;
-
             Optional::new(const_modules(cm.clone(), globals), enabled)
         };
 
@@ -492,7 +475,6 @@ impl Options {
                             None
                         }
                     }
-
                     SimplifyOption::Json(cfg) => Some(simplifier(
                         unresolved_mark,
                         SimplifyConfig {
@@ -517,7 +499,6 @@ impl Options {
         };
 
         let unresolved_ctxt = SyntaxContext::empty().apply_mark(unresolved_mark);
-
         let top_level_ctxt = SyntaxContext::empty().apply_mark(top_level_mark);
 
         let pass = (
@@ -564,7 +545,6 @@ impl Options {
         };
 
         let paths = paths.into_iter().collect();
-
         let resolver = ModuleConfig::get_resolver(&base_url, paths, base, cfg.module.as_ref());
 
         let pass = PassBuilder::new(
@@ -598,7 +578,6 @@ impl Options {
         );
 
         let keep_import_attributes = experimental.keep_import_attributes.into_bool();
-
         let disable_all_lints = experimental.disable_all_lints.into_bool();
 
         #[cfg(feature = "plugin")]
@@ -608,7 +587,6 @@ impl Options {
                 FileName::Custom(filename) => Some(filename.to_owned()),
                 _ => None,
             };
-
             let transform_metadata_context = Arc::new(TransformPluginMetadataContext::new(
                 transform_filename,
                 self.env_name.to_owned(),
@@ -621,37 +599,6 @@ impl Options {
             #[cfg(all(feature = "plugin", not(target_arch = "wasm32")))]
             {
                 if let Some(plugins) = &experimental.plugins {
-                    // Currently swc enables filesystemcache by default on Embedded runtime plugin
-                    // target.
-                    init_plugin_module_cache_once(true, &experimental.cache_root);
-
-                    let mut inner_cache = PLUGIN_MODULE_CACHE
-                        .inner
-                        .get()
-                        .expect("Cache should be available")
-                        .lock();
-
-                    // Populate cache to the plugin modules if not loaded
-                    for plugin_config in plugins.iter() {
-                        let plugin_name = &plugin_config.0;
-
-                        if !inner_cache.contains(&plugin_name) {
-                            let resolved_path = plugin_resolver.resolve(
-                                &FileName::Real(PathBuf::from(&plugin_name)),
-                                &plugin_name,
-                            )?;
-
-                            let path = if let FileName::Real(value) = resolved_path.filename {
-                                value
-                            } else {
-                                anyhow::bail!("Failed to resolve plugin path: {:?}", resolved_path);
-                            };
-
-                            inner_cache.store_bytes_from_path(&path, &plugin_name)?;
-
-                            tracing::debug!("Initialized WASM plugin {plugin_name}");
-                        }
-                    }
                     crate::plugin::compile_wasm_plugins(
                         experimental.cache_root.as_deref(),
                         plugins,
@@ -692,7 +639,6 @@ impl Options {
                      skipped.",
                 );
             }
-
             Box::new(noop_pass())
         };
 
@@ -971,7 +917,6 @@ impl Rc {
                     }
                 }
             }
-
             None => return Ok(Some(Config::default())),
         }
 
@@ -1079,7 +1024,6 @@ impl FileMatcher {
 
                 Ok(re.is_match(&filename))
             }
-
             FileMatcher::Multi(ref v) => {
                 //
                 for m in v {
@@ -1106,7 +1050,6 @@ impl Config {
             if include.matches(filename)? {
                 return Ok(true);
             }
-
             return Ok(false);
         }
 
@@ -1422,32 +1365,13 @@ impl ModuleConfig {
             FileName::Real(v) if !skip_resolver => {
                 FileName::Real(v.canonicalize().unwrap_or_else(|_| v.to_path_buf()))
             }
-
             _ => base.clone(),
         };
 
         let base_url = base_url.to_path_buf();
-
         let resolver = match config {
             None => build_resolver(base_url, paths, false, &util::Config::default_js_ext()),
             Some(ModuleConfig::Es6(config)) | Some(ModuleConfig::NodeNext(config)) => {
-                build_resolver(base_url, paths, config.resolve_fully)
-            }
-
-            Some(ModuleConfig::CommonJs(config)) => {
-                build_resolver(base_url, paths, config.resolve_fully)
-            }
-
-            Some(ModuleConfig::Umd(config)) => {
-                build_resolver(base_url, paths, config.config.resolve_fully)
-            }
-
-            Some(ModuleConfig::Amd(config)) => {
-                build_resolver(base_url, paths, config.config.resolve_fully)
-            }
-
-            Some(ModuleConfig::SystemJs(config)) => {
-                build_resolver(base_url, paths, config.resolve_fully)
                 build_resolver(
                     base_url,
                     paths,
@@ -1614,13 +1538,6 @@ pub enum GlobalInliningPassEnvs {
 
 impl Default for GlobalInliningPassEnvs {
     fn default() -> Self {
-        let mut v = HashSet::default();
-
-        v.insert(String::from("NODE_ENV"));
-
-        v.insert(String::from("SWC_ENV"));
-
-        GlobalInliningPassEnvs::List(v)
         GlobalInliningPassEnvs::List(Default::default())
     }
 }
@@ -1633,7 +1550,6 @@ impl GlobalPassOption {
             let fm = cm.new_source_file(FileName::Anon.into(), src);
 
             let mut errors = Vec::new();
-
             let expr = parse_file_as_expr(
                 &fm,
                 Syntax::Es(Default::default()),
@@ -1666,7 +1582,6 @@ impl GlobalPassOption {
                 } else {
                     (*v).into()
                 };
-
                 let v_str = v.clone();
 
                 let e = expr(cm, handler, v_str);
@@ -1686,7 +1601,6 @@ impl GlobalPassOption {
                         Lazy::new(Default::default);
 
                     let cache_key = env_list.iter().cloned().collect::<Vec<_>>();
-
                     if let Some(v) = CACHE.get(&cache_key).as_deref().cloned() {
                         v
                     } else {
@@ -1698,9 +1612,7 @@ impl GlobalPassOption {
                                 .map(|(k, v)| (k.into(), v.into())),
                             true,
                         );
-
                         CACHE.insert(cache_key, map.clone());
-
                         map
                     }
                 }
@@ -1714,7 +1626,6 @@ impl GlobalPassOption {
                         .iter()
                         .map(|(k, v)| (k.clone(), v.clone()))
                         .collect::<Vec<_>>();
-
                     if let Some(v) = CACHE.get(&cache_key) {
                         (*v).clone()
                     } else {
@@ -1724,9 +1635,7 @@ impl GlobalPassOption {
                             map.iter().map(|(k, v)| (k.clone(), v.clone())),
                             false,
                         );
-
                         CACHE.insert(cache_key, map.clone());
-
                         map
                     }
                 }
@@ -1757,13 +1666,9 @@ impl GlobalPassOption {
                             *expr(cm, handler, v.to_string()),
                         )
                     })
-                    .collect::<AHashMap<_, _>>();
-
                     .collect::<FxHashMap<_, _>>();
                 let map = Arc::new(map);
-
                 CACHE.insert(cache_key, map.clone());
-
                 map
             }
         };
@@ -1778,7 +1683,6 @@ impl GlobalPassOption {
                 .filter(|(k, _)| !k.contains('.'))
                 .map(|(k, v)| (k.clone(), v.clone()))
                 .collect::<Vec<_>>();
-
             if let Some(v) = CACHE.get(&cache_key) {
                 (*v).clone()
             } else {
@@ -1788,9 +1692,7 @@ impl GlobalPassOption {
                     self.vars.into_iter().filter(|(k, _)| !k.contains('.')),
                     false,
                 );
-
                 CACHE.insert(cache_key, map.clone());
-
                 map
             }
         };
@@ -1847,7 +1749,6 @@ fn build_resolver(
         let r = CachingResolver::new(1024, r);
 
         let r = TsConfigResolver::new(r, base_url.clone(), paths.clone());
-
         let r = CachingResolver::new(256, r);
 
         let r = NodeImportResolver::with_config(
@@ -1858,7 +1759,6 @@ fn build_resolver(
                 file_extension: file_extension.to_owned(),
             },
         );
-
         Arc::new(r)
     };
 

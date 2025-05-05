@@ -12,14 +12,12 @@ scoped_tls!(static OUTPUT: RefCell<FxHashMap<String, String>>);
 /// (Experimental) Captures output.
 ///
 /// This is not stable and may be removed in the future.
-pub fn capture<Ret>(f:impl FnOnce() -> Ret) -> (Ret, FxHashMap<String, serde_json::Value>) {
-	let output = RefCell::new(Default::default());
 pub fn capture<Ret>(f: impl FnOnce() -> Ret) -> (Ret, FxHashMap<String, String>) {
     let output = RefCell::new(Default::default());
 
-	let ret = OUTPUT.set(&output, f);
+    let ret = OUTPUT.set(&output, f);
 
-	(ret, output.into_inner())
+    (ret, output.into_inner())
 }
 
 #[cfg(all(feature = "plugin-mode", target_arch = "wasm32"))]
@@ -30,9 +28,6 @@ extern "C" {
 /// (Experimental) Emits a value to the JS caller.
 ///
 /// This is not stable and may be removed in the future.
-pub fn emit(key:String, value:Value) {
-	OUTPUT.with(|output| {
-		let previous = output.borrow_mut().insert(key, value);
 #[cfg(all(feature = "plugin-mode", target_arch = "wasm32"))]
 pub fn experimental_emit(key: String, value: String) {
     let output = (key, value);
@@ -56,8 +51,8 @@ pub fn experimental_emit(key: String, value: String) {
     OUTPUT.with(|output| {
         let previous = output.borrow_mut().insert(key, value);
 
-		if let Some(previous) = previous {
-			panic!("Key already set. Previous value: {previous:?}");
-		}
-	});
+        if let Some(previous) = previous {
+            panic!("Key already set. Previous value: {previous:?}");
+        }
+    });
 }

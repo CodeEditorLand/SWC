@@ -17,7 +17,6 @@ mod value;
 /// # Examples
 ///
 /// ```
-/// use swc_atoms::{Atom, js_word};
 /// use swc_atoms::Atom;
 /// use swc_atoms::atom;
 /// use swc_css_ast::*;
@@ -41,7 +40,6 @@ macro_rules! matches_eq_ignore_ascii_case {
 /// # Examples
 ///
 /// ```
-/// use swc_atoms::{Atom, js_word};
 /// use swc_atoms::Atom;
 /// use swc_atoms::atom;
 /// use swc_css_ast::*;

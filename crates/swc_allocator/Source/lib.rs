@@ -28,8 +28,8 @@
 #![allow(clippy::needless_doctest_main)]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![cfg_attr(
-	feature = "nightly",
-	feature(allocator_api, fundamental, with_negative_coherence, box_into_inner)
+    feature = "nightly",
+    feature(allocator_api, fundamental, with_negative_coherence, box_into_inner)
 )]
 #![deny(missing_docs)]
 #![allow(clippy::derivable_impls)]
@@ -37,59 +37,6 @@
 // TODO: Add types back
 // pub use crate::types::*;
 
-mod alloc;
-#[cfg(feature = "nightly")]
-pub mod boxed;
-pub mod collections;
-#[cfg(feature = "nightly")]
-pub mod vec;
-
-/// Box<T> and Vec<T> depeding on the feature.
-pub mod maybe {
-	#[cfg(not(feature = "nightly"))]
-	pub use std::{boxed, vec};
-
-	#[cfg(feature = "nightly")]
-	pub use crate::{boxed, vec};
-}
-
-/// Fast allocator, effectively working as a cache.
-///
-/// This type implements [Default] and [Copy]. This type is intended to stored
-/// in a variable or a field in a struct before allocating code, and used as the
-/// seocnd argument in [crate::boxed::Box::new_in] and
-/// [crate::vec::Vec::new_in].
-///
-/// [crate::boxed::Box::new] and [crate::vec::Vec::new] are slower than using
-/// this field because they use [FastAlloc::default] internally, which is slower
-/// than store [FastAlloc] in a variable.
-///
-///
-///
-/// # Misc
-///
-/// It implements [`std::alloc::Allocator`]. So it can be used as the
-/// second argument for [`std::boxed::Box`] and
-/// [`std::vec::Vec`]. But you should prefer using
-/// [`crate::boxed::Box`] and [`crate::vec::Vec`], which is a wrapper around the
-/// original types.
-#[derive(Clone, Copy)]
-pub struct FastAlloc {
-	#[cfg(feature = "scoped")]
-	alloc:Option<&'static Allocator>,
-}
-
-impl FastAlloc {
-	/// [crate::boxed::Box] or [crate::vec::Vec] created with this instance is
-	/// managed by the global allocator and it can outlive the
-	/// [crate::Allocator] instance used for [Allocator::scope].
-	pub const fn global() -> Self {
-		Self {
-			#[cfg(feature = "scoped")]
-			alloc:None,
-		}
-	}
-}
 pub mod allocators;
 pub mod api;
 mod types;
@@ -113,5 +60,7 @@ macro_rules! nightly_only {
 #[cfg(not(feature = "nightly"))]
 #[macro_export]
 macro_rules! nightly_only {
-	($($item:item)*) => {};
+    (
+        $($item:item)*
+    ) => {};
 }

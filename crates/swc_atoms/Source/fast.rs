@@ -1,6 +1,6 @@
 use std::{
-	mem::{ManuallyDrop, transmute_copy},
-	ops::Deref,
+    mem::{transmute_copy, ManuallyDrop},
+    ops::Deref,
 };
 
 use crate::Atom;
@@ -16,41 +16,41 @@ use crate::Atom;
 pub struct UnsafeAtom(ManuallyDrop<Atom>);
 
 impl UnsafeAtom {
-	/// # Safety
-	///
-	///  - You should ensure that the passed `atom` is not freed.
-	///
-	/// Some simple solutions to ensure this are
-	///
-	///  - Collect all [Atom] and store them somewhere while you are using
-	///    [UnsafeAtom]
-	///  - Use [UnsafeAtom] only for short-lived operations where all [Atom] is
-	///    stored in AST and ensure that the AST is not dropped.
-	#[inline]
-	pub unsafe fn new(atom: &Atom) -> Self {
-		Self(ManuallyDrop::new(transmute_copy(atom)))
-	}
+    /// # Safety
+    ///
+    ///  - You should ensure that the passed `atom` is not freed.
+    ///
+    /// Some simple solutions to ensure this are
+    ///
+    ///  - Collect all [Atom] and store them somewhere while you are using
+    ///    [UnsafeAtom]
+    ///  - Use [UnsafeAtom] only for short-lived operations where all [Atom] is
+    ///    stored in AST and ensure that the AST is not dropped.
+    #[inline]
+    pub unsafe fn new(atom: &Atom) -> Self {
+        Self(ManuallyDrop::new(transmute_copy(atom)))
+    }
 }
 
 impl Deref for UnsafeAtom {
-	type Target = Atom;
+    type Target = Atom;
 
-	#[inline]
-	fn deref(&self) -> &Self::Target {
-		&self.0
-	}
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
 
 impl Clone for UnsafeAtom {
-	#[inline]
-	fn clone(&self) -> Self {
-		unsafe { Self::new(&self.0) }
-	}
+    #[inline]
+    fn clone(&self) -> Self {
+        unsafe { Self::new(&self.0) }
+    }
 }
 
 impl PartialEq<Atom> for UnsafeAtom {
-	#[inline]
-	fn eq(&self, other: &Atom) -> bool {
-		*self.0 == *other
-	}
+    #[inline]
+    fn eq(&self, other: &Atom) -> bool {
+        *self.0 == *other
+    }
 }
