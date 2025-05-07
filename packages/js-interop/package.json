@@ -13,7 +13,7 @@
 	"description": "Experimental JS interop",
 	"devDependencies": {
 		"@napi-rs/cli": "3.0.0-alpha.43",
-		"@playform/build": "0.2.3",
+		"@playform/build": "0.2.4",
 		"benchmark": "2.1.4"
 	},
 	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/SWC#readme",

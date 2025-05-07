@@ -13,7 +13,7 @@
 	"dependencies": {},
 	"description": "Super-fast HTML minifier",
 	"devDependencies": {
-		"@playform/build": "0.2.3"
+		"@playform/build": "0.2.4"
 	},
 	"files": [
 		"swc-experimental-js-interop.win32-arm64-msvc.node"
