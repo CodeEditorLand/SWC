@@ -222,6 +222,7 @@ impl Options {
         output_path: Option<&Path>,
         source_root: Option<String>,
         source_file_name: Option<String>,
+        source_map_ignore_list: Option<CachedRegex>,
         handler: &Handler,
         config: Option<Config>,
         comments: Option<&'a SingleThreadedComments>,
@@ -533,7 +534,7 @@ impl Options {
         // This is because minifier API is compatible with Terser, and Terser
         // defaults to true, while by default swc itself doesn't enable
         // inline_script by default.
-        let codegen_inline_script = js_minify.as_ref().map_or(false, |v| v.format.inline_script);
+        let codegen_inline_script = js_minify.as_ref().is_some_and(|v| v.format.inline_script);
 
         let preamble = if !cfg.jsc.output.preamble.is_empty() {
             cfg.jsc.output.preamble
@@ -761,6 +762,7 @@ impl Options {
             output_path: output_path.map(|v| v.to_path_buf()),
             source_root,
             source_file_name,
+            source_map_ignore_list,
             comments: comments.cloned(),
             preserve_comments,
             emit_source_map_columns: cfg.emit_source_map_columns.into_bool(),
@@ -954,6 +956,9 @@ pub struct Config {
     pub source_maps: Option<SourceMapsConfig>,
 
     #[serde(default)]
+    pub source_map_ignore_list: Option<CachedRegex>,
+
+    #[serde(default)]
     pub inline_sources_content: BoolConfig<true>,
 
     #[serde(default)]
@@ -1075,6 +1080,7 @@ pub struct BuiltInput<P: Pass> {
 
     pub source_root: Option<String>,
     pub source_file_name: Option<String>,
+    pub source_map_ignore_list: Option<CachedRegex>,
 
     pub comments: Option<SingleThreadedComments>,
     pub preserve_comments: BoolOr<JsMinifyCommentOption>,
@@ -1112,6 +1118,7 @@ where
             output_path: self.output_path,
             source_root: self.source_root,
             source_file_name: self.source_file_name,
+            source_map_ignore_list: self.source_map_ignore_list,
             comments: self.comments,
             preserve_comments: self.preserve_comments,
             inline_sources_content: self.inline_sources_content,
@@ -1249,7 +1256,7 @@ pub enum ErrorFormat {
 impl ErrorFormat {
     pub fn format(&self, err: &Error) -> String {
         match self {
-            ErrorFormat::Normal => format!("{:?}", err),
+            ErrorFormat::Normal => format!("{err:?}"),
             ErrorFormat::Json => {
                 let mut map = serde_json::Map::new();
 
@@ -1578,7 +1585,7 @@ impl GlobalPassOption {
 
             for (k, v) in values {
                 let v = if is_env {
-                    format!("'{}'", v)
+                    format!("'{v}'")
                 } else {
                     (*v).into()
                 };

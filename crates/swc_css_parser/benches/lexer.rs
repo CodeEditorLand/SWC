@@ -49,7 +49,7 @@ fn bench_stylesheet(b: &mut Bencher, src: &'static str) {
 }
 
 fn run(c: &mut Criterion, id: &str, src: &'static str) {
-    c.bench_function(&format!("css/lexer/{}", id), |b| {
+    c.bench_function(&format!("css/lexer/{id}"), |b| {
         bench_stylesheet(b, src);
     });
 }

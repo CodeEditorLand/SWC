@@ -1,4 +1,26 @@
 # Changelog
+## [unreleased]
+
+### Build
+
+
+
+- **(plugin)** Update `wasmer` to `v6.0.0` ([#10439](https://github.com/swc-project/swc/issues/10439)) ([b9eff3c](https://github.com/swc-project/swc/commit/b9eff3c92b77cfd9b15b24d7e08614ac0c59f8fd))
+
+## [swc_core@v23.1.0] - 2025-05-06
+
+### Bug Fixes
+
+
+
+- **(es/react-compiler)** Mark function components declared as a var interesting ([#10437](https://github.com/swc-project/swc/issues/10437)) ([5eac076](https://github.com/swc-project/swc/commit/5eac076b77fa43649cde468deee49771a987781c))
+
+### Features
+
+
+
+- **(common)** Allow using `build_sourcemap` with multiple `SourceMap` ([#10438](https://github.com/swc-project/swc/issues/10438)) ([2a07c8a](https://github.com/swc-project/swc/commit/2a07c8a9c223cbb3862cf7aaafa7659667d13b6e))
+
 ## [swc_core@v22.6.0] - 2025-05-02
 
 ### Bug Fixes

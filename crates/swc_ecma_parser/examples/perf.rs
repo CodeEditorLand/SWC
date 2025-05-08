@@ -135,6 +135,6 @@ fn main() {
         cnt += 1;
     }
 
-    eprintln!("Parsed {} files", cnt);
-    eprintln!("Hash: {:?}", hasher);
+    eprintln!("Parsed {cnt} files");
+    eprintln!("Hash: {hasher:?}");
 }

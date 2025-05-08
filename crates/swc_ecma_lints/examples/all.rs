@@ -158,5 +158,5 @@ fn main() {
     })
     .unwrap_err();
 
-    println!("{}", msg);
+    println!("{msg}");
 }

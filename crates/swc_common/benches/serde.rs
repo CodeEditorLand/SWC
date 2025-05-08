@@ -1,3 +1,5 @@
+#![allow(unexpected_cfgs)]
+
 use ast_node::ast_node;
 use codspeed_criterion_compat::{black_box, criterion_group, criterion_main, Criterion};
 use serde::{Deserialize, Serialize};
@@ -94,6 +96,7 @@ fn bench_serde(c: &mut Criterion) {
         .unwrap();
 
         println!("{}", src);
+        println!("{src}");
 
         b.iter(|| black_box(serde_json::to_string(&src).unwrap()));
     });

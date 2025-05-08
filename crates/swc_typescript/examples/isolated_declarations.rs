@@ -109,5 +109,5 @@ pub fn main() {
             "==================== Errors ====================\n{issues}\n\n```"
         ));
     }
-    println!("{}", output);
+    println!("{output}");
 }

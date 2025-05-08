@@ -280,6 +280,7 @@ fn do_test(_entry: &Path, entries: HashMap<String, FileName>, inline: bool, mini
             .bundle(entries)
             .map_err(|err| println!("{:?}", err))?;
 
+        let mut modules = bundler.bundle(entries).map_err(|err| println!("{err:?}"))?;
         println!("Bundled as {} modules", modules.len());
 
         #[cfg(feature = "concurrent")]

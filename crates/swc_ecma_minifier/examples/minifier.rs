@@ -101,7 +101,7 @@ fn print<N:swc_ecma_codegen::Node>(cm:Lrc<SourceMap>, nodes:&[N], minify:bool) -
 	String::from_utf8(buf).unwrap()
     let file = args().nth(1).expect("should provide a path to file");
 
-    eprintln!("File: {}", file);
+    eprintln!("File: {file}");
 
     testing::run_test2(false, |cm, handler| {
         HANDLER.set(&handler, || {
