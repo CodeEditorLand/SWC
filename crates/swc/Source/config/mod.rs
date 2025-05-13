@@ -12,7 +12,6 @@ use once_cell::sync::Lazy;
 use rustc_hash::{FxBuildHasher, FxHashMap, FxHashSet};
 use serde::{Deserialize, Serialize};
 use swc_atoms::Atom;
-use swc_cached::regex::CachedRegex;
 #[allow(unused)]
 use swc_common::plugin::metadata::TransformPluginMetadataContext;
 use swc_common::{
@@ -20,10 +19,12 @@ use swc_common::{
     errors::Handler,
     FileName, Mark, SourceMap, SyntaxContext,
 };
-pub use swc_compiler_base::{IsModule, SourceMapsConfig};
+pub use swc_compiler_base::SourceMapsConfig;
+pub use swc_config::is_module::IsModule;
 use swc_config::{
-    config_types::{BoolConfig, BoolOr, BoolOrDataConfig, MergingOption},
+    file_pattern::FilePattern,
     merge::Merge,
+    types::{BoolConfig, BoolOr, BoolOrDataConfig, MergingOption},
 };
 use swc_ecma_ast::{noop_pass, EsVersion, Expr, Pass, Program};
 use swc_ecma_ext_transforms::jest;
@@ -37,9 +38,9 @@ use swc_ecma_loader::resolvers::{
 pub use swc_ecma_minifier::js::*;
 use swc_ecma_minifier::option::terser::TerserTopLevelOptions;
 use swc_ecma_parser::{parse_file_as_expr, Syntax, TsSyntax};
+use swc_ecma_preset_env::Feature;
 pub use swc_ecma_transforms::proposals::DecoratorVersion;
 use swc_ecma_transforms::{
-    feature::FeatureFlag,
     hygiene,
     modules::{
         self,
@@ -59,7 +60,7 @@ use swc_ecma_transforms::{
 };
 use swc_ecma_transforms_compat::es2015::regenerator;
 use swc_ecma_transforms_optimization::{
-    inline_globals2,
+    inline_globals,
     simplify::{dce::Config as DceConfig, Config as SimplifyConfig},
     GlobalExprMap,
 };
@@ -222,7 +223,8 @@ impl Options {
         output_path: Option<&Path>,
         source_root: Option<String>,
         source_file_name: Option<String>,
-        source_map_ignore_list: Option<CachedRegex>,
+        source_map_ignore_list: Option<FilePattern>,
+
         handler: &Handler,
         config: Option<Config>,
         comments: Option<&'a SingleThreadedComments>,
@@ -496,7 +498,7 @@ impl Options {
         let optimization = {
             optimizer
                 .and_then(|o| o.globals)
-                .map(|opts| opts.build(cm, handler))
+                .map(|opts| opts.build(cm, handler, unresolved_mark))
         };
 
         let unresolved_ctxt = SyntaxContext::empty().apply_mark(unresolved_mark);
@@ -838,7 +840,7 @@ impl Default for Rc {
             Config {
                 env: None,
                 test: None,
-                exclude: Some(FileMatcher::Regex("\\.tsx?$".into())),
+                exclude: Some(FileMatcher::Pattern(FilePattern::Regex("\\.tsx?$".into()))),
                 jsc: JscConfig {
                     syntax: Some(Default::default()),
                     ..Default::default()
@@ -847,7 +849,7 @@ impl Default for Rc {
             },
             Config {
                 env: None,
-                test: Some(FileMatcher::Regex("\\.tsx$".into())),
+                test: Some(FileMatcher::Pattern(FilePattern::Regex("\\.tsx$".into()))),
                 exclude: None,
                 jsc: JscConfig {
                     syntax: Some(Syntax::Typescript(TsSyntax {
@@ -860,7 +862,9 @@ impl Default for Rc {
             },
             Config {
                 env: None,
-                test: Some(FileMatcher::Regex("\\.(cts|mts)$".into())),
+                test: Some(FileMatcher::Pattern(FilePattern::Regex(
+                    "\\.(cts|mts)$".into(),
+                ))),
                 exclude: None,
                 jsc: JscConfig {
                     syntax: Some(Syntax::Typescript(TsSyntax {
@@ -874,7 +878,7 @@ impl Default for Rc {
             },
             Config {
                 env: None,
-                test: Some(FileMatcher::Regex("\\.ts$".into())),
+                test: Some(FileMatcher::Pattern(FilePattern::Regex("\\.ts$".into()))),
                 exclude: None,
                 jsc: JscConfig {
                     syntax: Some(Syntax::Typescript(TsSyntax {
@@ -956,7 +960,7 @@ pub struct Config {
     pub source_maps: Option<SourceMapsConfig>,
 
     #[serde(default)]
-    pub source_map_ignore_list: Option<CachedRegex>,
+    pub source_map_ignore_list: Option<FilePattern>,
 
     #[serde(default)]
     pub inline_sources_content: BoolConfig<true>,
@@ -1005,7 +1009,7 @@ impl Config {
 #[serde(untagged)]
 pub enum FileMatcher {
     None,
-    Regex(CachedRegex),
+    Pattern(FilePattern),
     Multi(Vec<FileMatcher>),
 }
 
@@ -1020,7 +1024,7 @@ impl FileMatcher {
         match self {
             FileMatcher::None => Ok(false),
 
-            FileMatcher::Regex(re) => {
+            FileMatcher::Pattern(re) => {
                 let filename = if cfg!(target_os = "windows") {
                     filename.to_string_lossy().replace('\\', "/")
                 } else {
@@ -1080,7 +1084,7 @@ pub struct BuiltInput<P: Pass> {
 
     pub source_root: Option<String>,
     pub source_file_name: Option<String>,
-    pub source_map_ignore_list: Option<CachedRegex>,
+    pub source_map_ignore_list: Option<FilePattern>,
 
     pub comments: Option<SingleThreadedComments>,
     pub preserve_comments: BoolOr<JsMinifyCommentOption>,
@@ -1313,14 +1317,17 @@ impl ModuleConfig {
         comments: Option<&'cmt dyn Comments>,
         config: Option<ModuleConfig>,
         unresolved_mark: Mark,
-        available_features: FeatureFlag,
         resolver: Option<(FileName, Arc<dyn ImportResolver>)>,
+        caniuse: impl (Fn(Feature) -> bool),
     ) -> Box<dyn Pass + 'cmt> {
         let resolver = if let Some((base, resolver)) = resolver {
             Resolver::Real { base, resolver }
         } else {
             Resolver::Default
         };
+
+        let support_block_scoping = caniuse(Feature::BlockScoping);
+        let support_arrow = caniuse(Feature::ArrowFunctions);
 
         match config {
             None | Some(ModuleConfig::Es6(..)) | Some(ModuleConfig::NodeNext(..)) => match resolver
@@ -1332,20 +1339,28 @@ impl ModuleConfig {
                 resolver,
                 unresolved_mark,
                 config,
-                available_features,
+                modules::common_js::FeatureFlag {
+                    support_block_scoping,
+                    support_arrow,
+                },
             )),
             Some(ModuleConfig::Umd(config)) => Box::new(modules::umd::umd(
                 cm,
                 resolver,
                 unresolved_mark,
                 config,
-                available_features,
+                modules::umd::FeatureFlag {
+                    support_block_scoping,
+                },
             )),
             Some(ModuleConfig::Amd(config)) => Box::new(modules::amd::amd(
                 resolver,
                 unresolved_mark,
                 config,
-                available_features,
+                modules::amd::FeatureFlag {
+                    support_block_scoping,
+                    support_arrow,
+                },
                 comments,
             )),
             Some(ModuleConfig::SystemJs(config)) => Box::new(modules::system_js::system_js(
@@ -1550,7 +1565,12 @@ impl Default for GlobalInliningPassEnvs {
 }
 
 impl GlobalPassOption {
-    pub fn build(self, cm: &SourceMap, handler: &Handler) -> impl 'static + Pass {
+    pub(crate) fn build(
+        self,
+        cm: &SourceMap,
+        handler: &Handler,
+        unresolved_mark: Mark,
+    ) -> impl 'static + Pass {
         type ValuesMap = Arc<FxHashMap<Atom, Expr>>;
 
         fn expr(cm: &SourceMap, handler: &Handler, src: String) -> Box<Expr> {
@@ -1704,7 +1724,13 @@ impl GlobalPassOption {
             }
         };
 
-        inline_globals2(env_map, global_map, global_exprs, Arc::new(self.typeofs))
+        inline_globals(
+            unresolved_mark,
+            env_map,
+            global_map,
+            global_exprs,
+            Arc::new(self.typeofs),
+        )
     }
 }
 
