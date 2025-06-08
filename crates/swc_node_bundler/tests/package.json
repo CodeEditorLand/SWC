@@ -11,10 +11,10 @@
     "license": "ISC",
     "dependencies": {
         "progress": "^2.0.3",
-        "react": "^16.13.1",
-        "react-dom": "^16.13.1"
+        "react": "^19.1.0",
+        "react-dom": "^19.1.0"
     },
     "devDependencies": {
-        "@swc/helpers": "^0.2.2"
+        "@swc/helpers": "^0.5.17"
     }
 }
