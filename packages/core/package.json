@@ -58,7 +58,7 @@
         "version": "napi version --npm-dir scripts/npm"
     },
     "peerDependencies": {
-        "@swc/helpers": ">=0.5.17"
+        "@swc/helpers": ">=0.5.23"
     },
     "peerDependenciesMeta": {
         "@swc/helpers": {
@@ -94,9 +94,9 @@
         "@swc/types": "workspace:^"
     },
     "devDependencies": {
-        "@napi-rs/cli": "^3.0.0-alpha.43",
-        "cross-env": "^7.0.3",
-        "jest": "^30.0.0",
-        "typescript": "^5.8.3"
+        "@napi-rs/cli": "^3.7.3",
+        "cross-env": "^10.1.0",
+        "jest": "^30.4.2",
+        "typescript": "^7.0.2"
     }
 }

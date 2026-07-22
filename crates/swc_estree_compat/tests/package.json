@@ -16,6 +16,6 @@
     },
     "homepage": "https://github.com/babel/babel#readme",
     "dependencies": {
-        "@babel/core": "^7.27.4"
+        "@babel/core": "^8.0.1"
     }
 }
