@@ -11,8 +11,8 @@
     "license": "ISC",
     "dependencies": {
         "progress": "^2.0.3",
-        "react": "^19.2.7",
-        "react-dom": "^19.2.7"
+        "react": "^19.2.8",
+        "react-dom": "^19.2.8"
     },
     "devDependencies": {
         "@swc/helpers": "^0.5.23"
