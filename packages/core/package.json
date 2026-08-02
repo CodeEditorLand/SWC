@@ -94,7 +94,7 @@
         "@swc/types": "workspace:^"
     },
     "devDependencies": {
-        "@napi-rs/cli": "^3.7.3",
+        "@napi-rs/cli": "^3.8.2",
         "cross-env": "^10.1.0",
         "jest": "^30.4.2",
         "typescript": "^7.0.2"
